@@ -38,6 +38,7 @@ test-results/
 
 # Server database (auto-created on first run)
 server/data/
+backups/
 *.db
 *.db-shm
 *.db-wal

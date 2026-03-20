@@ -19,7 +19,8 @@
     "pipeline:compile": "node ingestion/pipeline.js compile",
     "pipeline:deploy": "node ingestion/pipeline.js deploy",
     "pipeline:status": "node ingestion/pipeline.js status",
-    "pipeline:dry": "node ingestion/pipeline.js all --dry-run"
+    "pipeline:dry": "node ingestion/pipeline.js all --dry-run",
+    "backup:db": "node scripts/backup-db.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",

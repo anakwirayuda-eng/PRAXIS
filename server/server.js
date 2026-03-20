@@ -44,9 +44,26 @@ app.use('*', logger());
 app.use('/api/*', cors({
   origin: isDev ? ALLOWED_ORIGINS : ALLOWED_ORIGINS,
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  allowHeaders: ['Content-Type', 'X-Admin-Key'],
+  allowHeaders: ['Content-Type', 'X-Admin-Key', 'X-Praxis-Shield'],
   maxAge: 86400,
 }));
+
+// Layer 4: Shield Header — reject direct attacks bypassing Cloudflare
+// In production, Cloudflare Transform Rule injects X-Praxis-Shield header.
+// Requests without it are attackers hitting Fly.io directly.
+const SHIELD_SECRET = process.env.PRAXIS_SHIELD_KEY || '';
+if (!isDev && SHIELD_SECRET) {
+  app.use('/api/*', async (c, next) => {
+    // Allow health check without shield (for UptimeRobot)
+    if (c.req.path === '/api/health') return next();
+    const shield = c.req.header('X-Praxis-Shield');
+    if (shield !== SHIELD_SECRET) {
+      console.warn(`🚨 SHIELD BLOCK: Missing/invalid shield header from ${c.req.header('cf-connecting-ip') || 'unknown'}`);
+      return c.json({ error: 'Forbidden' }, 403);
+    }
+    return next();
+  });
+}
 
 // Void Spot #3 fix: Tight body limit (50KB for public, prevents JSON asphyxiation)
 app.use('/api/feedback/*', async (c, next) => {
