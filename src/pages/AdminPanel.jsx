@@ -249,11 +249,11 @@ export default function AdminPanel() {
     fetchData();
   };
 
-  const handleProposalAction = async (id, action) => {
+  const handleProposalAction = async (id, status) => {
     await fetch(`${API_BASE}/api/admin/proposals/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({ status }),
     });
     fetchData();
   };

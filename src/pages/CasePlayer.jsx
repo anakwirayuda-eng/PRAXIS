@@ -824,7 +824,7 @@ export function CasePlayerSession({
 
         {/* Question Feedback — chess-puzzle style */}
         {isReviewing && (
-          <QuestionFeedback caseId={caseData._id} />
+          <QuestionFeedback caseId={caseData._id} caseData={caseData} />
         )}
       </Motion.div>
 

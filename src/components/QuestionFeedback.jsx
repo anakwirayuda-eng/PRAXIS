@@ -9,6 +9,11 @@ import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
 import X from 'lucide-react/dist/esm/icons/x';
 import Send from 'lucide-react/dist/esm/icons/send';
 import Check from 'lucide-react/dist/esm/icons/check';
+import Stethoscope from 'lucide-react/dist/esm/icons/stethoscope';
+import { HealCaseModal } from './HealCaseModal';
+
+// API bridge: empty for dev (Vite proxy), VITE_API_URL for production (Cloudflare Workers)
+const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL || '');
 
 const FEEDBACK_TAGS = [
   { id: 'wrong_answer',  emoji: '❌', label: 'Kunci Salah',       color: '#ef4444' },
@@ -45,7 +50,7 @@ function saveFeedback(data) {
 
 async function syncToServer(caseId, tags, comment) {
   try {
-    await fetch('/api/feedback', {
+    await fetch(`${API_BASE}/api/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ case_id: caseId, tags, comment }),
@@ -56,7 +61,8 @@ async function syncToServer(caseId, tags, comment) {
   }
 }
 
-export function QuestionFeedback({ caseId }) {
+export function QuestionFeedback({ caseId, caseData }) {
+  const [healOpen, setHealOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [comment, setComment] = useState('');
@@ -361,6 +367,28 @@ export function QuestionFeedback({ caseId }) {
           </Motion.div>
         )}
       </AnimatePresence>
+
+      {/* Heal this Case button */}
+      <button
+        type="button"
+        onClick={() => setHealOpen(true)}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 'var(--sp-2)', width: '100%', marginTop: 'var(--sp-2)',
+          padding: 'var(--sp-2) var(--sp-3)',
+          background: 'rgba(168,85,247,0.06)',
+          border: '1px solid rgba(168,85,247,0.15)',
+          borderRadius: 'var(--radius-md)',
+          color: '#c084fc', fontSize: 'var(--fs-xs)', fontWeight: 500,
+          cursor: 'pointer', transition: 'all 0.2s',
+        }}
+      >
+        <Stethoscope size={13} />
+        Heal this Case — Usulkan Perbaikan
+      </button>
+
+      {/* Heal Modal */}
+      <HealCaseModal isOpen={healOpen} onClose={() => setHealOpen(false)} caseData={caseData} />
     </div>
   );
 }
