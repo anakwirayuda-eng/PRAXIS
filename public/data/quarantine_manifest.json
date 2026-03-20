@@ -1,0 +1,46 @@
+[
+  {
+    "id": "medexpqa_289",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_128",
+    "reason": "except_logic_suspect"
+  },
+  {
+    "id": "medexpqa_90",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_158",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_518",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_590",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_423",
+    "reason": "except_logic_suspect"
+  },
+  {
+    "id": "medexpqa_52",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_464",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_621",
+    "reason": "rationale_contradicts_answer"
+  },
+  {
+    "id": "medexpqa_191",
+    "reason": "except_logic_suspect"
+  }
+]

@@ -1,0 +1,722 @@
+[
+  {
+    "_id": 23,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Prevalence is a:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Rate",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Ratio",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Propoion",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 122,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "In Steiner's analysis, SNA demonstrates:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Position of mandible in relation to cranial base",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Position of maxilla in relation to cranial base",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Maxillo-mandibular relationship",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Bedah",
+    "source": ""
+  },
+  {
+    "_id": 128,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Late metabolic acidosis is seen in-",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Term infant given formula feed",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Preterm baby getting cow milk",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Long term breast feeding",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Pediatri",
+    "source": ""
+  },
+  {
+    "_id": 212,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "What is tuberculoma?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Granuloma present in the lungs",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Tuberculous periapical granuloma",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Tuberculous lesion of the lymph nodes",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 229,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Signal from Baroreceptors goes to -",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Caudal ventrolateral medulla",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Rostral dorsolateral medulla",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Nucleus of tractus solitarius",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 292,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Deformity in transient synovitis of Hip ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Abduction",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Flexion",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "External rotation",
+        "is_correct": true
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Bedah",
+    "source": ""
+  },
+  {
+    "_id": 293,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "True about the statement is: When null hypothesis is rejected when it is true?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Type I alpha error",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Type II beta error",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Gamma error",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Bedah",
+    "source": ""
+  },
+  {
+    "_id": 366,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Sinus of Morgagni is between:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Middle constrictor and inferior constrictor",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Middle constrictor and superior constrictor",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Superior constrictor and skull",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 367,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "The term that best describes the nuclear dissolution is",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Pyknosis",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Karyorrhexis",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Karyolysis",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 426,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Hypertrophy means -",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Increased protein content of the cells",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Increase in size of cells",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Increase in number of cells",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 433,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "NREM sleep is associated with:-",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Basal forebrain area",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Dorsal raphe nucleus",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Medulla",
+        "is_correct": true
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Psikiatri",
+    "source": ""
+  },
+  {
+    "_id": 461,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Lambda is meeting point of:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Coronal and sagittal suture",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Coronal and lambdoid suture",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Sagittal and lambdoid suture",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 519,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Diplopia is usually seen in ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Paralytic squint",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Non-paralytic squint",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Both of the above",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 549,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Oxidative deamination is catalyzed by ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Glutaminase",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Glutamine synthase",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Glutamate dehydrogenase",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 562,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Cause of Coxa vera ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Congenital",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Pehe's disease",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "SCFE",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Bedah",
+    "source": ""
+  },
+  {
+    "_id": 567,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "What is irregular astigmatism-",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Perpendicular principal meridians",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Non perpendicular principal meridians",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Any of the above",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  },
+  {
+    "_id": 595,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Surgery for periductal mastitis -",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Hadfield's operation",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Patey's mastectomy",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Modified radical mastectomy",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Bedah",
+    "source": ""
+  },
+  {
+    "_id": 634,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": "F"
+      },
+      "narrative": "Barr body is absent in female having",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "46 XX genome",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "45 X0 genome",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "47 XXX",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Pediatri",
+    "source": ""
+  },
+  {
+    "_id": 646,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Lahsal classification is used for:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Cleft lip and palate",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Tumor staging",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Neurological assessment of trauma patient",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Bedah",
+    "source": ""
+  },
+  {
+    "_id": 711,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Leukoplakia appears white due to :",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Cornified layer which imbibes water.",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Thick epithelium",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Underlying connective tissue",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "category": "Ilmu Penyakit Dalam",
+    "source": ""
+  }
+]

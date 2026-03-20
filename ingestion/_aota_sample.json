@@ -1,0 +1,856 @@
+[
+  {
+    "_id": 23,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Prevalence is a:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Rate",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Ratio",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Propoion",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Ratio",
+    "rationale": {
+      "correct": "Tools of measurement in epidemics: - Rate = x 1000/ 10000/ 100000 ; a is pa of b - Ratio = a/b ; a is not a pa of b - Propoion = x 100 = % ; a is pa of b Prevalence = No. of all current cases of a disease at a time /Estimated total population at that time X 100 Hence, Prevalence is a propoion (Prevalence is NOT a Ratio): Numerator is a pa of denominator & is always expressed in percentage. Incidence is rate.",
+      "distractors": {
+        "C": "[Auto-Analysis] Propoion is more commonly indicated as a primary treatment for pediatrics cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 122,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "In Steiner's analysis, SNA demonstrates:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Position of mandible in relation to cranial base",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Position of maxilla in relation to cranial base",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Maxillo-mandibular relationship",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Position of mandible in relation to cranial base",
+    "rationale": {
+      "correct": "Relating the Maxilla to the Skull: The angle SNA is formed by joining the lines S-N and N-A . The mean reading for this angle is 82°.\nSteiners analysis demonstrates the position of maxilla and mandible in relation to the cranial base. \nIf the angular reading is more than 82°, it would indicate a relative forward positioning or protrusion of the maxilla. Conversely, should the reading be less than 82°, it would indicate a relative backward or recessive location of the maxilla.",
+      "distractors": {
+        "B": "[Auto-Analysis] Position of maxilla in relation to cranial base is more commonly indicated as a primary treatment for surgery cases.",
+        "C": "[Auto-Analysis] Maxillo-mandibular relationship is more commonly indicated as a primary treatment for surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 128,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Late metabolic acidosis is seen in-",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Term infant given formula feed",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Preterm baby getting cow milk",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Long term breast feeding",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Term infant given formula feed",
+    "rationale": {
+      "correct": "s 'b' i.e., Preterm baby getting cow milk Late metabolic acidosis (LMA) o Late metabolic acidosis is a special type of acidosis in apparently healthy premature infant. o This hyperchloremic acidosis appeares during second and third week of life, and resolves spontaneously within a couple of weeks. Definition \"An acidosis occuring after second day of life, in which base excess values are lower than -5meq/L on two consecutive estimations done at least 24 hours apa\". Etiology o Prematurity is the most important single predisposing factor in the development of LMA. o The incidence varies considerably depending upon the gestational maturity and protein content of feeding formula. o In preterm neonates fed on a modified cow's milk the risk of developing LMA is very high.\n\n⚠️ **Answer Audit Warning (GPT confidence 4/5):** The marked answer may be incorrect. Late metabolic acidosis is typically associated with preterm infants who are given cow's milk due to its high protein content and potential for increased renal load, leading to acidosis.",
+      "distractors": {
+        "B": "[Auto-Analysis] Preterm baby getting cow milk is more commonly indicated as a primary treatment for internal medicine or obgyn cases.",
+        "C": "[Auto-Analysis] Long term breast feeding is more commonly indicated as a primary treatment for internal medicine or obgyn cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 212,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "What is tuberculoma?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Granuloma present in the lungs",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Tuberculous periapical granuloma",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Tuberculous lesion of the lymph nodes",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Granuloma present in the lungs",
+    "rationale": {
+      "correct": "Tuberculosis may also involve the bone of the maxilla or mandible. One common mode of entry for the microorganisms is into an area of periapical inflammation by way of the blood stream; an anachoretic effect.\nIt is conceivable also that these microorganisms may enter the periapical tissues by direct immigration through the pulp chamber and root canal of a tooth with an open cavity. The lesion produced is essentially a tuberculous periapical granuloma or tuberculoma. These lesions were usually painful and sometimes involve a considerable amount of bone by relatively rapid extension.",
+      "distractors": {
+        "B": "[Auto-Analysis] Tuberculous periapical granuloma is more commonly indicated as a primary treatment for internal medicine or surgery cases.",
+        "C": "[Auto-Analysis] Tuberculous lesion of the lymph nodes is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 229,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Signal from Baroreceptors goes to -",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Caudal ventrolateral medulla",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Rostral dorsolateral medulla",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Nucleus of tractus solitarius",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Rostral dorsolateral medulla",
+    "rationale": {
+      "correct": "s C Nucleus of tractus solitarius o Baroreceptors are mechanoreceptors that are located in the adventia of carotid artery and aorta, at specialized locations called sinuses. Carotid sinus is a little bulge at the root of internal carotid artery, located just above the bifurcation of the common carotid artery. It is innerv ated by the sinus nerve, a branch of glossopharyngeal (IX cranial) nerve. Aortic arch (aortic sinus) also contains mechenoreceptors (stretch receptors) which are similar to carotid sinus receptors. However, their afferent nerve fibers travel in the aortic nerve, a branch of Vagus (X cranial) nerve. o The sinus nerve (from carotid sinus) and aortic nerve/vagal fibers (from aortic sinus) are together called 'Sino- aortic nerves'. They, together, are also refered to as 'Buffer nerves' because they are the afferents of cardiovascular reflexes that buffer abrupt changes in blood pressure. o Baroreceptors are highly sensitive to any change in mean blood pressure. Sinoaortic nerves (buffer nerves) normally discharge rhythmically, synchronous with the pressure fluctuation during systole and diastole. They respond to BP changes between 70 mm Hg and 150 mm Hg. When BP rises, baroreceptors are stimulated and their afferents (through sinoaortic nerves) stimulate nucleus of tractus solitarus (NTS) which inturn inhibits the pressor area of VMC, i.e., Rostral ventrolateral medula (RVLM). This results in decreased sympathetic outflow and therefore decreases in vasomotor tone and vasodilation. Vasodilation brings down the BP. Thereby helping hemostasis. Activated NTS also stimulates nucleus ambiguous (cardioinhibitory center) of medulla, which increases parasympathetic (vagal) output, through vagus, that decreases heart rate. Reduction in heart rate reduces the cardiac output, which also reduces BP. Baroreceptor stimulation also weekly inhibits respiration, o When BP falls, for instance while changing the posture from lying down to standing, reverse change takes place. When a person stands up, his blood is pooled in the veins of lowrer limbs by the effect of gravity. Central venous pressure and venous return decrease, which causes a fall in stroke volume. Hence the systolic BP falls. As a result, the discharge rate of baroreceptors decreases leading to a decrease in the inhibitory' influence on the pressor area of VMC. Hence vasomotor tone increases, leading to vasoconstriction, and consequently an increase in BP. Simultaneously, the nucleus ambiguous of the vagus is also inhibited, increasing the heart rate and consequently stroke volume and eventually BP. Thus fall in BP due to change of posture is very brief (Transient).",
+      "distractors": {
+        "A": "[Auto-Analysis] Caudal ventrolateral medulla is more commonly indicated as a primary treatment for internal medicine or obgyn cases.",
+        "C": "[Auto-Analysis] Nucleus of tractus solitarius is more commonly indicated as a primary treatment for internal medicine or neurology cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 292,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Deformity in transient synovitis of Hip ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Abduction",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Flexion",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "External rotation",
+        "is_correct": true
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "External rotation",
+    "rationale": {
+      "correct": "s 'd' i.e., All of the above Transient synovitis of Hip Transient synovitis of hip is also known as observation hip, toxic synovitis or irritable hip. Its a self-limiting, inflammatory condition of the synovium, that lasts only a sho time (therefore known as transient) It is the most common cause of hip pain and limp in children under 10 yrs of age. Cause is not known but association has been seen with a recent history of an upper respiratory tract infection. Presentation is with hip pain or limp. The limb is in attitude of slight flexion, abduction and external rotation. The child may have low grade fever. The ESR, C-Reactive protein & WBCs count are normal (This differentiates Transient synovitis from Septic ahiritis a serious condition, in which patient has high grade fever and elevated ESR, C-Reactive protein and WBC count). Radiograph or ultrasound may show widening of the joint space However, most of the time x-ray is normal. Usually the treatment of a clinically suspected case of transient synovitis of hip is Bed rest, NSAIDS and observation. USG guided aspiration is indicated for :- Temperature > 99.5deg F ESR > 20 (Raised ESR) Severe hip pain with ROM\n\n⚠️ **Answer Audit Warning (GPT confidence 4/5):** The marked answer may be incorrect. In transient synovitis of the hip, common deformities include positions of abduction, flexion, and external rotation, so the correct answer should be 'All of the above'.",
+      "distractors": {
+        "A": "[Auto-Analysis] Abduction is more commonly indicated as a primary treatment for internal medicine cases.",
+        "B": "[Auto-Analysis] Flexion is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 293,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "True about the statement is: When null hypothesis is rejected when it is true?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Type I alpha error",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Type II beta error",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Gamma error",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Type I alpha error",
+    "rationale": {
+      "correct": "Refer to subject textbook for detailed explanation.",
+      "distractors": {
+        "B": "[Auto-Analysis] Type II beta error is more commonly indicated as a primary treatment for internal medicine or surgery cases.",
+        "C": "[Auto-Analysis] Gamma error is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 366,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Sinus of Morgagni is between:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Middle constrictor and inferior constrictor",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Middle constrictor and superior constrictor",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Superior constrictor and skull",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Middle constrictor and superior constrictor",
+    "rationale": {
+      "correct": "Sinus of Morgagni is a gap between the base of skull and the upper concave border of superior constrictor muscle.\nStructures passing through that are: Auditory tube, levator palati muscle, ascending palatine artery and palatine branch of the ascending pharyngeal artery.",
+      "distractors": {
+        "A": "[Auto-Analysis] Middle constrictor and inferior constrictor is more commonly indicated as a primary treatment for internal medicine or psychiatry cases.",
+        "C": "[Auto-Analysis] Superior constrictor and skull is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 367,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "The term that best describes the nuclear dissolution is",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Pyknosis",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Karyorrhexis",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Karyolysis",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Karyorrhexis",
+    "rationale": {
+      "correct": "Pyknosis is condensation of nucleus.\nKaryorrhexis is fragmentation of nucleus.\nKaryolysis is dissolution of nucleus.",
+      "distractors": {
+        "A": "[Auto-Analysis] Pyknosis is more commonly indicated as a primary treatment for internal medicine cases.",
+        "C": "[Auto-Analysis] Karyolysis is more commonly indicated as a primary treatment for internal medicine cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 426,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Hypertrophy means -",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Increased protein content of the cells",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Increase in size of cells",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Increase in number of cells",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Increased protein content of the cells",
+    "rationale": {
+      "correct": "s 'b' i.e., Increase in size of cells Hypertrophy o Hypertrophy refers to an increase in the size of cells without increase in the number, resulting in an increase in the size of tissue. Hypertrophy involves cell enlargement without cell division. So, hypertrophied organ has just larger cells, but no new cells Hyperplasia o Hyperplasia refers to an increase in number of cells without increase in cell size. It occurs due to cell division and proliferation, in hyperplasia there is increase in number of new cells without increase in size.",
+      "distractors": {
+        "B": "[Auto-Analysis] Increase in size of cells is more commonly indicated as a primary treatment for internal medicine or surgery cases.",
+        "C": "[Auto-Analysis] Increase in number of cells is more commonly indicated as a primary treatment for internal medicine or obgyn cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 433,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "NREM sleep is associated with:-",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Basal forebrain area",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Dorsal raphe nucleus",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Medulla",
+        "is_correct": true
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Medulla",
+    "rationale": {
+      "correct": "NREM sleep generation is associated with 5 anatomical sites: * Basal forebrain area Thalamus Hypothalamus Dorsal raphe nucleus Nucleus tractus solitaries of the medulla Preoptic lesions produce hyposomnia, whereas electrical and thermal stimulation of this area produces sleep changes. Thalamus (especially reticular formation) plays an active role in production of cortical sleep spindles and delta waves.",
+      "distractors": {
+        "A": "[Auto-Analysis] Basal forebrain area is more commonly indicated as a primary treatment for internal medicine or psychiatry cases.",
+        "B": "[Auto-Analysis] Dorsal raphe nucleus is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 461,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Lambda is meeting point of:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Coronal and sagittal suture",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Coronal and lambdoid suture",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Sagittal and lambdoid suture",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Coronal and lambdoid suture",
+    "rationale": {
+      "correct": "The lambda is the meeting point between the sagittal and lambdoid sutures. In the foetal skull, this is the site of the posterior fontanelle which closes at two to three months of age.",
+      "distractors": {
+        "A": "[Auto-Analysis] Coronal and sagittal suture is more commonly indicated as a primary treatment for internal medicine or surgery cases.",
+        "C": "[Auto-Analysis] Sagittal and lambdoid suture is more commonly indicated as a primary treatment for surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 519,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Diplopia is usually seen in ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Paralytic squint",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Non-paralytic squint",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Both of the above",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Paralytic squint",
+    "rationale": {
+      "correct": "s 'a' i.e., Paralytic squint",
+      "distractors": {
+        "B": "[Auto-Analysis] Non-paralytic squint is more commonly indicated as a primary treatment for internal medicine cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 549,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Oxidative deamination is catalyzed by ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Glutaminase",
+        "is_correct": false
+      },
+      {
+        "id": "B",
+        "text": "Glutamine synthase",
+        "is_correct": true
+      },
+      {
+        "id": "C",
+        "text": "Glutamate dehydrogenase",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Glutamine synthase",
+    "rationale": {
+      "correct": "s 'c' i.e., Glutamate dehydrogenase",
+      "distractors": {
+        "C": "[Auto-Analysis] Glutamate dehydrogenase is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 562,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Cause of Coxa vera ?",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Congenital",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Pehe's disease",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "SCFE",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Congenital",
+    "rationale": {
+      "correct": "s 'd' i.e., All of the above Coxa vera Coxa vera refers to reduced angle between the neck and shaft of the femur. Coxa vera may be congenital or acquired. 1. Congenital (developmental / Infantile) coxa vera This is coxa vara resulting from some unknown growth anomaly at the upper femoral epiphysis. It is noticed as a painless limp in a child who has just staed walking. In severe cases, shoening of the leg may be obvious. On examination, abduction and internal rotation of the hip are limited and the leg is sho. X - rays will show a reduction in neck - shaft angle. The epiphyseal plate may be too vertical. There may be a separate triangle of bone in the inferior poion of the metaphysis, called Fairbank's triangle. Treatment is by a subtrochanteric corrective osteotomy. 2. Aquired coxa - vera Aquired coxa-vera is seen in :- SCFE (slipped capital femoral epiphysis) Sequelae of avascular necrosis of femoral epiphysis Legg-Calve Pehe's disease Femoral neck fracture Traumatic hip dislocation Post reduction of CDH Septic necrosis Associated with pathological bone disorders Osteogenesis imperfecta Fibrous dysplasia Osteopetrosis",
+      "distractors": {
+        "B": "[Auto-Analysis] Pehe's disease is more commonly indicated as a primary treatment for internal medicine cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 567,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "What is irregular astigmatism-",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Perpendicular principal meridians",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Non perpendicular principal meridians",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Any of the above",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Perpendicular principal meridians",
+    "rationale": {
+      "correct": "s 'b' i.e., Non perpendicular principal meridians ASTIGMATISMo Astigmatism is a type of refractive error wherein the refraction varies in the different meridia. Consequently, the rays of light entering in the eye cannot converge to a point focus but form focal lines. The refractive error of the astigmatic eye stems from a difference in degree of curvature refraction of the two different meridians (i.e.,, the eye has different focal point in different planes). For example, the image may be clearly focused on retina in the horizontal plane, but not in the vertical plane.o The most common cause of astigmatism is abnormality of corneal curvature. Other less common causes are lenticular (curvature abnormality of lens,oblique position of lens) and retinal (oblique placement of macula). Types of astigmatismBased on axis of the principal meridiansRegular stigmatism : Principal meridians are perpendicularo With-the-rule astigmatism-the vertical meridian is steepest.o Against-the-rule astigmatism-the horizontal meridian is steepest.o Oblique astigmatism-the steepest curve lies in between 120 and 150 degrees and 30 and 60 degrees.Irregular astigmatism - principal meridians are not perpendicular.Based on focus of the principal meridiansSimple astigmatismo Simple hyperopic astigmatism - first focal line is on retina while the second is located behind the retinao Simple myopic astigmatism - first focal line is in front of the retina while the second is on the retina.Compound astigmatismo Compound hyperopic astigmatism-both focal lines are located behind the retina,o Compound myopic astigmatism-both focal lines are located in front of the retina.Mixed astigmatism-focal lines are on both sides of the retina (straddling the retina).Treatment of Astigmatismo Treatment of astigmatism consists : -Optical treatment: - It consists of cylindrical power spectacles or contact lens. Types of contact lenses used are permeable contact tens, Soft toric contact lens (for high degree astigmatism), hybrid lens, i.e,, soft on hard lens, hard contact lens.Surgical treatment: - Non-laser (astigmatic keratotomy) or laser (PRK, LASIK).",
+      "distractors": {
+        "B": "[Auto-Analysis] Non perpendicular principal meridians is more commonly indicated as a primary treatment for internal medicine or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 595,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Surgery for periductal mastitis -",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Hadfield's operation",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Patey's mastectomy",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Modified radical mastectomy",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Hadfield's operation",
+    "rationale": {
+      "correct": "Refer to subject textbook for detailed explanation.",
+      "distractors": {
+        "B": "[Auto-Analysis] Patey's mastectomy is more commonly indicated as a primary treatment for surgery cases.",
+        "C": "[Auto-Analysis] Modified radical mastectomy is more commonly indicated as a primary treatment for pediatrics or surgery cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 634,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": "F"
+      },
+      "narrative": "Barr body is absent in female having",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "46 XX genome",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "45 X0 genome",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "47 XXX",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "46 XX genome",
+    "rationale": {
+      "correct": "Barr body is absent in those with genotype 45 XO . For a brr body to be present a minimum of 2 x chromosomes should be there . No of Barr body = no of x chromosomes - 1. Reference: GHAI Essential pediatrics, 8th edition",
+      "distractors": {
+        "B": "[Auto-Analysis] 45 X0 genome is more commonly indicated as a primary treatment for pediatrics or internal medicine cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 646,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Lahsal classification is used for:",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Cleft lip and palate",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Tumor staging",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Neurological assessment of trauma patient",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "None of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Cleft lip and palate",
+    "rationale": {
+      "correct": "Any classification for such a diverse and varied condition as cleft lip and palate needs to be simple, concise, flexible and exact but graphic. It must be suitable for computerisation but descriptive and morphological. An example of such a classification is the LAHSHAL system.",
+      "distractors": {
+        "B": "[Auto-Analysis] Tumor staging is more commonly indicated as a primary treatment for internal medicine or pediatrics cases.",
+        "C": "[Auto-Analysis] Neurological assessment of trauma patient is more commonly indicated as a primary treatment for psychiatry or internal medicine cases."
+      },
+      "pearl": null
+    }
+  },
+  {
+    "_id": 711,
+    "question": {
+      "demographics": {
+        "age": null,
+        "sex": null
+      },
+      "narrative": "Leukoplakia appears white due to :",
+      "vitalSigns": null,
+      "labFindings": null
+    },
+    "options": [
+      {
+        "id": "A",
+        "text": "Cornified layer which imbibes water.",
+        "is_correct": true
+      },
+      {
+        "id": "B",
+        "text": "Thick epithelium",
+        "is_correct": false
+      },
+      {
+        "id": "C",
+        "text": "Underlying connective tissue",
+        "is_correct": false
+      },
+      {
+        "id": "D",
+        "text": "All of the above",
+        "is_correct": false
+      }
+    ],
+    "current_answer": "Cornified layer which imbibes water.",
+    "rationale": {
+      "correct": "Refer to subject textbook for detailed explanation.",
+      "distractors": {
+        "B": "[Auto-Analysis] Thick epithelium is more commonly indicated as a primary treatment for internal medicine or surgery cases.",
+        "C": "[Auto-Analysis] Underlying connective tissue is more commonly indicated as a primary treatment for surgery cases."
+      },
+      "pearl": null
+    }
+  }
+]

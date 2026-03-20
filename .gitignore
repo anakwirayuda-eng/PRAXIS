@@ -1,0 +1,70 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Raw downloaded datasets (large — regenerate with ingestion/download.js)
+ingestion/sources/medqa/*.json
+ingestion/sources/medmcqa/*.json
+ingestion/sources/anking/
+ingestion/sources/litfl/
+ingestion/sources/recall-ukmppd/
+ingestion/sources/ppk-kemenkes/
+
+# Compiled output (regenerate with ingestion/parsers/parse-all.js)
+ingestion/output/compiled_cases.json
+playwright-report/
+test-results/
+
+# Server database (auto-created on first run)
+server/data/
+*.db
+*.db-shm
+*.db-wal
+.env 
+public/images/cases/* 
+
+# Large data backups and temp files
+public/data/*.backup.json
+public/data/*.tmp
+*.zip
+
+# PDF reference files (copyrighted exam material)
+PDF referensi/
+TXT referensi/
+
+# Ingestion output (regenerated, large)
+ingestion/output/
+
+# OCR training data (large binaries)
+*.traineddata
+
+# Temp files
+tmp_*
+*.tmp
+fix-rt-bug.cjs
+
+# Dossier files (internal docs)
+*_DOSSIER.md
+dossier_*.md
+igakuqa_*.md

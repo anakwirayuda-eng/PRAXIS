@@ -1,0 +1,509 @@
+/**
+ * MedCase Pro — Case Browser Page (Performance Optimized)
+ * 
+ * Genius Hacks applied:
+ *  1. DOM Diet — CSS transitions instead of Framer Motion, Unicode stars instead of SVG
+ *  2. Invisible Infinite Scroll — IntersectionObserver auto-loads pages
+ *  3. O(1) Search — useDeferredValue + pre-computed _searchKey
+ *  4. content-visibility: auto — native browser virtualization via CSS
+ *  5. Daily Seed Shuffle — different order every day to prevent repetition
+ *  6. Unseen First — prioritize cases user hasn't completed
+ */
+import { useMemo, useState, useEffect, useRef, useDeferredValue } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { useStore } from '../data/store';
+import Search from 'lucide-react/dist/esm/icons/search';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+import Bookmark from 'lucide-react/dist/esm/icons/bookmark';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import Shuffle from 'lucide-react/dist/esm/icons/shuffle';
+import Camera from 'lucide-react/dist/esm/icons/camera';
+import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
+
+// Genius Hack 5: Seeded PRNG — same shuffle for the whole day (pagination-stable)
+function mulberry32(seed) {
+  return function() {
+    let t = seed += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function getDailySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function seededShuffle(arr, seed) {
+  const rng = mulberry32(seed);
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+const PAGE_SIZE = 50;
+const srOnlyStyle = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
+
+function updateQueryParams(searchParams, updates) {
+  const next = new URLSearchParams(searchParams);
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === '' || value === 'all' || value === false) {
+      next.delete(key);
+    } else {
+      next.set(key, String(value));
+    }
+  });
+  return next;
+}
+
+// Genius Hack 1: Unicode stars instead of 42K SVG DOM nodes
+function DifficultyStars({ level }) {
+  return (
+    <span style={{ color: 'var(--accent-warning)', letterSpacing: '2px', fontSize: '0.85rem' }}>
+      {'★'.repeat(level)}{'☆'.repeat(3 - level)}
+    </span>
+  );
+}
+
+export default function CaseBrowser() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { completedCases, bookmarks } = useStore();
+  const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
+
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const observerTarget = useRef(null);
+
+  // Genius Hack 3: Deferred search — no re-filter on every keystroke
+  const deferredSearch = useDeferredValue(search.toLowerCase());
+
+  const selectedCategory = searchParams.get('category') || 'all';
+  const selectedDifficulty = searchParams.get('difficulty') || 'all';
+  const selectedType = searchParams.get('type') || 'all';
+  const selectedExam = searchParams.get('exam') || 'all';
+  const showBookmarksOnly = searchParams.get('bookmarks') === '1'
+    || searchParams.get('bookmarks') === 'true'
+    || searchParams.get('filter') === 'bookmarked';
+  const selectedMode = searchParams.get('mode') || 'all';
+
+  const hideCompleted = searchParams.get('hideCompleted') === '1';
+  const showImagesOnly = searchParams.get('images') === '1';
+  const unseenFirst = searchParams.get('unseen') !== '0'; // default ON
+  const hideTruncated = searchParams.get('hideTruncated') !== '0'; // default ON
+  const reviewMode = searchParams.get('showOnlyReviewed') === '1'
+    ? 'reviewed'
+    : searchParams.get('hideUnreviewed') === '0'
+      ? 'all'
+      : 'hide';
+  const hideUnreviewed = reviewMode === 'hide';
+  const showOnlyReviewed = reviewMode === 'reviewed';
+
+  // Genius Hack 3: O(1) feeling search using pre-computed _searchKey
+  const filteredCases = useMemo(() => {
+    const filtered = caseBank.filter((caseData) => {
+      const meta = caseData.meta ?? {};
+      const isTruncated = meta.truncated === true;
+      const needsReview = meta.needs_review === true;
+      if (showBookmarksOnly && !bookmarks.includes(caseData._id)) return false;
+      if (hideCompleted && completedCases.includes(caseData._id)) return false;
+      if (showImagesOnly && (!caseData.images || caseData.images.length === 0)) return false;
+      if (meta.quarantined === true) return false; // Always hide quarantined
+      if (hideTruncated && isTruncated) return false;
+      if (reviewMode !== 'all' && needsReview) return false;
+      if (selectedCategory !== 'all' && caseData.category !== selectedCategory) return false;
+      if (selectedDifficulty !== 'all' && meta.difficulty !== Number.parseInt(selectedDifficulty, 10)) return false;
+      if (selectedType !== 'all' && caseData.q_type !== selectedType) return false;
+      if (selectedExam !== 'all' && meta.examType !== selectedExam && meta.examType !== 'BOTH') return false;
+      if (selectedMode === 'rapid_recall' && meta.questionMode !== 'rapid_recall') return false;
+
+      if (deferredSearch) {
+        return (caseData._searchKey || '').includes(deferredSearch);
+      }
+      return true;
+    });
+
+    // Genius Hack 6: Unseen-first ordering + daily seed shuffle
+    const completedSet = new Set(completedCases);
+    if (unseenFirst && !deferredSearch) {
+      const unseen = filtered.filter(c => !completedSet.has(c._id));
+      const seen = filtered.filter(c => completedSet.has(c._id));
+      return [...seededShuffle(unseen, getDailySeed()), ...seededShuffle(seen, getDailySeed() + 1)];
+    }
+    return deferredSearch ? filtered : seededShuffle(filtered, getDailySeed());
+  }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, reviewMode, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, unseenFirst]);
+
+  // Genius Hack 2: IntersectionObserver infinite scroll
+  const paginatedCases = useMemo(
+    () => filteredCases.slice(0, page * PAGE_SIZE),
+    [filteredCases, page]
+  );
+
+  useEffect(() => {
+    const el = observerTarget.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setPage(p => p + 1);
+      },
+      { rootMargin: '600px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filteredCases.length]); // Re-attach when filter results change
+
+  const hasMore = paginatedCases.length < filteredCases.length;
+
+  const setFilter = (key, value) => {
+    setSearchParams(updateQueryParams(searchParams, { [key]: value }));
+  };
+
+  const setReviewMode = (nextMode) => {
+    const nextParams = updateQueryParams(searchParams, {
+      hideUnreviewed: nextMode === 'all' || nextMode === 'reviewed' ? '0' : null,
+      showOnlyReviewed: nextMode === 'reviewed' ? '1' : null,
+    });
+    setSearchParams(nextParams);
+  };
+
+  const clearQuickFilters = () => {
+    setSearchParams(new URLSearchParams());
+  };
+
+  const hasQuickFilters = showBookmarksOnly
+    || hideCompleted
+    || showImagesOnly
+    || !hideTruncated
+    || reviewMode !== 'hide'
+    || selectedCategory !== 'all'
+    || selectedDifficulty !== 'all'
+    || selectedType !== 'all'
+    || selectedExam !== 'all'
+    || selectedMode !== 'all';
+
+  const openCase = (caseId, caseNumber) => {
+    const suffix = Number.isInteger(caseNumber) ? `?n=${caseNumber}` : '';
+    navigate(`/case/${caseId}${suffix}`, {
+      state: Number.isInteger(caseNumber) ? { caseNumber } : undefined,
+    });
+  };
+
+  // Genius Hack 7: Random Case — truly random unseen case
+  const goRandomCase = () => {
+    const completedSet = new Set(completedCases);
+    const visiblePool = filteredCases.length > 0 ? filteredCases : caseBank;
+    const unseenPool = visiblePool.filter((caseData) => !completedSet.has(caseData._id));
+    const pool = unseenPool.length > 0 ? unseenPool : visiblePool;
+    const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
+    if (!pick) return;
+    const sequenceNumber = filteredCases.findIndex((caseData) => caseData._id === pick._id);
+    openCase(pick._id, sequenceNumber >= 0 ? sequenceNumber + 1 : undefined);
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 'var(--sp-6)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
+        <div>
+          <h1 className="page-title">Case Browser</h1>
+          <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases • Shuffled daily • Unseen first</p>
+        </div>
+        <button className="btn" onClick={goRandomCase} style={{ background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Shuffle size={16} /> Random Case 🎲
+        </button>
+      </div>
+
+      <div className="glass-card" style={{ padding: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
+        <div className="filter-bar-row" style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
+            <label htmlFor="case-search" style={srOnlyStyle}>Search cases</label>
+            <Search aria-hidden="true" size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              id="case-search"
+              className="input"
+              placeholder="Search cases, tags, diseases..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              style={{ paddingLeft: 36 }}
+            />
+          </div>
+
+          <label htmlFor="case-category-filter" style={srOnlyStyle}>Filter by category</label>
+          <select id="case-category-filter" className="input" style={{ width: 'auto', minWidth: 160 }} value={selectedCategory} onChange={(event) => setFilter('category', event.target.value)}>
+            <option value="all">All Categories</option>
+            {Object.entries(CATEGORIES).map(([key, cat]) => (
+              <option key={key} value={key}>{cat.label}</option>
+            ))}
+          </select>
+
+          <label htmlFor="case-difficulty-filter" style={srOnlyStyle}>Filter by difficulty</label>
+          <select id="case-difficulty-filter" className="input" style={{ width: 'auto', minWidth: 120 }} value={selectedDifficulty} onChange={(event) => setFilter('difficulty', event.target.value)}>
+            <option value="all">All Levels</option>
+            <option value="1">★ Easy</option>
+            <option value="2">★★ Medium</option>
+            <option value="3">★★★ Hard</option>
+          </select>
+
+          <label htmlFor="case-type-filter" style={srOnlyStyle}>Filter by question type</label>
+          <select id="case-type-filter" className="input" style={{ width: 'auto', minWidth: 100 }} value={selectedType} onChange={(event) => setFilter('type', event.target.value)}>
+            <option value="all">All Types</option>
+            <option value="MCQ">MCQ</option>
+            <option value="SCT">SCT</option>
+            <option value="CLINICAL_DISCUSSION">Clinical</option>
+          </select>
+
+          <label htmlFor="case-exam-filter" style={srOnlyStyle}>Filter by exam type</label>
+          <select id="case-exam-filter" className="input" style={{ width: 'auto', minWidth: 120 }} value={selectedExam} onChange={(event) => setFilter('exam', event.target.value)}>
+            <option value="all">All Exams</option>
+            <option value="UKMPPD">🇮🇩 UKMPPD</option>
+            <option value="USMLE">🇺🇸 USMLE</option>
+            <option value="MIR-Spain">🇪🇸 MIR-Spain</option>
+            <option value="IgakuQA">🇯🇵 IgakuQA</option>
+            <option value="International">🌍 International</option>
+            <option value="Academic">📚 Academic</option>
+            <option value="Research">🔬 Research</option>
+            <option value="Clinical">🏥 Clinical</option>
+          </select>
+
+          <button
+            type="button"
+            aria-pressed={selectedMode === 'rapid_recall'}
+            className={`btn ${selectedMode === 'rapid_recall' ? '' : 'btn-ghost'}`}
+            onClick={() => setFilter('mode', selectedMode === 'rapid_recall' ? 'all' : 'rapid_recall')}
+            style={selectedMode === 'rapid_recall'
+              ? { background: 'rgba(13,148,136,0.15)', color: '#2dd4bf', border: '1px solid rgba(13,148,136,0.3)' }
+              : {}}
+          >
+            <Zap size={14} /> Rapid Recall
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={showImagesOnly}
+            className={`btn ${showImagesOnly ? '' : 'btn-ghost'}`}
+            onClick={() => setFilter('images', showImagesOnly ? '' : '1')}
+            style={showImagesOnly
+              ? { background: 'rgba(168,85,247,0.15)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }
+              : {}}
+          >
+            <Camera size={14} /> Has Image 📷
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={hideCompleted}
+            className={`btn ${hideCompleted ? '' : 'btn-ghost'}`}
+            onClick={() => setFilter('hideCompleted', hideCompleted ? '' : '1')}
+            style={hideCompleted
+              ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
+              : {}}
+          >
+            <CheckCircle size={14} /> Hide Completed
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={hideTruncated}
+            className={`btn ${hideTruncated ? '' : 'btn-ghost'}`}
+            onClick={() => setFilter('hideTruncated', hideTruncated ? '0' : '')}
+            style={hideTruncated
+              ? { background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }
+              : {}}
+          >
+            <AlertTriangle size={14} /> Hide Truncated
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={hideUnreviewed}
+            className={`btn ${hideUnreviewed ? '' : 'btn-ghost'}`}
+            onClick={() => setReviewMode(reviewMode === 'hide' ? 'all' : 'hide')}
+            style={hideUnreviewed
+              ? { background: 'rgba(14,165,233,0.15)', color: '#38bdf8', border: '1px solid rgba(14,165,233,0.3)' }
+              : {}}
+          >
+            <CheckCircle size={14} /> Hide Unreviewed
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={showOnlyReviewed}
+            className={`btn ${showOnlyReviewed ? '' : 'btn-ghost'}`}
+            onClick={() => setReviewMode(reviewMode === 'reviewed' ? 'hide' : 'reviewed')}
+            style={showOnlyReviewed
+              ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
+              : {}}
+          >
+            <CheckCircle size={14} /> Show Only Reviewed
+          </button>
+        </div>
+
+        {(showBookmarksOnly || hasQuickFilters) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap', marginTop: 'var(--sp-3)' }}>
+            {showBookmarksOnly && (
+              <span className="badge badge-warning">
+                <Bookmark size={12} /> Bookmarked only
+              </span>
+            )}
+            {selectedMode === 'rapid_recall' && (
+              <span className="rapid-recall-badge">
+                <Zap size={12} /> Rapid Recall
+              </span>
+            )}
+            {!hideTruncated && (
+              <span className="badge badge-warning">
+                <AlertTriangle size={12} /> Including truncated
+              </span>
+            )}
+            {reviewMode === 'all' && (
+              <span className="badge badge-info">
+                <CheckCircle size={12} /> Including unreviewed
+              </span>
+            )}
+            {reviewMode === 'reviewed' && (
+              <span className="badge badge-success">
+                <CheckCircle size={12} /> Reviewed only
+              </span>
+            )}
+            <button className="btn btn-ghost" type="button" onClick={clearQuickFilters}>
+              Clear Quick Filters
+            </button>
+          </div>
+        )}
+
+        <div style={{ marginTop: 'var(--sp-3)', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+          Showing {paginatedCases.length} of {filteredCases.length} cases
+          {filteredCases.length < totalCases && ` (filtered from ${totalCases})`}
+        </div>
+        {status !== 'ready' && (
+          <div style={{ marginTop: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+            {isLoading
+              ? 'Loading the full case library in the background. Results will expand automatically.'
+              : 'Compiled case library is unavailable. Showing the starter library only.'}
+          </div>
+        )}
+      </div>
+
+      {/* Genius Hack 1+4: CSS-only cards with content-visibility */}
+      <div className="grid grid-2 stagger">
+        {paginatedCases.map((caseData, index) => {
+          const cat = CATEGORIES[caseData.category] ?? { label: caseData.category ?? 'Unknown', color: 'var(--text-muted)' };
+          const isCompleted = completedCases.includes(caseData._id);
+          const isBookmarked = bookmarks.includes(caseData._id);
+          const narrative = caseData.vignette?.narrative ?? '';
+          const demographics = caseData.vignette?.demographics ?? {};
+          const tags = Array.isArray(caseData.meta?.tags) ? caseData.meta.tags : [];
+          const sequenceNumber = index + 1;
+
+          return (
+            <button
+              type="button"
+              key={caseData._id}
+              data-testid="case-card"
+              className="case-card glass-card glass-card-interactive"
+              onClick={() => openCase(caseData._id, sequenceNumber)}
+              aria-label={`Open case ${sequenceNumber}: ${caseData.title}`}
+              style={{ padding: 'var(--sp-5)', cursor: 'pointer', width: '100%', textAlign: 'left', background: 'transparent', border: 'var(--border-glass)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 'var(--sp-3)' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-3)', flex: 1, minWidth: 0 }}>
+                  <span
+                    aria-label={`Case number ${sequenceNumber}`}
+                    style={{
+                      width: 50,
+                      maxWidth: 50,
+                      flexShrink: 0,
+                      fontFamily: 'monospace',
+                      fontSize: '0.75rem',
+                      color: 'var(--text-muted)',
+                      letterSpacing: '0.04em',
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    #{sequenceNumber}
+                  </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', flexWrap: 'wrap', minWidth: 0 }}>
+                    <span className={`badge badge-${caseData.category.replace('-', '')}`} style={{ background: `${cat.color}15`, color: cat.color }}>
+                      {cat.label}
+                    </span>
+                    <span className={`badge ${caseData.q_type === 'SCT' ? 'badge-warning' : caseData.q_type === 'CLINICAL_DISCUSSION' ? 'badge-success' : 'badge-info'}`}>
+                      {caseData.q_type === 'CLINICAL_DISCUSSION' ? 'Clinical' : caseData.q_type}
+                    </span>
+                    {caseData.meta.examType !== 'BOTH' && (
+                      <span className="badge badge-primary">{caseData.meta.examType}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
+                  {isBookmarked && <Bookmark size={16} style={{ color: 'var(--accent-warning)' }} fill="var(--accent-warning)" />}
+                  {isCompleted && <CheckCircle size={16} style={{ color: 'var(--accent-success)' }} />}
+                </div>
+              </div>
+
+              <h3 style={{ fontSize: 'var(--fs-md)', fontWeight: 600, marginBottom: 'var(--sp-2)' }}>{caseData.title}</h3>
+
+              <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
+                {demographics.age && demographics.sex ? `${demographics.age}y/${demographics.sex} - ` : ''}
+                {narrative.substring(0, 120)}...
+              </p>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <DifficultyStars level={caseData.meta.difficulty} />
+                <div style={{ display: 'flex', gap: 'var(--sp-1)', flexWrap: 'wrap' }}>
+                  {tags.slice(0, 3).map((tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontSize: 10,
+                        padding: '2px 6px',
+                        borderRadius: 'var(--radius-full)',
+                        background: 'rgba(148,163,184,0.08)',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Genius Hack 2: Invisible IntersectionObserver trigger */}
+      {hasMore && (
+        <div ref={observerTarget} style={{ height: 20, display: 'flex', justifyContent: 'center', padding: 'var(--sp-6)' }}>
+          <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+            Loading more cases...
+          </span>
+        </div>
+      )}
+
+      {filteredCases.length === 0 && (
+        <div className="glass-card" style={{ padding: 'var(--sp-12)', textAlign: 'center' }}>
+          <BookOpen size={48} style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-4)' }} />
+          <h3 style={{ marginBottom: 'var(--sp-2)' }}>No cases found</h3>
+          <p style={{ color: 'var(--text-muted)' }}>Try adjusting your filters or search terms.</p>
+        </div>
+      )}
+    </div>
+  );
+}
