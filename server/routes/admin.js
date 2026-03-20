@@ -1,201 +1,174 @@
 /**
- * PRAXIS — Admin API Routes
+ * PRAXIS — Admin API Routes (Cloudflare D1 version)
  * Protected by ADMIN_KEY header (timing-safe comparison)
  */
 import { Hono } from 'hono';
-import { readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { timingSafeEqual } from 'node:crypto';
-import {
-  db,
-  insertEdit,
-  getEditsByCase,
-  getAllEdits,
-  getAuditLog,
-  insertAudit,
-} from '../db.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = join(__dirname, '..', '..', 'public', 'data', 'compiled_cases.json');
-
-const admin = new Hono();
-
-// Timing-safe key comparison (prevents timing attacks)
+// Timing-safe key comparison
 function verifyKey(input, expected) {
   if (!input || !expected) return false;
-  const a = Buffer.from(input);
-  const b = Buffer.from(expected);
-  if (a.length !== b.length) return false;
-  return timingSafeEqual(a, b);
-}
-
-// Middleware: check ADMIN_KEY
-admin.use('*', async (c, next) => {
-  const key = c.req.header('X-Admin-Key') || c.req.query('key');
-  const expected = process.env.ADMIN_KEY || 'praxis-admin-2026';
-
-  if (!verifyKey(key, expected)) {
-    return c.json({ error: 'Unauthorized. Set X-Admin-Key header.' }, 401);
+  if (input.length !== expected.length) return false;
+  let result = 0;
+  for (let i = 0; i < input.length; i++) {
+    result |= input.charCodeAt(i) ^ expected.charCodeAt(i);
   }
-  await next();
-});
-
-// Helper: load case DB
-function loadCases() {
-  return JSON.parse(readFileSync(DB_PATH, 'utf-8'));
+  return result === 0;
 }
 
-// Helper: find case
-function findCase(cases, caseId) {
-  const id = parseInt(caseId);
-  return cases.find(c => c._id === id || c.case_code === caseId);
-}
+export function createAdminRoutes() {
+  const admin = new Hono();
 
-// GET /api/admin/cases/:id — Get single case
-admin.get('/cases/:id', (c) => {
-  const caseId = c.req.param('id');
-  const cases = loadCases();
-  const found = findCase(cases, caseId);
+  // Middleware: check ADMIN_KEY
+  admin.use('*', async (c, next) => {
+    const key = c.req.header('X-Admin-Key') || c.req.query('key');
+    const expected = c.env?.ADMIN_KEY || 'praxis-admin-2026';
 
-  if (!found) return c.json({ error: 'Case not found' }, 404);
+    if (!verifyKey(key, expected)) {
+      return c.json({ error: 'Unauthorized. Set X-Admin-Key header.' }, 401);
+    }
+    await next();
+  });
 
-  const edits = getEditsByCase.all({ case_id: String(found._id) });
+  // GET /api/admin/cases/:id — Get single case (read-only on Workers)
+  admin.get('/cases/:id', async (c) => {
+    const db = c.get('db');
+    const caseId = c.req.param('id');
 
-  return c.json({ case: found, edits });
-});
+    const { results: edits } = await db.prepare(
+      'SELECT * FROM edits WHERE case_id = ? ORDER BY created_at DESC'
+    ).bind(String(caseId)).all();
 
-// PATCH /api/admin/cases/:id — Edit case field
-admin.patch('/cases/:id', async (c) => {
-  const caseId = c.req.param('id');
-  const body = await c.req.json();
-  const { field, value, note } = body;
+    return c.json({ case: null, edits, note: 'Case data is client-side. Edits shown from D1.' });
+  });
 
-  const allowedFields = [
-    'rationale.correct', 'rationale.pearl',
-    'options', 'prompt', 'meta.is_decayed',
-    'meta.quarantined', 'meta.quarantine_reason',
-  ];
+  // PATCH /api/admin/cases/:id — Record an edit (metadata only, no filesystem)
+  admin.patch('/cases/:id', async (c) => {
+    const db = c.get('db');
+    const caseId = c.req.param('id');
+    const body = await c.req.json();
+    const { field, value, note } = body;
 
-  if (!field || !allowedFields.includes(field)) {
-    return c.json({ error: `Field must be one of: ${allowedFields.join(', ')}` }, 400);
-  }
+    const allowedFields = [
+      'rationale.correct', 'rationale.pearl',
+      'options', 'prompt', 'meta.is_decayed',
+      'meta.quarantined', 'meta.quarantine_reason',
+    ];
 
-  try {
-    const cases = loadCases();
-    const found = findCase(cases, caseId);
-    if (!found) return c.json({ error: 'Case not found' }, 404);
-
-    // Get old value
-    const parts = field.split('.');
-    let oldValue;
-    if (parts.length === 1) {
-      oldValue = found[parts[0]];
-    } else {
-      oldValue = found[parts[0]]?.[parts[1]];
+    if (!field || !allowedFields.includes(field)) {
+      return c.json({ error: `Field must be one of: ${allowedFields.join(', ')}` }, 400);
     }
 
-    // Set new value
-    if (parts.length === 1) {
-      found[parts[0]] = value;
-    } else {
-      if (!found[parts[0]]) found[parts[0]] = {};
-      found[parts[0]][parts[1]] = value;
+    try {
+      await db.batch([
+        db.prepare(
+          'INSERT INTO edits (case_id, field, old_value, new_value, admin_note) VALUES (?, ?, ?, ?, ?)'
+        ).bind(String(caseId), field, null, JSON.stringify(value), note || ''),
+        db.prepare(
+          'INSERT INTO audit_log (action, entity_type, entity_id, details) VALUES (?, ?, ?, ?)'
+        ).bind('case_edited', 'case', String(caseId), JSON.stringify({ field, note })),
+      ]);
+
+      return c.json({ success: true, case_id: caseId, field, note: 'Edit recorded in D1. Apply locally and redeploy.' });
+    } catch (err) {
+      return c.json({ error: err.message }, 500);
     }
+  });
 
-    // Save DB
-    writeFileSync(DB_PATH, JSON.stringify(cases, null, 0), 'utf-8');
+  // PATCH /api/admin/proposals/:id — Approve/reject proposal
+  admin.patch('/proposals/:id', async (c) => {
+    const db = c.get('db');
+    const id = parseInt(c.req.param('id'));
+    if (isNaN(id)) return c.json({ error: 'Invalid ID' }, 400);
 
-    // Record edit
-    insertEdit.run({
-      case_id: String(found._id),
-      field,
-      old_value: JSON.stringify(oldValue),
-      new_value: JSON.stringify(value),
-      admin_note: note || '',
+    try {
+      const body = await c.req.json();
+      const { status, note } = body;
+
+      if (!['approved', 'rejected', 'ai_valid', 'ai_invalid'].includes(status)) {
+        return c.json({ error: 'Invalid status' }, 400);
+      }
+
+      const existing = await db.prepare('SELECT * FROM pending_edits WHERE id = ?').bind(id).first();
+      if (!existing) return c.json({ error: 'Not found' }, 404);
+
+      await db.batch([
+        db.prepare(
+          'UPDATE pending_edits SET status = ?, admin_note = ? WHERE id = ?'
+        ).bind(status, note || '', id),
+        db.prepare(
+          'INSERT INTO audit_log (action, entity_type, entity_id, details) VALUES (?, ?, ?, ?)'
+        ).bind('proposal_reviewed', 'pending_edit', String(id), JSON.stringify({ from: existing.status, to: status })),
+      ]);
+
+      return c.json({ id, status });
+    } catch (err) {
+      return c.json({ error: err.message }, 500);
+    }
+  });
+
+  // GET /api/admin/edits — All edits history
+  admin.get('/edits', async (c) => {
+    const db = c.get('db');
+    const limit = Math.min(parseInt(c.req.query('limit') || '50'), 200);
+    const offset = parseInt(c.req.query('offset') || '0');
+
+    const { results: rows } = await db.prepare(
+      'SELECT * FROM edits ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    ).bind(limit, offset).all();
+
+    return c.json({ data: rows, limit, offset });
+  });
+
+  // GET /api/admin/audit — Audit log
+  admin.get('/audit', async (c) => {
+    const db = c.get('db');
+    const limit = Math.min(parseInt(c.req.query('limit') || '100'), 500);
+    const offset = parseInt(c.req.query('offset') || '0');
+
+    const { results: rows } = await db.prepare(
+      'SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    ).bind(limit, offset).all();
+
+    const parsed = rows.map(r => ({ ...r, details: JSON.parse(r.details || '{}') }));
+    return c.json({ data: parsed, limit, offset });
+  });
+
+  // GET /api/admin/overview — Quick dashboard stats (D1 only, no JSON file)
+  admin.get('/overview', async (c) => {
+    const db = c.get('db');
+
+    const feedbackCount = await db.prepare('SELECT COUNT(*) as total FROM feedback').first();
+    const openCount = await db.prepare("SELECT COUNT(*) as cnt FROM feedback WHERE status = 'open'").first();
+    const editCount = await db.prepare('SELECT COUNT(*) as total FROM edits').first();
+    const proposalCount = await db.prepare("SELECT COUNT(*) as total FROM pending_edits WHERE status = 'pending'").first();
+    const telemetryCount = await db.prepare('SELECT COUNT(*) as total FROM telemetry_log').first();
+
+    return c.json({
+      feedback: { total: feedbackCount?.total || 0, open: openCount?.cnt || 0 },
+      edits: editCount?.total || 0,
+      proposals_pending: proposalCount?.total || 0,
+      telemetry_events: telemetryCount?.total || 0,
     });
+  });
 
-    insertAudit.run({
-      action: 'case_edited',
-      entity_type: 'case',
-      entity_id: String(found._id),
-      details: JSON.stringify({ field, note }),
+  // GET /api/admin/patches?since= — Delta-Patch Sync
+  admin.get('/patches', async (c) => {
+    const db = c.get('db');
+    const since = parseInt(c.req.query('since') || '0');
+
+    const { results: recentEdits } = await db.prepare(
+      `SELECT DISTINCT case_id FROM edits 
+       WHERE created_at > datetime(? / 1000, 'unixepoch')
+       ORDER BY created_at DESC`
+    ).bind(since).all();
+
+    return c.json({
+      edited_case_ids: recentEdits.map(e => e.case_id),
+      count: recentEdits.length,
+      since,
+      note: 'Case data is client-side. Only edit IDs returned from D1.',
     });
+  });
 
-    return c.json({ success: true, case_id: found._id, field });
-  } catch (err) {
-    return c.json({ error: err.message }, 500);
-  }
-});
-
-// GET /api/admin/edits — All edits history
-admin.get('/edits', (c) => {
-  const limit = Math.min(parseInt(c.req.query('limit') || '50'), 200);
-  const offset = parseInt(c.req.query('offset') || '0');
-
-  const rows = getAllEdits.all({ limit, offset });
-  return c.json({ data: rows, limit, offset });
-});
-
-// GET /api/admin/audit — Audit log
-admin.get('/audit', (c) => {
-  const limit = Math.min(parseInt(c.req.query('limit') || '100'), 500);
-  const offset = parseInt(c.req.query('offset') || '0');
-
-  const rows = getAuditLog.all({ limit, offset });
-  const parsed = rows.map(r => ({ ...r, details: JSON.parse(r.details || '{}') }));
-  return c.json({ data: parsed, limit, offset });
-});
-
-// GET /api/admin/overview — Quick dashboard stats
-admin.get('/overview', (c) => {
-  const cases = loadCases();
-
-  const stats = {
-    total_cases: cases.length,
-    sources: {},
-    categories: {},
-    quality_flags: {
-      decayed: cases.filter(c => c.meta?.is_decayed).length,
-      quarantined: cases.filter(c => c.meta?.quarantined).length,
-      negation_blindspot: cases.filter(c => c.meta?.negation_blindspot).length,
-      do_not_shuffle: cases.filter(c => c.meta?.do_not_shuffle).length,
-    },
-  };
-
-  for (const c of cases) {
-    const src = c.meta?.source || 'unknown';
-    stats.sources[src] = (stats.sources[src] || 0) + 1;
-    const cat = c.category || 'uncategorized';
-    stats.categories[cat] = (stats.categories[cat] || 0) + 1;
-  }
-
-  return c.json(stats);
-});
-
-// GET /api/admin/patches?since=<unix_ms> — Delta-Patch Sync (DeepThink #2)
-// Returns only cases edited since the given timestamp
-admin.get('/patches', (c) => {
-  const since = parseInt(c.req.query('since') || '0');
-  
-  // Get all edits since timestamp
-  const recentEdits = db.prepare(`
-    SELECT DISTINCT case_id FROM edits 
-    WHERE created_at > datetime(@since / 1000, 'unixepoch')
-    ORDER BY created_at DESC
-  `).all({ since });
-  
-  if (recentEdits.length === 0) {
-    return c.json({ patches: [], count: 0, since });
-  }
-
-  const cases = loadCases();
-  const editedIds = new Set(recentEdits.map(e => e.case_id));
-  const patches = cases
-    .filter(cs => editedIds.has(String(cs._id)))
-    .map(cs => ({ _id: cs._id, case_code: cs.case_code, options: cs.options, rationale: cs.rationale, meta: cs.meta }));
-
-  return c.json({ patches, count: patches.length, since });
-});
-
-export default admin;
+  return admin;
+}

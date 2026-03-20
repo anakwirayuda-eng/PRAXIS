@@ -20,7 +20,11 @@
     "pipeline:deploy": "node ingestion/pipeline.js deploy",
     "pipeline:status": "node ingestion/pipeline.js status",
     "pipeline:dry": "node ingestion/pipeline.js all --dry-run",
-    "backup:db": "node scripts/backup-db.js"
+    "backup:db": "node scripts/backup-db.js",
+    "deploy:worker": "npx wrangler deploy",
+    "dev:worker": "npx wrangler dev",
+    "db:migrate": "npx wrangler d1 migrations apply praxis_db --remote",
+    "db:migrate:local": "npx wrangler d1 migrations apply praxis_db --local"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",
@@ -56,6 +60,7 @@
     "sharp": "^0.34.5",
     "tesseract.js": "^5.1.1",
     "vite": "^8.0.0",
-    "vitest": "^4.1.0"
+    "vitest": "^4.1.0",
+    "wrangler": "^4.75.0"
   }
 }

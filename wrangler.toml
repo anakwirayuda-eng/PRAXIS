@@ -1,0 +1,11 @@
+# PRAXIS Backend — Cloudflare Worker
+name = "praxis-api"
+main = "server/worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "praxis_db"
+database_id = "14f1e5f6-9497-4f7a-b2b3-a4c69ce2de3c"
+migrations_dir = "migrations"
