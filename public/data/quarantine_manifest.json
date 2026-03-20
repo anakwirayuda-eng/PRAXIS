@@ -60,867 +60,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 158,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-00095",
-    "source": "medmcqa"
-  },
-  {
-    "id": 589,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-00368",
-    "source": "medmcqa"
-  },
-  {
-    "id": 795,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-00491",
-    "source": "medmcqa"
-  },
-  {
-    "id": 1266,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-00774",
-    "source": "medmcqa"
-  },
-  {
-    "id": 1377,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-00156",
-    "source": "medmcqa"
-  },
-  {
-    "id": 1843,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-01123",
-    "source": "medmcqa"
-  },
-  {
-    "id": 1980,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-00231",
-    "source": "medmcqa"
-  },
-  {
-    "id": 2367,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-01418",
-    "source": "medmcqa"
-  },
-  {
-    "id": 2698,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-01622",
-    "source": "medmcqa"
-  },
-  {
-    "id": 2971,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-01779",
-    "source": "medmcqa"
-  },
-  {
-    "id": 3328,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-01987",
-    "source": "medmcqa"
-  },
-  {
-    "id": 3632,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02176",
-    "source": "medmcqa"
-  },
-  {
-    "id": 3766,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02247",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4038,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02396",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4143,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02453",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4216,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-00502",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4491,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-00528",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4552,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02710",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4791,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02853",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4807,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02859",
-    "source": "medmcqa"
-  },
-  {
-    "id": 4935,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-02934",
-    "source": "medmcqa"
-  },
-  {
-    "id": 5282,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-03151",
-    "source": "medmcqa"
-  },
-  {
-    "id": 5356,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-03189",
-    "source": "medmcqa"
-  },
-  {
-    "id": 5370,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-00649",
-    "source": "medmcqa"
-  },
-  {
-    "id": 6646,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-00818",
-    "source": "medmcqa"
-  },
-  {
-    "id": 7055,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-04193",
-    "source": "medmcqa"
-  },
-  {
-    "id": 8115,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-04813",
-    "source": "medmcqa"
-  },
-  {
-    "id": 9181,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-05577",
-    "source": "medmcqa"
-  },
-  {
-    "id": 9882,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-06052",
-    "source": "medmcqa"
-  },
-  {
-    "id": 9889,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-06058",
-    "source": "medmcqa"
-  },
-  {
-    "id": 10320,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-06348",
-    "source": "medmcqa"
-  },
-  {
-    "id": 11337,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-07079",
-    "source": "medmcqa"
-  },
-  {
-    "id": 11660,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-07319",
-    "source": "medmcqa"
-  },
-  {
-    "id": 11715,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-07357",
-    "source": "medmcqa"
-  },
-  {
-    "id": 12178,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-07675",
-    "source": "medmcqa"
-  },
-  {
-    "id": 12228,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-07709",
-    "source": "medmcqa"
-  },
-  {
-    "id": 12661,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-08018",
-    "source": "medmcqa"
-  },
-  {
-    "id": 12965,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-GEN-MCQ-00408",
-    "source": "medmcqa"
-  },
-  {
-    "id": 13576,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-08529",
-    "source": "medmcqa"
-  },
-  {
-    "id": 13771,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-08618",
-    "source": "medmcqa"
-  },
-  {
-    "id": 14045,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-08764",
-    "source": "medmcqa"
-  },
-  {
-    "id": 27703,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-08934",
-    "source": "medmcqa"
-  },
-  {
-    "id": 27873,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09048",
-    "source": "medmcqa"
-  },
-  {
-    "id": 27898,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09072",
-    "source": "medmcqa"
-  },
-  {
-    "id": 27985,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-PSI-MCQ-00329",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28141,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09233",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28143,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09235",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28361,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09374",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28426,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-02432",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28563,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09510",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28565,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09511",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28731,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09613",
-    "source": "medmcqa"
-  },
-  {
-    "id": 28874,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-02524",
-    "source": "medmcqa"
-  },
-  {
-    "id": 29016,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09792",
-    "source": "medmcqa"
-  },
-  {
-    "id": 29041,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-09810",
-    "source": "medmcqa"
-  },
-  {
-    "id": 29608,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10185",
-    "source": "medmcqa"
-  },
-  {
-    "id": 29771,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10289",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30017,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10456",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30178,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10559",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30245,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10595",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30302,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10633",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30353,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10668",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30752,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10920",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30789,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10944",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30801,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10954",
-    "source": "medmcqa"
-  },
-  {
-    "id": 30823,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-10969",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31380,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-02954",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31408,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-GEN-MCQ-00616",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31510,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11412",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31614,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11482",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31756,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-GEN-MCQ-00632",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31831,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11625",
-    "source": "medmcqa"
-  },
-  {
-    "id": 31898,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11667",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32172,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11844",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32341,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11955",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32354,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-11965",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32449,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12028",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32505,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12068",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32647,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-03179",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32884,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-GEN-MCQ-00682",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32892,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-OBG-MCQ-00875",
-    "source": "medmcqa"
-  },
-  {
-    "id": 32948,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12348",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33073,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-OBG-MCQ-00889",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33128,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12471",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33270,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12565",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33336,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12610",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33423,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-03317",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33659,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-PSI-MCQ-00476",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33847,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-OBG-MCQ-00936",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33948,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-12997",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33992,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13025",
-    "source": "medmcqa"
-  },
-  {
-    "id": 34147,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13121",
-    "source": "medmcqa"
-  },
-  {
-    "id": 34431,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13305",
-    "source": "medmcqa"
-  },
-  {
-    "id": 34694,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13487",
-    "source": "medmcqa"
-  },
-  {
-    "id": 34828,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13577",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35013,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13685",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35163,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13788",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35312,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-13884",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35695,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-14139",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35782,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-GEN-MCQ-00810",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35784,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-14207",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35814,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-PSI-MCQ-00514",
-    "source": "medmcqa"
-  },
-  {
-    "id": 36445,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-14648",
-    "source": "medmcqa"
-  },
-  {
-    "id": 36520,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-14695",
-    "source": "medmcqa"
-  },
-  {
-    "id": 36876,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-14926",
-    "source": "medmcqa"
-  },
-  {
-    "id": 37683,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-15462",
-    "source": "medmcqa"
-  },
-  {
-    "id": 38020,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-15690",
-    "source": "medmcqa"
-  },
-  {
-    "id": 38425,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-15951",
-    "source": "medmcqa"
-  },
-  {
-    "id": 38944,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-16277",
-    "source": "medmcqa"
-  },
-  {
-    "id": 38945,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-16278",
-    "source": "medmcqa"
-  },
-  {
-    "id": 39131,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-16408",
-    "source": "medmcqa"
-  },
-  {
-    "id": 39884,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-04409",
-    "source": "medmcqa"
-  },
-  {
-    "id": 39965,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-04420",
-    "source": "medmcqa"
-  },
-  {
-    "id": 40043,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-17008",
-    "source": "medmcqa"
-  },
-  {
-    "id": 40130,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-17066",
-    "source": "medmcqa"
-  },
-  {
-    "id": 41285,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-17818",
-    "source": "medmcqa"
-  },
-  {
-    "id": 41691,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-BDH-MCQ-04717",
-    "source": "medmcqa"
-  },
-  {
-    "id": 41744,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-18119",
-    "source": "medmcqa"
-  },
-  {
-    "id": 41917,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-18231",
-    "source": "medmcqa"
-  },
-  {
-    "id": 43411,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-19224",
-    "source": "medmcqa"
-  },
-  {
-    "id": 44009,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-19608",
-    "source": "medmcqa"
-  },
-  {
-    "id": 44428,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-GEN-MCQ-01207",
-    "source": "medmcqa"
-  },
-  {
-    "id": 45614,
-    "code": "A5_CONFLICT",
-    "reason": "text_anchor_mismatch",
-    "case_code": "MMC-IPD-MCQ-20345",
-    "source": "medmcqa"
-  },
-  {
     "id": 16,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -1418,13 +557,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 1768,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-01078",
-    "source": "medmcqa"
-  },
-  {
     "id": 1859,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -1450,13 +582,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-IPD-MCQ-01297",
-    "source": "medmcqa"
-  },
-  {
-    "id": 2346,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-01407",
     "source": "medmcqa"
   },
   {
@@ -1541,13 +666,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-IPD-MCQ-02091",
-    "source": "medmcqa"
-  },
-  {
-    "id": 3511,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-02109",
     "source": "medmcqa"
   },
   {
@@ -1698,13 +816,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 6650,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-03946",
-    "source": "medmcqa"
-  },
-  {
     "id": 6878,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -1723,13 +834,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-BDH-MCQ-00894",
-    "source": "medmcqa"
-  },
-  {
-    "id": 7414,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-04412",
     "source": "medmcqa"
   },
   {
@@ -1796,13 +900,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 8859,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-05341",
-    "source": "medmcqa"
-  },
-  {
     "id": 9009,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -1828,13 +925,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-IPD-MCQ-05744",
-    "source": "medmcqa"
-  },
-  {
-    "id": 9549,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-05841",
     "source": "medmcqa"
   },
   {
@@ -1950,13 +1040,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 12002,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-07551",
-    "source": "medmcqa"
-  },
-  {
     "id": 12060,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -1982,20 +1065,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-IPD-MCQ-07969",
-    "source": "medmcqa"
-  },
-  {
-    "id": 12667,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-OBG-MCQ-00495",
-    "source": "medmcqa"
-  },
-  {
-    "id": 13326,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-GEN-MCQ-00422",
     "source": "medmcqa"
   },
   {
@@ -2031,13 +1100,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "HQA-IPD-MCQ-00182",
-    "source": "headqa"
-  },
-  {
-    "id": 15364,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "HQA-IPD-MCQ-00928",
     "source": "headqa"
   },
   {
@@ -2153,13 +1215,6 @@
     "source": "medqa"
   },
   {
-    "id": 20168,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MQA-IPD-MCQ-02129",
-    "source": "medqa"
-  },
-  {
     "id": 20457,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -2230,13 +1285,6 @@
     "source": "medqa"
   },
   {
-    "id": 21768,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MQA-IPD-MCQ-02943",
-    "source": "medqa"
-  },
-  {
     "id": 22089,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -2248,13 +1296,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MQA-GEN-MCQ-00822",
-    "source": "medqa"
-  },
-  {
-    "id": 22283,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MQA-GEN-MCQ-00828",
     "source": "medqa"
   },
   {
@@ -2283,13 +1324,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MQA-IPD-MCQ-03545",
-    "source": "medqa"
-  },
-  {
-    "id": 22893,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MQA-GEN-MCQ-00930",
     "source": "medqa"
   },
   {
@@ -2374,13 +1408,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MQA-IPD-MCQ-04872",
-    "source": "medqa"
-  },
-  {
-    "id": 25614,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MQA-IPD-MCQ-05018",
     "source": "medqa"
   },
   {
@@ -2664,13 +1691,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 31028,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-OBG-MCQ-00760",
-    "source": "medmcqa"
-  },
-  {
     "id": 31081,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -2818,31 +1838,10 @@
     "source": "medmcqa"
   },
   {
-    "id": 32986,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-12375",
-    "source": "medmcqa"
-  },
-  {
     "id": 33024,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-OBG-MCQ-00883",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33031,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-BDH-MCQ-03251",
-    "source": "medmcqa"
-  },
-  {
-    "id": 33084,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-12440",
     "source": "medmcqa"
   },
   {
@@ -2895,13 +1894,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 34358,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-13262",
-    "source": "medmcqa"
-  },
-  {
     "id": 34388,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -2927,13 +1919,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-IPD-MCQ-13540",
-    "source": "medmcqa"
-  },
-  {
-    "id": 34876,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-BDH-MCQ-03601",
     "source": "medmcqa"
   },
   {
@@ -2983,13 +1968,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-PSI-MCQ-00510",
-    "source": "medmcqa"
-  },
-  {
-    "id": 35762,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-OBG-MCQ-01051",
     "source": "medmcqa"
   },
   {
@@ -3067,20 +2045,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-BDH-MCQ-03898",
-    "source": "medmcqa"
-  },
-  {
-    "id": 36889,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-14935",
-    "source": "medmcqa"
-  },
-  {
-    "id": 36913,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-14952",
     "source": "medmcqa"
   },
   {
@@ -3179,13 +2143,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "MMC-IPD-MCQ-16153",
-    "source": "medmcqa"
-  },
-  {
-    "id": 39054,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-16354",
     "source": "medmcqa"
   },
   {
@@ -3392,13 +2349,6 @@
     "source": "medmcqa"
   },
   {
-    "id": 43523,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "MMC-IPD-MCQ-19295",
-    "source": "medmcqa"
-  },
-  {
     "id": 43529,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -3529,13 +2479,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "PMQ-BDH-MCQ-00009",
-    "source": "pubmedqa"
-  },
-  {
-    "id": 47049,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "PMQ-GEN-MCQ-00022",
     "source": "pubmedqa"
   },
   {
@@ -3728,13 +2671,6 @@
     "source": "pubmedqa"
   },
   {
-    "id": 47525,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "PMQ-GEN-MCQ-00185",
-    "source": "pubmedqa"
-  },
-  {
     "id": 47531,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -3826,13 +2762,6 @@
     "source": "pubmedqa"
   },
   {
-    "id": 47830,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "PMQ-GEN-MCQ-00304",
-    "source": "pubmedqa"
-  },
-  {
     "id": 47845,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -3858,13 +2787,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "PMQ-GEN-MCQ-00337",
-    "source": "pubmedqa"
-  },
-  {
-    "id": 47982,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "PMQ-GEN-MCQ-00360",
     "source": "pubmedqa"
   },
   {
@@ -4999,13 +3921,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "PLK-IPD-MCQ-00244",
-    "source": "polish-ldek-en"
-  },
-  {
-    "id": 60151,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "PLK-GEN-MCQ-00123",
     "source": "polish-ldek-en"
   },
   {
@@ -6574,13 +5489,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "PLK-GEN-MCQ-00397",
-    "source": "polish-ldek-en"
-  },
-  {
-    "id": 60988,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "PLK-IPD-MCQ-00736",
     "source": "polish-ldek-en"
   },
   {
@@ -9223,13 +8131,6 @@
     "source": "tw-medqa"
   },
   {
-    "id": 63571,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "TWM-IPD-MCQ-00083",
-    "source": "tw-medqa"
-  },
-  {
     "id": 63576,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -9325,13 +8226,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "TWM-IPD-MCQ-00160",
-    "source": "tw-medqa"
-  },
-  {
-    "id": 63764,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "TWM-IPD-MCQ-00168",
     "source": "tw-medqa"
   },
   {
@@ -9636,13 +8530,6 @@
     "source": "tw-medqa"
   },
   {
-    "id": 64286,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "TWM-GEN-MCQ-00243",
-    "source": "tw-medqa"
-  },
-  {
     "id": 64291,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -9703,13 +8590,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "TWM-IPD-MCQ-00468",
-    "source": "tw-medqa"
-  },
-  {
-    "id": 64404,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "TWM-IPD-MCQ-00471",
     "source": "tw-medqa"
   },
   {
@@ -9899,13 +8779,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "TWM-IPD-MCQ-00590",
-    "source": "tw-medqa"
-  },
-  {
-    "id": 64661,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "TWM-IPD-MCQ-00592",
     "source": "tw-medqa"
   },
   {
@@ -10105,13 +8978,6 @@
     "source": "asian-medqa"
   },
   {
-    "id": 64877,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "AMQ-GEN-MCQ-00015",
-    "source": "asian-medqa"
-  },
-  {
     "id": 64905,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -10161,13 +9027,6 @@
     "source": "asian-medqa"
   },
   {
-    "id": 64933,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "AMQ-GEN-MCQ-00029",
-    "source": "asian-medqa"
-  },
-  {
     "id": 64934,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -10200,13 +9059,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "GRK-GEN-MCQ-00001",
-    "source": "greek-mcqa"
-  },
-  {
-    "id": 64996,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-GEN-MCQ-00051",
     "source": "greek-mcqa"
   },
   {
@@ -10340,13 +9192,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "GRK-IPD-MCQ-00062",
-    "source": "greek-mcqa"
-  },
-  {
-    "id": 65480,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-IPD-MCQ-00063",
     "source": "greek-mcqa"
   },
   {
@@ -10490,13 +9335,6 @@
     "source": "greek-mcqa"
   },
   {
-    "id": 65828,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-IPD-MCQ-00411",
-    "source": "greek-mcqa"
-  },
-  {
     "id": 65848,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -10508,13 +9346,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "GRK-IPD-MCQ-00446",
-    "source": "greek-mcqa"
-  },
-  {
-    "id": 65873,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-IPD-MCQ-00456",
     "source": "greek-mcqa"
   },
   {
@@ -10574,13 +9405,6 @@
     "source": "greek-mcqa"
   },
   {
-    "id": 66229,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-BDH-MCQ-00111",
-    "source": "greek-mcqa"
-  },
-  {
     "id": 66243,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -10637,24 +9461,10 @@
     "source": "greek-mcqa"
   },
   {
-    "id": 66320,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-BDH-MCQ-00192",
-    "source": "greek-mcqa"
-  },
-  {
     "id": 66346,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "GRK-OBG-MCQ-00017",
-    "source": "greek-mcqa"
-  },
-  {
-    "id": 66390,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-OBG-MCQ-00057",
     "source": "greek-mcqa"
   },
   {
@@ -10711,13 +9521,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "GRK-OBG-MCQ-00166",
-    "source": "greek-mcqa"
-  },
-  {
-    "id": 66529,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "GRK-OBG-MCQ-00180",
     "source": "greek-mcqa"
   },
   {
@@ -12009,13 +10812,6 @@
     "source": "fk-leaked-ukmppd"
   },
   {
-    "id": 67564,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "FKU-OBG-MCQ-00097",
-    "source": "fk-leaked-ukmppd"
-  },
-  {
     "id": 67570,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -12727,13 +11523,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "FKU-GEN-MCQ-00748",
-    "source": "fk-leaked-ukmppd"
-  },
-  {
-    "id": 68122,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "FKU-GEN-MCQ-00749",
     "source": "fk-leaked-ukmppd"
   },
   {
@@ -13710,13 +12499,6 @@
     "source": "frenchmedmcqa"
   },
   {
-    "id": 990032,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "WMQ-IPD-MCQ-00033",
-    "source": "worldmedqa"
-  },
-  {
     "id": 990108,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -13808,13 +12590,6 @@
     "source": null
   },
   {
-    "id": 990350,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "UNK-GEN-MCQ-00089",
-    "source": null
-  },
-  {
     "id": 990365,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -13875,13 +12650,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "UNK-GEN-MCQ-00252",
-    "source": null
-  },
-  {
-    "id": 990567,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "UNK-GEN-MCQ-00306",
     "source": null
   },
   {
@@ -14011,13 +12779,6 @@
     "source": null
   },
   {
-    "id": 990955,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "UNK-GEN-MCQ-00694",
-    "source": null
-  },
-  {
     "id": 990959,
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
@@ -14036,13 +12797,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "UNK-GEN-MCQ-00749",
-    "source": null
-  },
-  {
-    "id": 991034,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "UNK-GEN-MCQ-00773",
     "source": null
   },
   {
@@ -14113,13 +12867,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "UNK-GEN-MCQ-00936",
-    "source": null
-  },
-  {
-    "id": 991217,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "UNK-GEN-MCQ-00956",
     "source": null
   },
   {
@@ -14253,13 +13000,6 @@
     "code": "A6_DRIFT",
     "reason": "rationale_topic_drift",
     "case_code": "UNK-GEN-MCQ-01612",
-    "source": null
-  },
-  {
-    "id": 991808,
-    "code": "A6_DRIFT",
-    "reason": "rationale_topic_drift",
-    "case_code": "UNK-GEN-MCQ-01614",
     "source": null
   }
 ]
