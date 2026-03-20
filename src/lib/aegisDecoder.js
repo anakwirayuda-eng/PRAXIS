@@ -9,9 +9,8 @@
 // Authorized domains — update when deploying to new domains
 const AUTHORIZED_DOMAINS = [
   'localhost',
-  'praxis.pages.dev',
-  // Add your custom domain here when ready:
-  // 'praxis-medcase.com',
+  'pages.dev',           // All Cloudflare Pages subdomains (praxis-el6.pages.dev, etc.)
+  'praxis.pages.dev',    // Legacy / future custom subdomain
 ];
 
 function getDecryptionKey() {

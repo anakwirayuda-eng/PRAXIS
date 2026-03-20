@@ -7,6 +7,10 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigationType, Navigate 
 import ErrorBoundary from './components/ErrorBoundary';
 import GlobalWatchdog from './components/GlobalWatchdog';
 import Layout from './components/Layout';
+import { initSecuritySuite } from './lib/securitySuite';
+
+// Sprint 2: Boot security defenses before React tree mounts
+initSecuritySuite();
 
 // ═══════════════════════════════════════
 // Sage Fix #1: Self-Healing lazyWithRetry (Immortal Edition)
