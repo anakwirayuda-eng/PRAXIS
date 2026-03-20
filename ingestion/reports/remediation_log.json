@@ -1,0 +1,1712 @@
+[
+  {
+    "_id": 193,
+    "case_code": "MMC-IPD-MCQ-00113",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"ANSWER: (B) EthambutolREF: KDT 6th edition page 703Bacteriostatic anti tubercular drugs are:ThiacetazoneEthionamideEthambutolPASCycloserine\"",
+    "timestamp": "2026-03-20T04:38:14.809Z"
+  },
+  {
+    "_id": 376,
+    "case_code": "MMC-IPD-MCQ-00228",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A. Man, as humans are the definitive hosts for Taenia saginata, while cattle serve as the intermediate hosts. The life\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 393,
+    "case_code": "MMC-IPD-MCQ-00241",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Actinomyces; 'b' i.e., Nocardia; 'c' i.e., Streptomyces\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 511,
+    "case_code": "MMC-BDH-MCQ-00060",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"Sigmoid colon\" because the sigmoid colon is the most common site for diverticula formation due to its anatomical a\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 517,
+    "case_code": "MMC-IPD-MCQ-00319",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. (A). MercuryAcrodynia (pink disease, erythroedema, or swift- feer's disease)Due to idiosyncratic reaction to mercury among childrenMacu\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 562,
+    "case_code": "MMC-BDH-MCQ-00065",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'd' i.e., All of the above Coxa vera Coxa vera refers to reduced angle between the neck and shaft of the femur. Coxa vera may be con\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 588,
+    "case_code": "MMC-IPD-MCQ-00367",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: b (S phase) Ref: Harper, 23th ed, p. 428DNA replication occurs only at a specified time during the life span of a cell. This period is \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 644,
+    "case_code": "MMC-IPD-MCQ-00396",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A: \"Placental site.\" The placental site is the most common location for puerperal infections due to the significant ti\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 649,
+    "case_code": "MMC-IPD-MCQ-00399",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. B: Autosomal recessive Thalassemia is an inherited autosomal recessive blood disease. Some other autosomal recessive disorders: Cystic \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1146,
+    "case_code": "MMC-OBG-MCQ-00034",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. B. Ovarian pregnancyThe most common site of ectopic pregnancy is fallopian tube. Ectopic at other sites is secondary to ruptured ectopi\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1148,
+    "case_code": "MMC-IPD-MCQ-00700",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. D. Frontala. Akinetic mutism is a condition in which patient neither moves (akinesia) nor speak (mutism).b. It is the result of severe \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1155,
+    "case_code": "MMC-IPD-MCQ-00706",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'b' i.e., 25 hydroxyvitamin DThough, 1, 25 dihydroxyvitamin D (calcitriol) is the active form of vitamin D, its serum measurement do\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1223,
+    "case_code": "MMC-GEN-MCQ-00040",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Coeliac diseases Coeliac disea.se (CD) is a permanent intolerance of the small intestine to gluten, characterized by glute\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1306,
+    "case_code": "MMC-BDH-MCQ-00146",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Answer is 'a' i.e. Epinephrine; 'b' i.e. ACTH ; 'c' i.e. Glucagon As already mentioned in one of the previous questions, the neuroendocrine \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1385,
+    "case_code": "MMC-IPD-MCQ-00850",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'd' i.e.,. HCV Most common hepatitis to progress to chronicity is Hepatitis (G). . HCV =It's major feature, however, is its propensi\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1429,
+    "case_code": "MMC-IPD-MCQ-00875",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e. Neuroectoderm o The eye begins to develop as a pair of optic vesicles on each side of the forebrain at the end of the 4th w\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1602,
+    "case_code": "MMC-IPD-MCQ-00987",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"Heart\" because white infarcts, also known as pale or anemic infarcts, typically occur in solid organs with a singl\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1860,
+    "case_code": "MMC-GEN-MCQ-00056",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: B. ALL(Ref: Goodman Cilrmm 12/c p1720; Katzung 13Ie p938-939, 12/e p968; KDT 7Ie p868).* Asparaginase (L-asparagine amidohydrolase) is \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1903,
+    "case_code": "MMC-IPD-MCQ-01158",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. b (Alfimeprase). (Ref. Harrison's medicine 16th ed. 690)Alfimeprase is a metalloproteinase that degrades fibrin in a plasmin-independen\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 1965,
+    "case_code": "MMC-IPD-MCQ-01191",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., HDL o The level of HDL in serum is inversely related to the incidence of MI.o As it is \"antiatherogenic\" or \"protective\" i\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 2298,
+    "case_code": "MMC-IPD-MCQ-01377",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Trichophyton . Dermatophytes can be identified by their colonial appearance and microscopic morphology after growth for 2 \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 2386,
+    "case_code": "MMC-IPD-MCQ-01431",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"The correct answer is D: \"Masochism.\" Masochism is a paraphilic disorder characterized by the experience of sexual arousal from the act of b\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 3112,
+    "case_code": "MMC-IPD-MCQ-01857",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A. Rods. Rods are photoreceptor cells in the retina that are responsible for vision in low light conditions, but they \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 3218,
+    "case_code": "MMC-IPD-MCQ-01917",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. a (Platelets). (Ref. Robbin, Pathology, 6th ed., 70, 71; Harper's biochemistry 27th ed. Table 50-3)# Platelets contain the enzyme throm\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 3221,
+    "case_code": "MMC-IPD-MCQ-01919",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"Answer is D (Huntington's chorea): Huntington's chorea is inherited as autosomal dominant Disorder Inheritance Fragile X syndrome X Linked F\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 3249,
+    "case_code": "MMC-BDH-MCQ-00399",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. C. BlueCOLOR CODING & TYPES OF CONTAINER: Colour codingType of ContainerWaste CategoryTreatment optionsYellowPlastic BagsHuman and anim\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 3381,
+    "case_code": "MMC-IPD-MCQ-02028",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans: a (Macrophages) Ref: Robbins,7th ed, p. 71; Ananthanarayan, 7th ed, p. 144; Table 16-2TNF and IL1 are the main mediators of inflammatio\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 3428,
+    "case_code": "MMC-BDH-MCQ-00412",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans is 'b' i.e., Submandibular gland * Eighty per cent of all salivary stones occur in the submandibular glands because their secretions are\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4213,
+    "case_code": "MMC-IPD-MCQ-02495",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"ANSWER: (A) Sunflower seedsREF: Harrisons 18th ed chapter 74\"Sunflower seeds are unusually rich in B complex vitamins. Sunflower seeds also \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4274,
+    "case_code": "MMC-IPD-MCQ-02533",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is `a' i.e., Immediately kills the prey DDT (Dichloro-diphenyl-trichloroetheine) o DDT is an amorphous white powder. o Para-para isomer\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4276,
+    "case_code": "MMC-IPD-MCQ-02535",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Tropicamide Salient features of common cvcloplegic and mydriatic drugsSL Name of no. the drugAge of the patient when indic\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4313,
+    "case_code": "MMC-IPD-MCQ-02565",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"Genioglossus\" because it is the primary muscle responsible for the protrusion and stabilization of the tongue. It \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4634,
+    "case_code": "MMC-IPD-MCQ-02763",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'd' i.e., Nipple is supplied by 6th intercostal nerve Mammary gland Breast (mammary gland) is a modified sweat gland present in the \"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4865,
+    "case_code": "MMC-IPD-MCQ-02892",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. (b) SanguinarineRef: K. Park 23sted. /658* EPIDEMIC DROPSY is caused by contamination of mustard oil with Argemone oil (seeds of argemo\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 4875,
+    "case_code": "MMC-IPD-MCQ-02899",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B. Calton, as DNA fingerprinting was developed by Sir Alec Jeffreys in 1984, but the question specifically refers to t\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 5098,
+    "case_code": "MMC-IPD-MCQ-03035",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A: \"Right atrium\" because the coronary sinus is a large vein that collects deoxygenated blood from the myocardium (hea\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 5252,
+    "case_code": "MMC-PSI-MCQ-00125",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B. Sec. 375 IPC, which defines rape under Indian law, including non-consensual sexual intercourse. This section is cru\"",
+    "timestamp": "2026-03-20T04:38:14.810Z"
+  },
+  {
+    "_id": 5351,
+    "case_code": "MMC-IPD-MCQ-03187",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' ie Retinoblastoma Retinoblastoma is the most common primary malignant intraocular tumour of childhood and the second most common\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 5603,
+    "case_code": "MMC-BDH-MCQ-00679",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'b' Lichen Planus Violaceous papules and pterygium clinches the diagnosis of lichen planusImp, point about lichen planusPruritic Pap\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 5646,
+    "case_code": "MMC-BDH-MCQ-00684",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Pyrazinamide o Pyrazinamide causes hyperuricemia.\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 5829,
+    "case_code": "MMC-IPD-MCQ-03459",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A. Section 375 of the Indian Penal Code (IPC) defines the offense of rape, outlining the circumstances under which sex\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 6091,
+    "case_code": "MMC-IPD-MCQ-03612",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: A (MRI) Table(Harrison)Common Contraindications to MR ImagingCardiac pacemaker or permanent pacemaker leadsInternal defibrillatory devi\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 6310,
+    "case_code": "MMC-IPD-MCQ-03742",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. (c) KetamineRef.: Anaesthesia for Medical Students by Sullivan 1999 ed p 83\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 6605,
+    "case_code": "MMC-IPD-MCQ-03917",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Conjugation Conjugation Bacterial conjugation is the transfer of genetic material between bacteria through direct cell to \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 6630,
+    "case_code": "MMC-IPD-MCQ-03930",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans: B (Longitudinal muscle fibers)\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 6825,
+    "case_code": "MMC-IPD-MCQ-04053",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans is 'c' i.e. Smad 7 o Smad 7 gene delivery prevents cachexia.o Smad-3y melanocortin - 4 receptor (MC4R) and APEH (acylpeptide hydrolase) \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 7128,
+    "case_code": "MMC-IPD-MCQ-04240",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Secondary prevention Secondary prevention can be defined as \"action which halts the progress of a disease at its incipient\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 7296,
+    "case_code": "MMC-IPD-MCQ-04340",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Angiosarcoma of livero There is sufficient evidence for the carcinogenecity of thorium dioxide in humanso When administere\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 7437,
+    "case_code": "MMC-IPD-MCQ-04426",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. (A). MercuryAcrodynia (pink disease, erythroedema, or swift- feer's disease)Due to idiosyncratic reaction to mercury among childrenMacu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 7609,
+    "case_code": "MMC-PSI-MCQ-00181",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"A. Obsessive Compulsive Disorder (OCD) is characterized by the presence of obsessions (intrusive thoughts) and compulsions (repetitive behav\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 8248,
+    "case_code": "MMC-IPD-MCQ-04914",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is D: \"Pseudounipolar.\" Dorsal root ganglia contain sensory neurons that have a unique structure characterized by a singl\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 8258,
+    "case_code": "MMC-BDH-MCQ-01016",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. (b) Circular stapler cutting\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 8608,
+    "case_code": "MMC-IPD-MCQ-05168",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Tropicamide Salient features of common cvcloplegic and mydriatic drugsSL Name of no. the drugAge of the patient when indic\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 8934,
+    "case_code": "MMC-IPD-MCQ-05394",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. (A). MercuryAcrodynia (pink disease, erythroedema, or swift- feer's disease)Due to idiosyncratic reaction to mercury among childrenMacu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 9274,
+    "case_code": "MMC-PSI-MCQ-00228",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Audible thoughts Schneider's first rank symptoms Hallucinations :- Audible thoughts, voices commenting on one's action, vo\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 9723,
+    "case_code": "MMC-BDH-MCQ-01226",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. b. Absence of comedoneComedones are characteristic lesions of acne, absent in rosacea\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 10132,
+    "case_code": "MMC-IPD-MCQ-06221",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Live attenuated o Live attenuated vaccine cannot be given in immunocompromized because even low virulent vaccine strain (o\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 10209,
+    "case_code": "MMC-PSI-MCQ-00259",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans is 'a' i.e. Awake with eyes closed with mind wandering Beta (b) waveAlpha (a) waveTheta waveDelta waveRecorded from/seen ino From pariet\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 10296,
+    "case_code": "MMC-IPD-MCQ-06330",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. (a) Autosomal recessive inheritanceRef: Sabiston 19/ep705* Autosomal dominant.* Associated cataract and Scoliosis are seen in NF* Cutan\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 10568,
+    "case_code": "MMC-IPD-MCQ-06531",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is actually C. Liver, not B. Lungs. Kupffer cells are specialized macrophages located in the liver, where they play a cru\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 10728,
+    "case_code": "MMC-IPD-MCQ-06646",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is `a' i.e., Concentric hyperophy of LV; 'b' i.e., T hea size; 'c' i.e., ls Size of hea muscleAdaptations in hea The cardiac myocyte is\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 10820,
+    "case_code": "MMC-PSI-MCQ-00267",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is `d' i.e., All of the above Impoant causes of delirium 1. Trauma : - Head injury, subdural hematoma 2.Infection : - Septicemia, pneum\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 11029,
+    "case_code": "MMC-IPD-MCQ-06856",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'a' i.e., M' Fadyean reaction shows capsule; 'b' i.e., Humans are usually resistant to infection; 'c' i.e., Less than 100 spores can\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 11139,
+    "case_code": "MMC-IPD-MCQ-06933",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Rifampicin\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 11599,
+    "case_code": "MMC-IPD-MCQ-07274",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Pertussis Active immunoprophylaxis after exposure to disease is recommended for:RabiesTetanusHepatitisMeasles (within thre\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 13108,
+    "case_code": "MMC-BDH-MCQ-01782",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A: \"20 mg doxycycline\" because this dosage represents a subantimicrobial dose of doxycycline, which is commonly used f\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 13455,
+    "case_code": "MMC-IPD-MCQ-08464",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. D. MetronidazoleMedication--Treatment should include both paners.Oral Metronidazole--500 mg orally twice daily after meals for 7 days. \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 13537,
+    "case_code": "MMC-IPD-MCQ-08509",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. C.Trimetazidine* Trimetazidine is not used in hea failure.* Trimetazidine is a newer antianginal drug that is a pFOX inhibitor which pa\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 13648,
+    "case_code": "MMC-BDH-MCQ-02013",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"PHEX\" because the PHEX gene is crucial for dentin mineralization. PHEX (phosphate-regulating gene with homologies \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 13740,
+    "case_code": "MMC-IPD-MCQ-08604",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"A. Turner's syndrome is characterized by the presence of a single X chromosome (45, X) due to the complete or partial absence of one of the \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 13763,
+    "case_code": "MMC-IPD-MCQ-08613",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 14076,
+    "case_code": "MMC-BDH-MCQ-02181",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"Upper 1st molar\" because the upper first molar, particularly the maxillary first molar, has the largest faciolingu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 14244,
+    "case_code": "MMC-BDH-MCQ-02255",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A: \"Deciduous lower central incisor\" because this tooth has the smallest mesiodistal diameter among all the options li\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 22962,
+    "case_code": "MQA-IPD-MCQ-03595",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is B. IV Vancomycin and IV ceftriaxone, which is the recommended empirical treatment for infective endocarditis, particul\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 27852,
+    "case_code": "MMC-IPD-MCQ-09035",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Answer: a) ATPase (KS NARAYAN REDDY 33rd ED P-327)In antemortem burns, skin adjacent to the burnt area will show increase in the following e\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28166,
+    "case_code": "MMC-IPD-MCQ-09247",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"Answer is D (G-6PD Deficiency) Glucose - 6 - PD Deficiency is not associated with Pancytopenia and a cellular marrow Myelodysplasias, PNH an\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28239,
+    "case_code": "MMC-IPD-MCQ-09300",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans: C i.e. 2015 Governments have set a date of 2015 by which they would meet the Millennium Development Goals/ MDGs, i.e. eradicate extreme\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28255,
+    "case_code": "MMC-IPD-MCQ-09309",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans: A. Flumazenil(Ref: Goodman Gilman 12/e p468; Kaaung 13/e p3 7 7, 394, 12/e p381, 399; KDT 6/e p385; Harrison 19/e p2727, 8/c 1)2727)Flu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28346,
+    "case_code": "MMC-IPD-MCQ-09362",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. A. P. falciparumBlackwater fever (BWF) is a severe clinical syndrome, characterized by intravascular hemolysis, hemoglobinuria (with pa\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28493,
+    "case_code": "MMC-IPD-MCQ-09462",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. B: Autosomal recessive Thalassemia is an inherited autosomal recessive blood disease. Some other autosomal recessive disorders: Cystic \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28829,
+    "case_code": "MMC-IPD-MCQ-09680",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. A i.e. Microangiopathic changes in blood vessels\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28847,
+    "case_code": "MMC-IPD-MCQ-09690",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Conjugation Conjugation Bacterial conjugation is the transfer of genetic material between bacteria through direct cell to \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 28945,
+    "case_code": "MMC-IPD-MCQ-09748",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. A. PhenytoinPhenytoin causes gingival hyperplasia, hirsutism, megaloblastic anemia, osteomalacia. Carbamazepine causes agranulocytosis,\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29160,
+    "case_code": "MMC-BDH-MCQ-02565",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Metabolic acidosis The question is most probably about complications of massive blood transfusion.Massive Blood Transfusio\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29361,
+    "case_code": "MMC-IPD-MCQ-10021",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Alanine o Transport of alanine from muscle to liver (glucose-alanine cycle) has two functions :-Providing substrate for gi\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29513,
+    "case_code": "MMC-IPD-MCQ-10122",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. A. Aldolase B(Ref: Nelson 20/e Chapter Defects in Metabolism of Carbohydrates)Heriditary fructose intolerance due to deficiency of Aldo\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29537,
+    "case_code": "MMC-IPD-MCQ-10138",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans: A (Descemet's membrane) Ref: BASAK Essentials of Ophthalmology. 5th edition, pg no 163Explanation: (See the following table)In KF ring,\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29639,
+    "case_code": "MMC-BDH-MCQ-02653",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"Maxillary.\" The maxillary sinus is the most common site for carcinoma of the paranasal sinuses, primarily due to i\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29714,
+    "case_code": "MMC-IPD-MCQ-10251",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Answer is A (Antithymocyte globulin followed by cyclosporine) Tor adults over age 50 years or those without HLA matched siblings, the treatm\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 29933,
+    "case_code": "MMC-IPD-MCQ-10398",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., 5 years Surveillance after treatment o Clinical surveillance of cases after completion of treatment is an impoant pa of th\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30172,
+    "case_code": "MMC-IPD-MCQ-10556",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. B: Ring Finger Dupuytren's contracture is more common among people with diabetes, alcoholism, or epilepsy. Dupuytren contracture, a dis\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30199,
+    "case_code": "MMC-BDH-MCQ-02750",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. A: Frontal Sinus Caldwell-Luc/ occipito-frontal view shows: Frontal sinus (Best visualization) Superior orbital fissure Superior margin\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30218,
+    "case_code": "MMC-IPD-MCQ-10580",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Histidine Arginine and histidine are semi - essential amino acids.\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30260,
+    "case_code": "MMC-IPD-MCQ-10603",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"The correct answer is D: \"Hyaluronidase\" because this enzyme is produced by certain microorganisms, such as Streptococcus and Staphylococcus\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30289,
+    "case_code": "MMC-IPD-MCQ-10623",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"The correct answer is A. Glucocorticoids, as they do not act as microsomal enzyme inhibitors. Instead, glucocorticoids primarily exert their\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30490,
+    "case_code": "MMC-BDH-MCQ-02802",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"4 weeks\" because the healing of the epithelial attachment following periodontal surgery typically occurs within th\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30676,
+    "case_code": "MMC-IPD-MCQ-10877",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30747,
+    "case_code": "MMC-IPD-MCQ-10915",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'b' i.e., Black Triage When the quantity and severity of injuries overwhelm the operative capacity of health facilities, a different\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30785,
+    "case_code": "MMC-BDH-MCQ-02848",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. B: Ankylosing spondylitis Ankylosing Spondylitis (AS) is a chronic systemic inflammatory rheumatic disease, primarily affecting the axi\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30790,
+    "case_code": "MMC-PSI-MCQ-00400",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'd' i.e., Lamotrigine o Lamotrigine is the first anticonvulsant to be of benefit in bipolar depression\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30829,
+    "case_code": "MMC-IPD-MCQ-10973",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. c. Ulnar nerve before division into superficial and deep branchesNerve damaged in case of numbness of little and ring finger, atrophy o\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 30859,
+    "case_code": "MMC-IPD-MCQ-10987",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. D i.e. Serum ferritin In the appropriate clinical setting, a smear showing hypochromia and microcytosis is adequate for the diagnosis. \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 31009,
+    "case_code": "MMC-IPD-MCQ-11087",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"ANSWER: (B) EthambutolREF: KDT 6th edition page 703Bacteriostatic anti tubercular drugs are:ThiacetazoneEthionamideEthambutolPASCycloserine\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 31061,
+    "case_code": "MMC-OBG-MCQ-00762",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. C. Pregnancy diameter <5cmCriteria are:a. Asymptomatic patient.b. Serum b-hCGlevel<2000IU/L.c. Pregnancy diameter <2cm.d. Unruptured tu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 31622,
+    "case_code": "MMC-IPD-MCQ-11489",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'a' i.e. Papillary\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 31883,
+    "case_code": "MMC-IPD-MCQ-11657",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. B: Ankylosing spondylitis Ankylosing Spondylitis (AS) is a chronic systemic inflammatory rheumatic disease, primarily affecting the axi\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 31975,
+    "case_code": "MMC-IPD-MCQ-11717",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. D: aPTTHemophilia A is a recessive X-linked genetic disorder involving a lack of functional clotting Factor VIII and represents 80% of \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32212,
+    "case_code": "MMC-IPD-MCQ-11871",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans is 'b' i.e. Ordinal Repeat from All India 07, AIIMS May 2005, Nov. 2003Statistical data can be of two types -Qualitative data -Quantitat\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32342,
+    "case_code": "MMC-IPD-MCQ-11956",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. C: Folk acid Deficiency of : Thiamine causes Ben Beni, neuritis Pyridoxine causes Convulsion, hyperirritability Folic acid causes sprue\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32358,
+    "case_code": "MMC-IPD-MCQ-11967",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Calcium Furosemide action on calcium* Furosemide increases Ca2+ excretion (contrast thiazides which reduce it) as well as \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32441,
+    "case_code": "MMC-IPD-MCQ-12020",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' i.e., True positive Sensitivity =Number of true positive--------------------------------------------Number of true positives + N\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32550,
+    "case_code": "MMC-IPD-MCQ-12094",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. b. Folic acid and vitamin B12 Pemetrexed Toxicity Pemetrexed toxicity mirrors that of methotrexate, with the additional feature of a pr\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32636,
+    "case_code": "MMC-IPD-MCQ-12152",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Calcium Furosemide action on calcium* Furosemide increases Ca2+ excretion (contrast thiazides which reduce it) as well as \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32703,
+    "case_code": "MMC-IPD-MCQ-12188",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"ANSWER: (B) Adductor pollicisREF: http://en.wikipedia.org/wiki/Median_nerve, Grays anatomy, 39th edition, P 931,932 See chart of previous qu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32901,
+    "case_code": "MMC-IPD-MCQ-12315",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Ca2+ o Phase 0 (phase of rapid depolarization)- opening of fast sodium channels with Na4 influxo Phase 1 (initial phase of\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32925,
+    "case_code": "MMC-IPD-MCQ-12330",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. A. P. falciparumBlackwater fever (BWF) is a severe clinical syndrome, characterized by intravascular hemolysis, hemoglobinuria (with pa\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 32941,
+    "case_code": "MMC-IPD-MCQ-12342",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Tropicamide Salient features of common cvcloplegic and mydriatic drugsSL Name of no. the drugAge of the patient when indic\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33068,
+    "case_code": "MMC-IPD-MCQ-12429",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: D (Forehead) Ref: The Essentials of Forensic Medicine and Toxicology by KS Narayan Reddy. 29th edition. 2010. Pg: 171Explanation:Incise\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33183,
+    "case_code": "MMC-IPD-MCQ-12501",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Pyrazinamide o Pyrazinamide causes hyperuricemia.\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33442,
+    "case_code": "MMC-IPD-MCQ-12674",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. (d) ImipenemRef: Harrisons 19th ed.* Microbes which are resistant to methicillin are said to be MRSA.* Methicillin is highly penicilina\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33489,
+    "case_code": "MMC-IPD-MCQ-12707",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"In Hansen's disease, also known as leprosy, the earliest sensation to be lost is touch due to the specific involvement of peripheral nerves \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33526,
+    "case_code": "MMC-BDH-MCQ-03339",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. A. Posterior ethmoidal arteryKiesselbach's plexus, which lies in Little's area, is a region in the anteroinferior part of the nasal sep\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33643,
+    "case_code": "MMC-IPD-MCQ-12808",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Stratum corneum o Stratum basale, stratum spinosum and stratum granulosum, together form the living layer and constitute t\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33791,
+    "case_code": "MMC-IPD-MCQ-12903",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"Trigeminal.\" The trigeminal nerve (cranial nerve V) is primarily a sensory nerve responsible for sensation in the \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33798,
+    "case_code": "MMC-OBG-MCQ-00932",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. a. EstrogenEstrogens are a steroid hormone which exists in three forms each of unique significance during a woman's life.Estradiol is t\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 33855,
+    "case_code": "MMC-IPD-MCQ-12935",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. (A). MercuryAcrodynia (pink disease, erythroedema, or swift- feer's disease)Due to idiosyncratic reaction to mercury among childrenMacu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34039,
+    "case_code": "MMC-IPD-MCQ-13054",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Reactive ahritis Keratoderma Blenorrhagica is the characteristic skin lesion seen in patients with Reactive Ahritis. \"The \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34063,
+    "case_code": "MMC-IPD-MCQ-13063",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans: C. Stratified random samplingRef. Park 24/e p886, 23/e p850, 22/e p792; BK Malunan 6th/100-101).Stratified random sampling is used for \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34246,
+    "case_code": "MMC-BDH-MCQ-03487",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. D: 12 months Paucibacillary leprosy should be treated for 6 months with dapsone 100 mg/day unsupervised plus rifampin 600 mg/ month sup\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34552,
+    "case_code": "MMC-IPD-MCQ-13391",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'd' i.e., Conjugation Drug resistance | | | Mutation Genetic transfer | | |||||Stepwise mutationOne-step mutationTransformationTrans\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34554,
+    "case_code": "MMC-GEN-MCQ-00751",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans: B. ALL(Ref: Goodman Cilrmm 12/c p1720; Katzung 13Ie p938-939, 12/e p968; KDT 7Ie p868).* Asparaginase (L-asparagine amidohydrolase) is \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34648,
+    "case_code": "MMC-BDH-MCQ-03563",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"The correct answer is D: \"Negative predictivity\" because it refers to the probability that individuals with a negative test result truly do \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34814,
+    "case_code": "MMC-IPD-MCQ-13566",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'b' i.e., P falciparum In peripheral smear offalciparum malaria following forms are seen Early ring form Gametocytes Mature trophozo\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34819,
+    "case_code": "MMC-IPD-MCQ-13570",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. c (Microglia). (Ref. Human Embryology by IB Singh, 6th ed., 352).CNS/PNS cells:AstrocytesPhysical support, repair, K+ metabolism; help \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34944,
+    "case_code": "MMC-IPD-MCQ-13643",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: D. GlucocerebrosideGaucher's disease:* MC lysosomal storage disorder, autosomal recessive in inheritance.* Caused by deficiency of tiss\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34954,
+    "case_code": "MMC-IPD-MCQ-13648",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans: B. (Antithrombotic III) Heparin inhibit Factor Xa & IIaQ (thrombin)( i.e., not activate)Heparin The anticoagufant action is exerted mai\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 34998,
+    "case_code": "MMC-IPD-MCQ-13676",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans: B. ALL(Ref: Goodman Cilrmm 12/c p1720; Katzung 13Ie p938-939, 12/e p968; KDT 7Ie p868).* Asparaginase (L-asparagine amidohydrolase) is \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 35138,
+    "case_code": "MMC-IPD-MCQ-13770",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'b' i.e., heal fluid Cations and anions in biological fluids in meq/dl Fluid Sodium Potassium Chloride Gastric juice 60 10 85 heal f\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 35486,
+    "case_code": "MMC-IPD-MCQ-13997",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. c. Ulnar nerve before division into superficial and deep branchesNerve damaged in case of numbness of little and ring finger, atrophy o\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 36357,
+    "case_code": "MMC-IPD-MCQ-14592",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Isoflurane Anaesthetic agents of choice for vaous conditions Day care : Ischemic hea disease : Congenital hea disease Left\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 36461,
+    "case_code": "MMC-IPD-MCQ-14657",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Trichophyton . Dermatophytes can be identified by their colonial appearance and microscopic morphology after growth for 2 \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 36585,
+    "case_code": "MMC-IPD-MCQ-14739",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"s 'b' i.e. Vitamin B Nutritional optic atrophyo The exact mechanism by which nutritional deficits damage the optic nerve has not been elucid\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 36611,
+    "case_code": "MMC-IPD-MCQ-14755",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Answer: b. Bacitracin sensitivity (Ref Ananthanaravan 8/e pe p205-206)Gram-positive cocci with alpha hemolytic colonies on sheep agar are St\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 36879,
+    "case_code": "MMC-BDH-MCQ-03926",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"s 'c' ie Arthrogryposis multiplex congenita Anomalies associated with Wilms' tumorHemihypertrophy*Aniridia*Genitourinary anomalies *Beckwith\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 36899,
+    "case_code": "MMC-IPD-MCQ-14943",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"6 weeks\" because the standard treatment duration for acute osteomyelitis typically involves at least 6 weeks of ap\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37007,
+    "case_code": "MMC-BDH-MCQ-03945",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"Class III\" because, according to Angle's classification of malocclusion, Class III is characterized by a relations\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37116,
+    "case_code": "MMC-IPD-MCQ-15094",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: B. ALL(Ref: Goodman Cilrmm 12/c p1720; Katzung 13Ie p938-939, 12/e p968; KDT 7Ie p868).* Asparaginase (L-asparagine amidohydrolase) is \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37166,
+    "case_code": "MMC-IPD-MCQ-15132",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. A. Aldolase B(Ref: Nelson 20/e Chapter Defects in Metabolism of Carbohydrates)Heriditary fructose intolerance due to deficiency of Aldo\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37293,
+    "case_code": "MMC-BDH-MCQ-03992",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. C. BlueCOLOR CODING & TYPES OF CONTAINER: Colour codingType of ContainerWaste CategoryTreatment optionsYellowPlastic BagsHuman and anim\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37531,
+    "case_code": "MMC-IPD-MCQ-15357",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. B: Autosomal recessive Thalassemia is an inherited autosomal recessive blood disease. Some other autosomal recessive disorders: Cystic \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37775,
+    "case_code": "MMC-IPD-MCQ-15524",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. is 'a' i.e., IgG IDOPATHIC THROMBOCYTOPENIC PURPURAo There are two clinical subtypes of primary I.T.P, acute and chronic both are autoi\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37852,
+    "case_code": "MMC-IPD-MCQ-15579",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'a' i.e., Lead * More idustrial workers are exposed to lead than any other toxic metal.\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 37866,
+    "case_code": "MMC-IPD-MCQ-15587",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. (A). MercuryAcrodynia (pink disease, erythroedema, or swift- feer's disease)Due to idiosyncratic reaction to mercury among childrenMacu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 38233,
+    "case_code": "MMC-IPD-MCQ-15836",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., HDL o The level of HDL in serum is inversely related to the incidence of MI.o As it is \"antiatherogenic\" or \"protective\" i\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 38347,
+    "case_code": "MMC-GEN-MCQ-00932",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 38398,
+    "case_code": "MMC-BDH-MCQ-04162",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"ANSWER: (C) Vitamin K\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 38420,
+    "case_code": "MMC-IPD-MCQ-15948",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. C. BlueCOLOR CODING & TYPES OF CONTAINER: Colour codingType of ContainerWaste CategoryTreatment optionsYellowPlastic BagsHuman and anim\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 38753,
+    "case_code": "MMC-IPD-MCQ-16160",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans is 'a' i.e., Hyaline AeriosclerosisBenign hypeension o In benign hypeension, the pathological change affecting the kidney is hyaline aer\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 38938,
+    "case_code": "MMC-PSI-MCQ-00586",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. D. Frontala. Akinetic mutism is a condition in which patient neither moves (akinesia) nor speak (mutism).b. It is the result of severe \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 39039,
+    "case_code": "MMC-IPD-MCQ-16342",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. a. KetamineKetamine should be avoided in patients with history of seizures as it fuher increases ICP and also causes delirium and hallu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 39600,
+    "case_code": "MMC-IPD-MCQ-16707",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans: A (MRI) Table(Harrison)Common Contraindications to MR ImagingCardiac pacemaker or permanent pacemaker leadsInternal defibrillatory devi\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 39662,
+    "case_code": "MMC-IPD-MCQ-16752",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. a. KetamineKetamine should be avoided in patients with history of seizures as it fuher increases ICP and also causes delirium and hallu\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 39872,
+    "case_code": "MMC-IPD-MCQ-16893",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 40177,
+    "case_code": "MMC-IPD-MCQ-17090",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 40425,
+    "case_code": "MMC-IPD-MCQ-17259",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is B: \"Cefaclor\" because it is a second-generation cephalosporin that is not effective against methicillin-resistant Stap\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 40727,
+    "case_code": "MMC-OBG-MCQ-01365",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is C: \"Isthmo-ampullary\" because Pomeroy's method of female sterilization involves ligating the fallopian tube at the ist\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 40957,
+    "case_code": "MMC-IPD-MCQ-17605",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Tropicamide Salient features of common cvcloplegic and mydriatic drugsSL Name of no. the drugAge of the patient when indic\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 41386,
+    "case_code": "MMC-IPD-MCQ-17886",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"Ordinal\" because the grading of diabetes into categories such as mild, moderate, and severe represents a ranking s\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 41424,
+    "case_code": "MMC-IPD-MCQ-17914",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. is 'b' i.e., Adenomatous Polyps are nodule or mass that project above the level of the surrounding mucosa.\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 42041,
+    "case_code": "MMC-BDH-MCQ-04771",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is A. Cortical bone, which is the dense outer layer of bone that provides strength and structure. In the context of the l\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 42376,
+    "case_code": "MMC-IPD-MCQ-18546",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"The correct answer is A. Gluteus medius. The nerve that passes superior to the piriformis muscle and winds around the greater sciatic notch \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 42508,
+    "case_code": "MMC-IPD-MCQ-18629",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. B: Autosomal recessive Thalassemia is an inherited autosomal recessive blood disease. Some other autosomal recessive disorders: Cystic \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 42717,
+    "case_code": "MMC-IPD-MCQ-18767",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. is `d' i.e., Infection with more than one dengue virus DENGUE FEVER Dengue fever is caused by arboviruses (at least 4 serotypes have be\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 42941,
+    "case_code": "MMC-IPD-MCQ-18921",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Answer is B (Turner's Syndrome) : Noonan syndrome presents with most features similar to Turner's Syndrome. Webbing of neck, increased carry\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 43886,
+    "case_code": "MMC-IPD-MCQ-19526",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans. is 'c' i.e., Ulcerative colitis\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 44113,
+    "case_code": "MMC-IPD-MCQ-19678",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. B. Tubular Secretion and absorption (Ref. Ganong 23rd/ pg. 709-712).Guyton Physiology 11th/pg. 331 & F/gure 27-4..........\"The transpor\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 44241,
+    "case_code": "MMC-IPD-MCQ-19767",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 3,
+    "reason": "Rationale states \"Answer is B (Turner's Syndrome) : Noonan syndrome presents with most features similar to Turner's Syndrome. Webbing of neck, increased carry\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 44361,
+    "case_code": "MMC-IPD-MCQ-19829",
+    "action": "is_correct_flipped",
+    "from_index": 2,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. c. Nuclear palisadingThe most characteristic feature of basal cell carcinoma is nuclear palisading.The characteristic finding is of ovo\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 44541,
+    "case_code": "MMC-OBG-MCQ-01604",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. D. MetronidazoleMedication--Treatment should include both paners.Oral Metronidazole--500 mg orally twice daily after meals for 7 days. \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 44581,
+    "case_code": "MMC-IPD-MCQ-19927",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"Ans: A. Testosterone(Ref Ganong 25/e p 422, 24/e p424; Harper 30/e p 516. 517)Testosterone binds to SHBG with higher affinity than does estr\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 45132,
+    "case_code": "MMC-BDH-MCQ-05485",
+    "action": "is_correct_flipped",
+    "from_index": 1,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"Type 3\" in Dummer's classification, which describes multi constricted apical constriction. In this classification \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 45242,
+    "case_code": "MMC-BDH-MCQ-05529",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 3,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 45564,
+    "case_code": "MMC-IPD-MCQ-20323",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"Ans. a. Respiratory alkalosis (Ref Oxford Handbook of Medicine 5/e p684)In aerial blood gas analysis of a patient with pCO2-30, p02-115 and \"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 45568,
+    "case_code": "MMC-BDH-MCQ-05656",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is C: \"Mandibular 1st premolar\" because this tooth exhibits a unique anatomical feature where the mesial marginal ridge i\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 46621,
+    "case_code": "MMC-BDH-MCQ-06049",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"Ans. D (Superior Laryngeal nerve)* Vagus, RLN involvement leads to hoarseness of the voice* SLN divide into internal and external laryngeal*\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 59952,
+    "case_code": "PLK-GEN-MCQ-00063",
+    "action": "is_correct_flipped",
+    "from_index": 4,
+    "to_index": 2,
+    "reason": "Rationale states \"The correct answer is E because both C (Vincent’s symptom) and D (anesthesia of the lower lip on the particular side) are associated with in\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 61911,
+    "case_code": "PLK-GEN-MCQ-00714",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is D because statements 1, 2, 4, and 5 accurately reflect the developmental milestones in speech function. Articulation m\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 62289,
+    "case_code": "PLK-BDH-MCQ-00137",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 0,
+    "reason": "Rationale states \"The correct answer is D because distraction osteogenesis, alveoloplasty, and augmentation are all procedures that can be performed as part o\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 66572,
+    "case_code": "ING-NEU-MCQ-00002",
+    "action": "is_correct_flipped",
+    "from_index": 3,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is A. Meningitis bakteri, as the patient's presentation of fever, altered consciousness, and neurological signs such as a\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  },
+  {
+    "_id": 66680,
+    "case_code": "SNY-GEN-MCQ-00022",
+    "action": "is_correct_flipped",
+    "from_index": 0,
+    "to_index": 1,
+    "reason": "Rationale states \"The correct answer is D. Osteoblast memproduksi osteoid, which is characteristic of osteosarcoma, the most common primary bone malignancy in\"",
+    "timestamp": "2026-03-20T04:38:14.811Z"
+  }
+]
