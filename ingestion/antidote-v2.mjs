@@ -7,12 +7,31 @@ import fs from 'fs';
 
 const DB_PATH = 'public/data/compiled_cases.json';
 const RAW_PATH = 'ingestion/sources/medmcqa/medmcqa_raw.json';
-const COP = { 0: 'A', 1: 'B', 2: 'C', 3: 'D' };
+
+function normalizeComparable(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function detectCopBase(items) {
+  const values = new Set(items.map((item) => Number.parseInt(item?.cop, 10)).filter(Number.isInteger));
+  if (values.has(0) && values.has(4)) {
+    throw new Error('Mixed MedMCQA `cop` bases detected in raw source.');
+  }
+  if (values.has(0)) return 0;
+  if (values.has(4)) return 1;
+  throw new Error(`Unable to infer MedMCQA \`cop\` base from values: ${[...values].sort((a, b) => a - b).join(', ')}`);
+}
 
 console.log('💉 ANTIDOTE v2 — MOP-UP PROTOCOL\n');
 
 const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 const raw = JSON.parse(fs.readFileSync(RAW_PATH, 'utf8'));
+const copBase = detectCopBase(raw);
+console.log(`🧭 MedMCQA \`cop\` base detected: ${copBase}-indexed`);
 
 // Build fingerprint map
 const rawByFP = new Map();
@@ -33,17 +52,22 @@ for (const c of db) {
   const r = rawByFP.get(fp);
   if (!r) { notFound++; continue; }
   
-  const trueC = COP[parseInt(r.cop, 10)];
-  if (!trueC) continue;
+  const rawCorrectText = [r.opa, r.opb, r.opc, r.opd][Number.parseInt(r.cop, 10) - copBase];
+  if (!rawCorrectText) continue;
   
-  const dbC = c.options?.find(o => o.is_correct)?.id;
+  const dbCorrect = c.options?.find(o => o.is_correct);
+  const anchoredOption = c.options?.find(
+    (option) => normalizeComparable(option?.text) === normalizeComparable(rawCorrectText),
+  );
+  if (!anchoredOption) { notFound++; continue; }
   
-  if (trueC === dbC) { already++; continue; }
+  if (normalizeComparable(dbCorrect?.text) === normalizeComparable(rawCorrectText)) { already++; continue; }
   
   // FIX: Set correct answer
-  c.options.forEach(o => { o.is_correct = (o.id === trueC); });
+  c.options.forEach(o => { o.is_correct = normalizeComparable(o.text) === normalizeComparable(rawCorrectText); });
   c.meta.antidote_v2 = true;
   c.meta.antidote_applied = true;
+  c.meta.answer_anchor_text = rawCorrectText;
   
   // Restore original rationale if available
   const origExp = (r.exp || '').trim();

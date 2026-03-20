@@ -8,7 +8,8 @@ import { z } from 'zod';
 
 // ═══════════════════════════════════════
 // MEDMCQA — THE CHRONIC PROBLEM CHILD
-// cop MUST be 0-indexed integer [0,3]
+// `cop` has drifted across upstream snapshots. We accept 0-4 here and let
+// parse-all.js detect whether the batch is 0-indexed or 1-indexed.
 // ═══════════════════════════════════════
 export const MedMCQAItemSchema = z.object({
   question: z.string().min(5, 'Question too short'),
@@ -16,9 +17,7 @@ export const MedMCQAItemSchema = z.object({
   opb: z.string().optional().default(''),
   opc: z.string().optional().default(''),
   opd: z.string().optional().default(''),
-  // 💉 THE VACCINE: cop MUST be 0-3. If HuggingFace ever changes to 1-indexed,
-  // this will CRASH the pipeline immediately instead of poisoning production.
-  cop: z.coerce.number().int().min(0).max(3, 'FATAL: cop must be 0-indexed [0-3]. If you see 4, source schema changed!'),
+  cop: z.coerce.number().int().min(0).max(4, 'FATAL: cop must be in [0-4]. Upstream schema likely drifted.'),
   exp: z.string().optional().default(''),
   subject_name: z.string().optional().default(''),
   topic_name: z.string().optional().default(''),

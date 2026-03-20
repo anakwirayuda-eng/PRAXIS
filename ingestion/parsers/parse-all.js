@@ -76,27 +76,137 @@ function parseMedQA(rawData) {
   }).filter(c => c.options.length >= 2); // Filter out malformed
 }
 
+function normalizeComparableText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function detectMedMCQACopBase(rawData) {
+  const values = new Set(
+    rawData
+      .map((item) => Number.parseInt(item?.cop, 10))
+      .filter((value) => Number.isInteger(value)),
+  );
+
+  if (values.has(0) && values.has(4)) {
+    throw new Error('MedMCQA `cop` values are mixed 0-indexed and 1-indexed in the same batch.');
+  }
+
+  if (values.has(0)) {
+    return 0;
+  }
+
+  if (values.has(4)) {
+    return 1;
+  }
+
+  throw new Error(
+    `Unable to infer MedMCQA \`cop\` base from values: ${[...values].sort((a, b) => a - b).join(', ') || 'none'}`,
+  );
+}
+
+function rewriteIndexedRationale(text, correctOption) {
+  const normalized = String(text || '').trim();
+  if (!normalized) {
+    return 'Refer to subject textbook for detailed explanation.';
+  }
+
+  if (!correctOption?.text) {
+    return normalized;
+  }
+
+  const answerLeadPatterns = [
+    /^ans(?:wer)?\.?\s*(?:is|:)?\s*['"`(]*[a-e]['"`)]?(?:\s*(?:i\.?\s*e\.?|ie)\.?)?\s*/i,
+    /^(?:the\s+)?correct\s+answer\s+is\s*['"`(]*[a-e]['"`)]?\s*[:.)-]?\s*/i,
+    /^answer\s+is\s*['"`(]*[a-e]['"`)]?\s*[:.)-]?\s*/i,
+  ];
+
+  for (const pattern of answerLeadPatterns) {
+    if (!pattern.test(normalized)) {
+      continue;
+    }
+
+    const stripped = normalized.replace(pattern, '').trim();
+    if (!stripped) {
+      return `The correct answer is ${correctOption.id}: ${correctOption.text}.`;
+    }
+
+    const comparableStripped = normalizeComparableText(stripped);
+    const comparableCorrect = normalizeComparableText(correctOption.text);
+    if (comparableStripped.startsWith(comparableCorrect)) {
+      return `The correct answer is ${correctOption.id}: ${correctOption.text}.${stripped.slice(correctOption.text.length)}`;
+    }
+
+    return `The correct answer is ${correctOption.id}: ${correctOption.text}. ${stripped}`.trim();
+  }
+
+  return normalized;
+}
+
+function alignAnchoredAnswers(cases) {
+  let realigned = 0;
+  let rationaleRewritten = 0;
+
+  for (const caseRecord of cases) {
+    const anchorText = caseRecord.meta?.answer_anchor_text;
+    if (!anchorText || !Array.isArray(caseRecord.options) || caseRecord.options.length === 0) {
+      continue;
+    }
+
+    const anchorComparable = normalizeComparableText(anchorText);
+    const anchoredIndex = caseRecord.options.findIndex(
+      (option) => normalizeComparableText(option?.text) === anchorComparable,
+    );
+
+    if (anchoredIndex === -1) {
+      continue;
+    }
+
+    caseRecord.options.forEach((option, index) => {
+      const shouldBeCorrect = index === anchoredIndex;
+      if (Boolean(option.is_correct) !== shouldBeCorrect) {
+        option.is_correct = shouldBeCorrect;
+        realigned += 1;
+      }
+    });
+
+    if (caseRecord.rationale?.correct) {
+      const rewritten = rewriteIndexedRationale(caseRecord.rationale.correct, caseRecord.options[anchoredIndex]);
+      if (rewritten !== caseRecord.rationale.correct) {
+        caseRecord.rationale.correct = rewritten;
+        rationaleRewritten += 1;
+      }
+    }
+  }
+
+  return { realigned, rationaleRewritten };
+}
+
 // ═══════════════════════════════════════
 // MEDMCQA PARSER
-// Schema: { question, opa, opb, opc, opd, cop (1-4), exp, subject_name, topic_name }
+// Schema: { question, opa, opb, opc, opd, cop, exp, subject_name, topic_name }
 // ═══════════════════════════════════════
 function parseMedMCQA(rawData) {
   console.log(`  📊 Parsing ${rawData.length} MedMCQA items...`);
-  
-  // CORRECTED: MedMCQA cop is 0-indexed (opa=0, opb=1, opc=2, opd=3)
-  const copMap = { 0: 'A', 1: 'B', 2: 'C', 3: 'D' };
+  const copBase = detectMedMCQACopBase(rawData);
+  console.log(`  🧭 MedMCQA \`cop\` base detected: ${copBase}-indexed`);
   
   return rawData.map((item, idx) => {
     if (!item.question || !item.opa) return null;
     
-    const copIndex = parseInt(item.cop, 10);
-    const correctId = copMap[copIndex]; // No fallback — let validation catch undefined
+    const rawCopValue = Number.parseInt(item.cop, 10);
+    const copIndex = rawCopValue - copBase;
+    const optionTexts = [item.opa, item.opb || '', item.opc || '', item.opd || ''];
     const options = [
-      { id: 'A', text: item.opa, is_correct: correctId === 'A' },
-      { id: 'B', text: item.opb || '', is_correct: correctId === 'B' },
-      { id: 'C', text: item.opc || '', is_correct: correctId === 'C' },
-      { id: 'D', text: item.opd || '', is_correct: correctId === 'D' },
+      { id: 'A', text: item.opa, is_correct: copIndex === 0, source_slot: 'opa' },
+      { id: 'B', text: item.opb || '', is_correct: copIndex === 1, source_slot: 'opb' },
+      { id: 'C', text: item.opc || '', is_correct: copIndex === 2, source_slot: 'opc' },
+      { id: 'D', text: item.opd || '', is_correct: copIndex === 3, source_slot: 'opd' },
     ].filter(o => o.text.length > 0);
+    const correctOption = options.find((option) => option.is_correct) || null;
 
     const demographics = extractDemographics(item.question);
     const category = mapSubjectToCategory(item.subject_name);
@@ -117,7 +227,7 @@ function parseMedMCQA(rawData) {
       prompt: extractPrompt(item.question),
       options,
       rationale: {
-        correct: item.exp || 'Refer to subject textbook for detailed explanation.',
+        correct: rewriteIndexedRationale(item.exp, correctOption),
         distractors: {},
         pearl: null,
       },
@@ -130,6 +240,10 @@ function parseMedMCQA(rawData) {
         source: 'medmcqa',
         subject: item.subject_name,
         topic: item.topic_name,
+        source_cop_base: copBase,
+        source_cop_value: rawCopValue,
+        source_answer_index: copIndex,
+        answer_anchor_text: optionTexts[copIndex] || '',
       }
     };
   }).filter(Boolean);
@@ -680,6 +794,8 @@ function main() {
 
   // Rationale Enrichment: Hack 1 (Reverse-Lookup) + Hack 2 (Regex Cleaver) + Hack 3 (Kemenkes) + Hack 4 (LLM Queue)
   const enrichedCases = executeEnrichment(mergedCases);
+  const answerAlignment = alignAnchoredAnswers(enrichedCases);
+  console.log(`  🔒 Answer-anchor realignment: ${answerAlignment.realigned} option flags updated, ${answerAlignment.rationaleRewritten} rationale leads normalized`);
 
   // Quality filter: remove MCQ cases with <2 options or no correct answer
   let filteredOut = 0;
@@ -741,4 +857,3 @@ function main() {
 }
 
 main();
-

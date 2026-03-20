@@ -42,5 +42,65 @@
   {
     "id": "medexpqa_191",
     "reason": "except_logic_suspect"
+  },
+  {
+    "id": 249,
+    "reason": "rationale_topic_mismatch",
+    "case_code": "MMC-IPD-MCQ-00151",
+    "source": "medmcqa"
+  },
+  {
+    "id": 511,
+    "reason": "explicit_rationale_answer_mismatch",
+    "case_code": "MMC-BDH-MCQ-00060",
+    "source": "medmcqa"
+  },
+  {
+    "id": 1602,
+    "reason": "explicit_rationale_answer_mismatch",
+    "case_code": "MMC-IPD-MCQ-00987",
+    "source": "medmcqa"
+  },
+  {
+    "id": 2386,
+    "reason": "explicit_rationale_answer_mismatch",
+    "case_code": "MMC-IPD-MCQ-01431",
+    "source": "medmcqa"
+  },
+  {
+    "id": 3786,
+    "reason": "batch_audited_answer_mismatch_unresolved",
+    "case_code": "MMC-IPD-MCQ-02258",
+    "source": "medmcqa"
+  },
+  {
+    "id": 4313,
+    "reason": "explicit_rationale_answer_mismatch",
+    "case_code": "MMC-IPD-MCQ-02565",
+    "source": "medmcqa"
+  },
+  {
+    "id": 5098,
+    "reason": "explicit_rationale_answer_mismatch",
+    "case_code": "MMC-IPD-MCQ-03035",
+    "source": "medmcqa"
+  },
+  {
+    "id": 6602,
+    "reason": "batch_audited_answer_mismatch_unresolved",
+    "case_code": "MMC-IPD-MCQ-03916",
+    "source": "medmcqa"
+  },
+  {
+    "id": 7833,
+    "reason": "batch_audited_answer_mismatch_unresolved",
+    "case_code": "MMC-IPD-MCQ-04649",
+    "source": "medmcqa"
+  },
+  {
+    "id": 32047,
+    "reason": "batch_audited_answer_mismatch_unresolved",
+    "case_code": "MMC-IPD-MCQ-11764",
+    "source": "medmcqa"
   }
 ]
