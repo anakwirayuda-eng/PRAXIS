@@ -6,20 +6,20 @@
  * On pirated domains, rationale/answers become gibberish.
  */
 
-// Authorized domains — update when deploying to new domains
-const AUTHORIZED_DOMAINS = [
-  'localhost',
-  'pages.dev',           // All Cloudflare Pages subdomains (praxis-el6.pages.dev, etc.)
-  'praxis.pages.dev',    // Legacy / future custom subdomain
-];
+// Authorized domains — "Bloodline Regex" (only PRAXIS lineage allowed)
+const AUTHORIZED_DOMAINS_EXACT = new Set(['localhost']);
+
+// Regex: praxis.pages.dev OR praxis-[random].pages.dev — nothing else!
+const BLOODLINE_REGEX = /^praxis(?:-[a-z0-9]+)?\.pages\.dev$/;
 
 function getDecryptionKey() {
   try {
     const host = window.location.hostname;
-    if (AUTHORIZED_DOMAINS.some(d => host === d || host.endsWith(`.${d}`))) {
+    if (AUTHORIZED_DOMAINS_EXACT.has(host) || BLOODLINE_REGEX.test(host)) {
       return 'PRAXIS_AEGIS_2026_SEAL'; // Must match obfuscate-cases.js
     }
   } catch { /* SSR/test environment */ }
+  console.warn('💀 [AEGIS] Dimensi Ilegal Terdeteksi. Menghancurkan data klinis...');
   return 'MALING_DETECTED_DEBU_KOSMIK'; // Wrong key = gibberish output
 }
 
