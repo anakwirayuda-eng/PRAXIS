@@ -1,0 +1,117 @@
+
+[1m[46m RUN [49m[22m [36mv4.1.0 [39m[90mD:/Dev/MedCase[39m
+
+[90mstdout[2m | src/test/caseLibrary.regression.test.jsx[2m > [22m[2mcase library split regression coverage[2m > [22m[2mhydrates compiled cases once and updates the runtime snapshot
+[22m[39m[MedCase] Loaded 13 cases (12 hand-crafted + 1 compiled) — time-sliced
+
+[90mstdout[2m | src/test/caseLibrary.regression.test.jsx[2m > [22m[2mcase library split regression coverage[2m > [22m[2mkeeps the dashboard subscribed while the compiled library streams in
+[22m[39m[MedCase] Loaded 13 cases (12 hand-crafted + 1 compiled) — time-sliced
+
+[90mstdout[2m | src/test/caseLibrary.regression.test.jsx[2m > [22m[2mcase library split regression coverage[2m > [22m[2mkeeps the data quality dashboard subscribed while the compiled library streams in
+[22m[39m[MedCase] Loaded 13 cases (12 hand-crafted + 1 compiled) — time-sliced
+
+[90mstderr[2m | src/test/caseLibrary.regression.test.jsx[2m > [22m[2mcase library split regression coverage[2m > [22m[2mkeeps the data quality dashboard subscribed while the compiled library streams in
+[22m[39mAn error occurred in the <DataQuality> component.
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+
+[90mstdout[2m | src/test/caseLibrary.regression.test.jsx[2m > [22m[2mcase library split regression coverage[2m > [22m[2mopens a deep link to a compiled case after the library resolves
+[22m[39m[MedCase] Loaded 13 cases (12 hand-crafted + 1 compiled) — time-sliced
+
+ [31m❯[39m src/test/caseLibrary.regression.test.jsx [2m([22m[2m5 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2506[2mms[22m[39m
+[31m     [31m×[31m hydrates compiled cases once and updates the runtime snapshot[39m[32m 143[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps the dashboard subscribed while the compiled library streams in [33m 764[2mms[22m[39m
+[31m     [31m×[31m keeps the data quality dashboard subscribed while the compiled library streams in[39m[33m 1224[2mms[22m[39m
+     [33m[2m✓[22m[39m opens a deep link to a compiled case after the library resolves [33m 366[2mms[22m[39m
+     [32m✓[39m falls back to the starter library when the compiled fetch fails[32m 5[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/caseLibrary.regression.test.jsx[2m > [22mcase library split regression coverage[2m > [22mhydrates compiled cases once and updates the runtime snapshot
+[31m[1mAssertionError[22m: expected { …(12) } to match object { Object (title, category, ...) }
+(23 matching properties omitted from actual)[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[2m  {[22m
+[32m-   "category": "surgery",[39m
+[31m+   "category": "internal-medicine",[39m
+[2m    "q_type": "MCQ",[22m
+[2m    "title": "Hydrated Runtime Case",[22m
+[2m  }[22m
+
+[36m [2m❯[22m src/test/caseLibrary.regression.test.jsx:[2m89:53[22m[39m
+    [90m 87|[39m       compiledCount[33m:[39m [34m1[39m[33m,[39m
+    [90m 88|[39m     })[33m;[39m
+    [90m 89|[39m     [34mexpect[39m(loader[33m.[39m[34mgetCaseById[39m(starterCases[33m.[39mlength))[33m.[39m[34mtoMatchObject[39m({
+    [90m   |[39m                                                     [31m^[39m
+    [90m 90|[39m       title[33m:[39m [32m'Hydrated Runtime Case'[39m[33m,[39m
+    [90m 91|[39m       category[33m:[39m [32m'surgery'[39m[33m,[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m src/test/caseLibrary.regression.test.jsx[2m > [22mcase library split regression coverage[2m > [22mkeeps the data quality dashboard subscribed while the compiled library streams in
+[31m[1mTestingLibraryElementError[22m: Unable to find an element with the text: (_, element) => (element?.textContent?.includes(expectedText) ?? false) && (!tagName || element?.tagName?.toLowerCase() === tagName). This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[31m
+  [36m<div />[31m
+[36m</body>[31m
+
+Ignored nodes: comments, script, style
+[36m<html>[31m
+  [36m<head />[31m
+  [36m<body>[31m
+    [36m<div />[31m
+  [36m</body>[31m
+[36m</html>[31m[39m
+[90m [2m❯[22m waitForWrapper node_modules/@testing-library/dom/dist/wait-for.js:[2m163:27[22m[39m
+[36m [2m❯[22m src/test/caseLibrary.regression.test.jsx:[2m150:11[22m[39m
+    [90m148|[39m     deferred.resolve([buildCompiledCase({ title: 'Quality Runtime Case…
+    [90m149|[39m
+    [90m150|[39m     [35mawait[39m [34mwaitFor[39m(() [33m=>[39m {
+    [90m   |[39m           [31m^[39m
+    [90m151|[39m       expect(screen.getByText(textContentMatcher(`${(starterCases.leng…
+    [90m152|[39m     })[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Errors [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯[39m[1m[41m Uncaught Exception [49m[22m[31m⎯⎯⎯⎯⎯[39m
+[31m[1mTypeError[22m: Cannot read properties of null (reading 'id')[39m
+[36m [2m❯[22m src/pages/DataQuality.jsx:[2m352:50[22m[39m
+    [90m350|[39m                   [33m{[39mquarantine[33m.[39mitems[33m.[39m[34mslice[39m([34m0[39m[33m,[39m [34m20[39m)[33m.[39m[34mmap[39m((item[33m,[39m idx) [33m=>[39m (
+    [90m351|[39m                     <tr key={`${item.id}-${idx}`} style={{ borderBotto…
+    [90m352|[39m                       [33m<[39m[33mtd[39m [33mstyle[39m[33m=[39m[33m{[39mtdStyle[33m}[39m[33m>[39m#[33m{[39mitem[33m.[39mid[33m}[39m[33m<[39m[33m/[39m[33mtd[39m[33m>[39m
+    [90m   |[39m                                                  [31m^[39m
+    [90m353|[39m                       <td style={{ ...tdStyle, fontFamily: 'var(--font…
+    [90m354|[39m                         [33m{[39mitem[33m.[39mcode[33m}[39m
+[90m [2m❯[22m DataQuality src/pages/DataQuality.jsx:[2m350:50[22m[39m
+[90m [2m❯[22m Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:[2m25904:20[22m[39m
+[90m [2m❯[22m renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:[2m7662:22[22m[39m
+[90m [2m❯[22m updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:[2m10166:19[22m[39m
+[90m [2m❯[22m beginWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m11778:18[22m[39m
+[90m [2m❯[22m runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:[2m874:13[22m[39m
+[90m [2m❯[22m performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:[2m17641:22[22m[39m
+[90m [2m❯[22m workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:[2m17469:41[22m[39m
+
+[31mThis error originated in "[1msrc/test/caseLibrary.regression.test.jsx[22m" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.[39m
+[31mThe latest test that might've caused the error is "[1mkeeps the data quality dashboard subscribed while the compiled library streams in[22m". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.[39m
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (5)[39m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 06:08:14
+[2m   Duration [22m 4.12s[2m (transform 600ms, setup 300ms, import 28ms, tests 2.51s, environment 1.05s)[22m
+

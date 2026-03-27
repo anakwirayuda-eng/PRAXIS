@@ -64,7 +64,8 @@ export default function DataQuality() {
 
   const quarantineStats = useMemo(() => {
     const byCode = {};
-    for (const item of quarantine.items) {
+    for (const item of (quarantine.items || [])) {
+      if (!item) continue;
       const code = item.code || 'UNKNOWN';
       byCode[code] = (byCode[code] || 0) + 1;
     }
@@ -346,7 +347,7 @@ export default function DataQuality() {
                   </tr>
                 </thead>
                 <tbody>
-                  {quarantine.items.slice(0, 20).map((item, idx) => (
+                  {(quarantine.items || []).filter(Boolean).slice(0, 20).map((item, idx) => (
                     <tr key={`${item.id}-${idx}`} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <td style={tdStyle}>#{item.id}</td>
                       <td style={{ ...tdStyle, fontFamily: 'var(--font-mono, monospace)', color: QUARANTINE_CODE_COLORS[item.code] || '#94a3b8', fontWeight: 600, fontSize: '0.75rem' }}>

@@ -133,6 +133,13 @@
   padding: 0;
 }
 
+/* Global focus indicator for strict accessibility */
+*:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
@@ -1070,6 +1077,7 @@ h1, h2, h3, h4, h5, h6 {
   .glass-card {
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
+    padding: var(--sp-4) !important;
   }
 
   /* Progress bar: slightly taller for visibility */
@@ -1103,6 +1111,20 @@ h1, h2, h3, h4, h5, h6 {
     min-width: unset !important;
   }
 
+  /* Filter chips scrollable row on mobile */
+  .filter-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    width: 100%;
+  }
+  .filter-chips-row .btn {
+    flex-shrink: 0;
+    font-size: var(--fs-xs);
+    padding: var(--sp-2) var(--sp-3);
+    min-height: 36px;
+  }
+
   /* Sidebar footer: compact */
   .sidebar-footer {
     padding: var(--sp-3) var(--sp-4);
@@ -1134,7 +1156,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .glass-card {
     border-radius: var(--radius-lg);
-    padding: var(--sp-3);
+    padding: var(--sp-3) !important;
   }
 
   /* Exam preset cards: stack tighter */
@@ -1165,6 +1187,13 @@ h1, h2, h3, h4, h5, h6 {
     width: 28px;
     height: 28px;
     font-size: var(--fs-sm);
+  }
+
+  /* Filter chips smaller */
+  .filter-chips-row .btn {
+    font-size: 10px;
+    padding: var(--sp-1) var(--sp-2);
+    min-height: 32px;
   }
 
   /* Hide stagger animation on small screens for performance */

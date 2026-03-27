@@ -26,6 +26,37 @@ const PRESETS = [
   { label: 'Flashcard Sprint', questions: 20, time: 10, exam: 'all', icon: '⚡', questionMode: 'rapid_recall' },
 ];
 
+function TimerRing({ value, max, size = 52, stroke = 4 }) {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / max) * circumference;
+  const isUrgent = value <= 60;
+  const color = isUrgent ? 'var(--accent-danger)' : 'var(--accent-primary)';
+  
+  return (
+    <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.4)', borderRadius: '50%', boxShadow: isUrgent ? '0 0 16px rgba(239,68,68,0.2)' : 'none', transition: 'box-shadow 0.3s' }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(148,163,184,0.15)" strokeWidth={stroke} />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease' }}
+        />
+      </svg>
+      <div style={{ position: 'relative', zIndex: 2, fontSize: 11, fontWeight: 700, color: isUrgent ? 'var(--accent-danger)' : 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }} aria-label={`${Math.floor(value / 60)} minutes and ${value % 60} seconds remaining`}>
+        {Math.floor(value / 60)}:{String(value % 60).padStart(2, '0')}
+      </div>
+    </div>
+  );
+}
+
 function buildPresetConfig(preset) {
   return {
     questionCount: preset.questions,
@@ -298,12 +329,11 @@ export default function ExamMode() {
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-            <div className={`timer ${timeLeft < 60 ? 'urgent' : ''}`}>
-              <Clock size={14} />
-              <span>{formatTime(timeLeft)}</span>
-            </div>
-            <button className="btn btn-ghost" onClick={resetExam} style={{ fontSize: 'var(--fs-xs)' }}>End Exam</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
+            <TimerRing value={timeLeft} max={config.timeLimit * 60} />
+            <button className="btn btn-ghost" onClick={resetExam} style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+              End
+            </button>
           </div>
         </div>
 

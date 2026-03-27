@@ -223,8 +223,8 @@ export default function CaseBrowser() {
           <h1 className="page-title">Case Browser</h1>
           <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases • Shuffled daily • Unseen first</p>
         </div>
-        <button className="btn" onClick={goRandomCase} style={{ background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Shuffle size={16} /> Random Case 🎲
+        <button className="btn" aria-label="Start random case" onClick={goRandomCase} style={{ background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Shuffle aria-hidden="true" size={16} /> Random Case <span aria-hidden="true">🎲</span>
         </button>
       </div>
 
@@ -280,77 +280,79 @@ export default function CaseBrowser() {
             <option value="Clinical">🏥 Clinical</option>
           </select>
 
-          <button
-            type="button"
-            aria-pressed={selectedMode === 'rapid_recall'}
-            className={`btn ${selectedMode === 'rapid_recall' ? '' : 'btn-ghost'}`}
-            onClick={() => setFilter('mode', selectedMode === 'rapid_recall' ? 'all' : 'rapid_recall')}
-            style={selectedMode === 'rapid_recall'
-              ? { background: 'rgba(13,148,136,0.15)', color: '#2dd4bf', border: '1px solid rgba(13,148,136,0.3)' }
-              : {}}
-          >
-            <Zap size={14} /> Rapid Recall
-          </button>
+          <div className="filter-chips-row" style={{ display: 'flex', gap: 'var(--sp-2)', overflowX: 'auto', paddingBottom: 'var(--sp-2)', marginTop: 'var(--sp-2)' }}>
+            <button
+              type="button"
+              aria-pressed={selectedMode === 'rapid_recall'}
+              className={`btn ${selectedMode === 'rapid_recall' ? '' : 'btn-ghost'}`}
+              onClick={() => setFilter('mode', selectedMode === 'rapid_recall' ? 'all' : 'rapid_recall')}
+              style={selectedMode === 'rapid_recall'
+                ? { background: 'rgba(13,148,136,0.15)', color: '#2dd4bf', border: '1px solid rgba(13,148,136,0.3)' }
+                : {}}
+            >
+              <Zap size={14} /> Rapid Recall
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={showImagesOnly}
-            className={`btn ${showImagesOnly ? '' : 'btn-ghost'}`}
-            onClick={() => setFilter('images', showImagesOnly ? '' : '1')}
-            style={showImagesOnly
-              ? { background: 'rgba(168,85,247,0.15)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }
-              : {}}
-          >
-            <Camera size={14} /> Has Image 📷
-          </button>
+            <button
+              type="button"
+              aria-pressed={showImagesOnly}
+              className={`btn ${showImagesOnly ? '' : 'btn-ghost'}`}
+              onClick={() => setFilter('images', showImagesOnly ? '' : '1')}
+              style={showImagesOnly
+                ? { background: 'rgba(168,85,247,0.15)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }
+                : {}}
+            >
+              <Camera size={14} /> Has Image 📷
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={hideCompleted}
-            className={`btn ${hideCompleted ? '' : 'btn-ghost'}`}
-            onClick={() => setFilter('hideCompleted', hideCompleted ? '' : '1')}
-            style={hideCompleted
-              ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
-              : {}}
-          >
-            <CheckCircle size={14} /> Hide Completed
-          </button>
+            <button
+              type="button"
+              aria-pressed={hideCompleted}
+              className={`btn ${hideCompleted ? '' : 'btn-ghost'}`}
+              onClick={() => setFilter('hideCompleted', hideCompleted ? '' : '1')}
+              style={hideCompleted
+                ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
+                : {}}
+            >
+              <CheckCircle size={14} /> Hide Completed
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={hideTruncated}
-            className={`btn ${hideTruncated ? '' : 'btn-ghost'}`}
-            onClick={() => setFilter('hideTruncated', hideTruncated ? '0' : '')}
-            style={hideTruncated
-              ? { background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }
-              : {}}
-          >
-            <AlertTriangle size={14} /> Hide Truncated
-          </button>
+            <button
+              type="button"
+              aria-pressed={hideTruncated}
+              className={`btn ${hideTruncated ? '' : 'btn-ghost'}`}
+              onClick={() => setFilter('hideTruncated', hideTruncated ? '0' : '')}
+              style={hideTruncated
+                ? { background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }
+                : {}}
+            >
+              <AlertTriangle size={14} /> Hide Truncated
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={hideUnreviewed}
-            className={`btn ${hideUnreviewed ? '' : 'btn-ghost'}`}
-            onClick={() => setReviewMode(reviewMode === 'hide' ? 'all' : 'hide')}
-            style={hideUnreviewed
-              ? { background: 'rgba(14,165,233,0.15)', color: '#38bdf8', border: '1px solid rgba(14,165,233,0.3)' }
-              : {}}
-          >
-            <CheckCircle size={14} /> Hide Unreviewed
-          </button>
+            <button
+              type="button"
+              aria-pressed={hideUnreviewed}
+              className={`btn ${hideUnreviewed ? '' : 'btn-ghost'}`}
+              onClick={() => setReviewMode(reviewMode === 'hide' ? 'all' : 'hide')}
+              style={hideUnreviewed
+                ? { background: 'rgba(14,165,233,0.15)', color: '#38bdf8', border: '1px solid rgba(14,165,233,0.3)' }
+                : {}}
+            >
+              <CheckCircle size={14} /> Hide Unreviewed
+            </button>
 
-          <button
-            type="button"
-            aria-pressed={showOnlyReviewed}
-            className={`btn ${showOnlyReviewed ? '' : 'btn-ghost'}`}
-            onClick={() => setReviewMode(reviewMode === 'reviewed' ? 'hide' : 'reviewed')}
-            style={showOnlyReviewed
-              ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
-              : {}}
-          >
-            <CheckCircle size={14} /> Show Only Reviewed
-          </button>
+            <button
+              type="button"
+              aria-pressed={showOnlyReviewed}
+              className={`btn ${showOnlyReviewed ? '' : 'btn-ghost'}`}
+              onClick={() => setReviewMode(reviewMode === 'reviewed' ? 'hide' : 'reviewed')}
+              style={showOnlyReviewed
+                ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
+                : {}}
+            >
+              <CheckCircle size={14} /> Show Only Reviewed
+            </button>
+          </div>
         </div>
 
         {(showBookmarksOnly || hasQuickFilters) && (

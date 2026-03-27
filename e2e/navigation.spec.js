@@ -13,7 +13,7 @@ test('dashboard to browser to case and back works', async ({ page }) => {
   await expect(firstCaseCard).toBeVisible();
   await firstCaseCard.click();
 
-  await expect(page).toHaveURL(/\/case\/\d+$/);
+  await expect(page).toHaveURL(/\/case\/\d+(\?.*)?$/);
   await expect(page.locator('h2').first()).toBeVisible();
 
   await page.getByTestId('case-player-back').click();

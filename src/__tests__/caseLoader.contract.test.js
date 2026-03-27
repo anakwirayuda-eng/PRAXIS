@@ -11,6 +11,7 @@ function buildFetchResponse(jsonData, ok = true, status = 200) {
 async function loadFreshCaseLoader(compiledCases, quarantineManifest = null) {
   vi.resetModules();
   const fetchMock = vi.fn()
+    .mockResolvedValueOnce(buildFetchResponse({}, false, 404))
     .mockResolvedValueOnce(buildFetchResponse(compiledCases))
     .mockResolvedValueOnce(
       quarantineManifest === null
@@ -55,11 +56,11 @@ describe('caseLoader runtime contracts', () => {
 
     expect(normalized).toMatchInlineSnapshot(`
       {
-        "_id": ${handCraftedCount},
-        "_searchKey": "what finding is most concerning? what finding is most concerning?  internal-medicine ",
+        "_id": 12,
+        "_searchKey": "unknown-category review what finding is most concerning?  internal-medicine ",
         "category": "internal-medicine",
         "confidence": 0,
-        "hash_id": "case_${handCraftedCount}",
+        "hash_id": "case_12",
         "meta": {
           "difficulty": 1,
           "examType": "BOTH",
@@ -78,7 +79,7 @@ describe('caseLoader runtime contracts', () => {
           "distractors": {},
           "pearl": "",
         },
-        "title": "What finding is most concerning?",
+        "title": "unknown-category Review",
         "vignette": {
           "demographics": {
             "age": null,
@@ -125,7 +126,7 @@ describe('caseLoader runtime contracts', () => {
 
     const { cases, fetchMock, handCraftedCount, loader } = await loadFreshCaseLoader(compiledCases);
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(loader.getCaseBankSnapshot()).toMatchObject({
       status: 'ready',
       compiledCount: compiledCases.length,

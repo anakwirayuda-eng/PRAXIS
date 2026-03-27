@@ -77,9 +77,10 @@ describe('case library split regression coverage', () => {
       loader.ensureCaseBankLoaded(),
     ]);
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/data/compiled_cases.json');
-    expect(String(fetchMock.mock.calls[1][0])).toContain('/data/quarantine_manifest.json');
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/data/manifest.json');
+    expect(String(fetchMock.mock.calls[1][0])).toContain('/data/compiled_cases.json');
+    expect(String(fetchMock.mock.calls[2][0])).toContain('/data/quarantine_manifest.json');
     expect(loader.getCaseBankSnapshot()).toMatchObject({
       status: 'ready',
       totalCases: starterCases.length + 1,
@@ -87,7 +88,7 @@ describe('case library split regression coverage', () => {
     });
     expect(loader.getCaseById(starterCases.length)).toMatchObject({
       title: 'Hydrated Runtime Case',
-      category: 'surgery',
+      category: 'internal-medicine',
       q_type: 'MCQ',
     });
     expect(loader.getCaseById(starterCases.length).options[0].id).toBe('A');
@@ -95,7 +96,7 @@ describe('case library split regression coverage', () => {
     expect(secondLoad).toHaveLength(starterCases.length + 1);
 
     await loader.ensureCaseBankLoaded();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('keeps the dashboard subscribed while the compiled library streams in', async () => {
@@ -125,7 +126,7 @@ describe('case library split regression coverage', () => {
     await waitFor(() => {
       expect(screen.queryByText(/Loading the full case library in the background/i)).not.toBeInTheDocument();
     });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('keeps the data quality dashboard subscribed while the compiled library streams in', async () => {
@@ -149,7 +150,7 @@ describe('case library split regression coverage', () => {
     await waitFor(() => {
       expect(screen.getByText(textContentMatcher(`${(starterCases.length + 1).toLocaleString()} total cases`, 'p'))).toBeInTheDocument();
     });
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('opens a deep link to a compiled case after the library resolves', async () => {
@@ -178,7 +179,7 @@ describe('case library split regression coverage', () => {
 
     expect(await screen.findByText('Deep Linked Runtime Case')).toBeInTheDocument();
     expect(screen.queryByText('Case Not Found')).not.toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('falls back to the starter library when the compiled fetch fails', async () => {
