@@ -133,6 +133,7 @@ export let allCases = [...normalizedHandCrafted];
 export { CATEGORIES };
 
 let compiledCount = 0;
+let compiledOffset = 0; // Global offset across chunks — prevents _id collision in chunked deploy
 let loadStatus = 'idle';
 let loadError = null;
 let loadPromise = null;
@@ -179,8 +180,8 @@ function hydrateCompiledCases(compiledRaw) {
         // Aegis Seal: decode obfuscated fields if present (transparent — works plain or XOR'd)
         if (needsDecrypt) deobfuscateCase(compiledRaw[i]);
         const normalized = normalizeCase(
-          { ...compiledRaw[i], _id: handCraftedCount + i },
-          handCraftedCount + i,
+          { ...compiledRaw[i], _id: handCraftedCount + compiledOffset + i },
+          handCraftedCount + compiledOffset + i,
         );
         allCases.push(normalized);
         caseMap.set(normalized._id, normalized); // Fix #3: Index into O(1) Map
@@ -197,6 +198,7 @@ function hydrateCompiledCases(compiledRaw) {
         }
         setTimeout(processChunk, 0);
       } else {
+        compiledOffset += compiledRaw.length; // Advance global offset for next chunk
         resolve(allCases);
       }
     }
