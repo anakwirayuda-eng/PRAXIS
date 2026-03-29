@@ -47,6 +47,9 @@ export default function MedBlitz() {
       c.q_type === 'MCQ' &&
       c.options?.length >= 2 &&
       c.options.some(o => o.is_correct) &&
+      !c.meta?.quarantined &&        // Quality gate
+      !c.meta?.truncated &&          // Quality gate
+      !c.meta?.needs_review &&       // Quality gate
       (c.vignette?.narrative?.length < 200 || c.meta?.questionMode === 'rapid_recall')
     );
   }, [caseBank, status]);

@@ -126,7 +126,8 @@ export default function CaseBrowser() {
       if (showImagesOnly && (!caseData.images || caseData.images.length === 0)) return false;
       if (meta.quarantined === true) return false; // Always hide quarantined
       if (hideTruncated && isTruncated) return false;
-      if (reviewMode !== 'all' && needsReview) return false;
+      if (hideUnreviewed && needsReview) return false;                 // 'hide': exclude flagged
+      if (showOnlyReviewed && !meta.reviewed) return false;            // 'reviewed': require positive flag
       if (selectedCategory !== 'all' && caseData.category !== selectedCategory) return false;
       if (selectedDifficulty !== 'all' && meta.difficulty !== Number.parseInt(selectedDifficulty, 10)) return false;
       if (selectedType !== 'all' && caseData.q_type !== selectedType) return false;

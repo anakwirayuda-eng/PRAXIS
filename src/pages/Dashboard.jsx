@@ -68,7 +68,7 @@ export default function Dashboard() {
 
   const startRandomCase = () => {
     const completedSet = new Set(completedCases);
-    const qualityPool = caseBank.filter(c => !c.meta?.quarantined && !c.meta?.needs_review);
+    const qualityPool = caseBank.filter(c => !c.meta?.quarantined && !c.meta?.needs_review && !c.meta?.truncated);
     const unseenPool = qualityPool.filter(c => !completedSet.has(c._id || c.id));
     const pool = unseenPool.length > 0 ? unseenPool : qualityPool;
     if (pool.length === 0) return;

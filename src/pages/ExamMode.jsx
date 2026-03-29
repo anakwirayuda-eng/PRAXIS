@@ -101,6 +101,9 @@ export default function ExamMode() {
   const getPoolForConfig = useCallback((cfg) => loadedCases.filter((caseData) => {
     if (caseData.q_type === 'CLINICAL_DISCUSSION') return false;
     if (caseData.options?.length < 2) return false;
+    if (caseData.meta?.quarantined === true) return false;   // Quality gate
+    if (caseData.meta?.truncated === true) return false;     // Quality gate
+    if (caseData.meta?.needs_review === true) return false;  // Quality gate
     if (cfg.categories !== 'all' && caseData.category !== cfg.categories) return false;
     if (cfg.difficulty !== 'all' && caseData.meta.difficulty !== Number.parseInt(cfg.difficulty, 10)) return false;
     if (cfg.examType !== 'all' && caseData.meta.examType !== cfg.examType && caseData.meta.examType !== 'BOTH') return false;

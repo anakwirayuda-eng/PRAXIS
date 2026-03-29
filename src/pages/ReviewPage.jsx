@@ -45,7 +45,12 @@ export default function ReviewPage() {
   );
   const dueCards = useMemo(() => {
     recalcRetrievability();
-    return getDueCards(threshold, 50).filter((dueCard) => casesById.has(dueCard.caseId));
+    return getDueCards(threshold, 50).filter((dueCard) => {
+      const c = casesById.get(dueCard.caseId);
+      if (!c) return false;
+      if (c.meta?.quarantined || c.meta?.truncated || c.meta?.needs_review) return false;
+      return true;
+    });
   }, [casesById, threshold]);
 
   useEffect(() => {

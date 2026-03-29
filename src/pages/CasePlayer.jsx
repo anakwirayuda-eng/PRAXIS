@@ -374,20 +374,24 @@ export function CasePlayerSession({
 
     if (playlist && Array.isArray(playlist)) {
       const currentIdx = playlist.indexOf(caseData._id);
-      if (currentIdx !== -1 && currentIdx < playlist.length - 1) {
-        const nextId = playlist[currentIdx + 1];
-        navigate(`/case/${nextId}`, { state: { ...location.state } });
+      if (currentIdx !== -1) {
+        // Found in playlist — follow it
+        if (currentIdx < playlist.length - 1) {
+          const nextId = playlist[currentIdx + 1];
+          navigate(`/case/${nextId}`, { state: { ...location.state } });
+          return;
+        }
+        navigate(`/cases${location.state?.browserSearch ?? ''}`);
         return;
       }
-      navigate('/cases');
-      return;
+      // currentIdx === -1: case was beyond the 2000-cap — fall through to caseBank
     }
 
-    // Fallback: Raw linear search in caseBank
+    // Fallback: Raw linear search in caseBank (also used when playlist doesn't contain current case)
     const currentIdx = caseBank.findIndex((entry) => entry._id === caseData._id);
     for (let i = currentIdx + 1; i < caseBank.length; i++) {
       const next = caseBank[i];
-      if (!next.meta?.quarantined && !next.meta?.needs_review) {
+      if (!next.meta?.quarantined && !next.meta?.needs_review && !next.meta?.truncated) {
         navigate(`/case/${next._id}`);
         return;
       }
