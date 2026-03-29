@@ -141,13 +141,16 @@ export default function PassPredictor() {
 
     cleanupWorker();
 
-    const casePool = caseBank
+    const casePoolRaw = caseBank
       .filter((caseData) => caseData.q_type === 'MCQ') // Essential: single-correct modeling only
+      .filter((caseData) => !caseData.meta?.quarantined && !caseData.meta?.truncated && !caseData.meta?.needs_review)
       .filter((caseData) =>
         config.examType === 'all'
         || caseData.meta.examType === config.examType
-        || caseData.meta.examType === 'BOTH')
-      .map((caseData) => caseData._id);
+        || caseData.meta.examType === 'BOTH');
+        
+    const casePool = casePoolRaw.map((caseData) => caseData._id);
+    const guessRates = casePoolRaw.map((caseData) => caseData.options?.length ? 1 / caseData.options.length : 0.20);
 
     if (casePool.length === 0) {
       setRunning(false);
@@ -321,7 +324,8 @@ export default function PassPredictor() {
             passMark: config.passMark,
             iterations: config.iterations,
             casePool,
-            guessRate: config.examType === 'USMLE' ? 0.25 : 0.20, // 4-opt vs 5-opt blind guess
+            guessRates,
+            guessRate: 0.20, // fallback for older worker cache
           },
         });
         captureMessage(

@@ -63,11 +63,12 @@ async function syncToServer(caseId, tags, comment) {
 
 async function deleteFromServer(caseId) {
   try {
-    await fetch(`${API_BASE}/api/feedback/by-case/${caseId}`, {
+    const res = await fetch(`${API_BASE}/api/feedback/by-case/${caseId}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch { /* fire-and-forget */ }
+    return res.ok;
+  } catch { return false; }
 }
 
 export function QuestionFeedback({ caseId, caseData }) {
@@ -123,7 +124,11 @@ export function QuestionFeedback({ caseId, caseData }) {
     closeTimerRef.current = window.setTimeout(() => setIsOpen(false), 1200);
   };
 
-  const handleClear = () => {
+  const handleClear = async () => {
+    // Notify server so admin inbox stays clean
+    const ok = await deleteFromServer(caseId);
+    if (!ok) return; // Prevent local wipe if server wipe failed
+
     const all = loadFeedback();
     delete all[caseId];
     saveFeedback(all);
@@ -131,8 +136,6 @@ export function QuestionFeedback({ caseId, caseData }) {
     setSelectedTags([]);
     setComment('');
     setSubmitted(false);
-    // Notify server so admin inbox stays clean
-    deleteFromServer(caseId);
   };
 
   const feedbackCount = Object.keys(loadFeedback()).length;

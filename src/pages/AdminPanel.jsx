@@ -230,6 +230,13 @@ export default function AdminPanel() {
         logout(); return;
       }
 
+      const isFailed = results.some(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok));
+      if (isFailed) {
+        setActionError('Failed to synchronize all admin dashboard data. Please try again.');
+      } else {
+        setActionError('');
+      }
+
       if (results[0].status === 'fulfilled' && results[0].value.ok) setOverview(await results[0].value.json());
       if (results[1].status === 'fulfilled' && results[1].value.ok) setFeedback((await results[1].value.json()).data || []);
       if (results[2].status === 'fulfilled' && results[2].value.ok) setFeedbackCounts((await results[2].value.json()).counts);

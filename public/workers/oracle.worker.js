@@ -19,7 +19,8 @@ self.onmessage = function(e) {
     passMark = 0.66,          // 66% for UKMPPD
     iterations = 10000,
     casePool = [],            // Array of case IDs to draw from
-    guessRate = 0.20,         // 1/5 chance for 5-option MCQ blind guess
+    guessRates = null,        // Array of custom guess probabilities 1:1 with casePool
+    guessRate = 0.20,         // Fallback 1/5 chance for 5-option MCQ blind guess
   } = examConfig;
 
   const now = Date.now() / 1000;
@@ -45,14 +46,16 @@ self.onmessage = function(e) {
 
       let recallProbability;
 
+      const currentGuessRate = guessRates ? guessRates[q] : guessRate;
+
       if (lastReview === 0 || stability === 0) {
         // Never studied: rely on guessing probability
-        recallProbability = guessRate;
+        recallProbability = currentGuessRate;
       } else {
         // Calculate current retrievability via FSRS forgetting curve
         const elapsedDays = (now - lastReview) / 86400;
         recallProbability = Math.pow(1 + FACTOR * elapsedDays / stability, DECAY);
-        recallProbability = Math.max(guessRate, Math.min(1, recallProbability));
+        recallProbability = Math.max(currentGuessRate, Math.min(1, recallProbability));
       }
 
       // Monte Carlo roll: does the student remember?
