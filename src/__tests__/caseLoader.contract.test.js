@@ -66,6 +66,7 @@ describe('caseLoader runtime contracts', () => {
           "examType": "BOTH",
           "needs_review": false,
           "provenance": [],
+          "reviewed": false,
           "source": "manual",
           "tags": [],
           "truncated": false,

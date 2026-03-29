@@ -12,6 +12,7 @@
 import { useMemo, useState, useEffect, useRef, useDeferredValue } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { getCaseRouteId } from '../data/caseIdentity';
 import { useStore } from '../data/store';
 import Search from 'lucide-react/dist/esm/icons/search';
 import BookOpen from 'lucide-react/dist/esm/icons/book-open';
@@ -107,11 +108,18 @@ export default function CaseBrowser() {
   const showImagesOnly = searchParams.get('images') === '1';
   const unseenFirst = searchParams.get('unseen') !== '0'; // default ON
   const hideTruncated = searchParams.get('hideTruncated') !== '0'; // default ON
-  const reviewMode = searchParams.get('showOnlyReviewed') === '1'
+  const reviewModeRaw = searchParams.get('showOnlyReviewed') === '1'
     ? 'reviewed'
     : searchParams.get('hideUnreviewed') === '0'
       ? 'all'
       : 'hide';
+  const reviewedCaseCount = useMemo(
+    () => caseBank.filter((caseData) => caseData.meta?.reviewed === true).length,
+    [caseBank],
+  );
+  const reviewMode = reviewModeRaw === 'reviewed' && reviewedCaseCount === 0
+    ? 'hide'
+    : reviewModeRaw;
   const hideUnreviewed = reviewMode === 'hide';
   const showOnlyReviewed = reviewMode === 'reviewed';
 
@@ -214,11 +222,12 @@ export default function CaseBrowser() {
     || selectedExam !== 'all'
     || selectedMode !== 'all';
 
-  const openCase = (caseId, caseNumber) => {
+  const openCase = (caseData, caseNumber) => {
     const suffix = Number.isInteger(caseNumber) ? `?n=${caseNumber}` : '';
+    const routeId = getCaseRouteId(caseData);
     // Cap at 2000 to prevent oversized history state on large libraries
-    const playlist = filteredCases.slice(0, 2000).map(c => c._id);
-    navigate(`/case/${caseId}${suffix}`, {
+    const playlist = filteredCases.slice(0, 2000).map(getCaseRouteId);
+    navigate(`/case/${encodeURIComponent(routeId)}${suffix}`, {
       state: { 
         caseNumber: Number.isInteger(caseNumber) ? caseNumber : undefined,
         playlist,
@@ -236,7 +245,7 @@ export default function CaseBrowser() {
     const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
     if (!pick) return;
     const sequenceNumber = filteredCases.findIndex((caseData) => caseData._id === pick._id);
-    openCase(pick._id, sequenceNumber >= 0 ? sequenceNumber + 1 : undefined);
+    openCase(pick, sequenceNumber >= 0 ? sequenceNumber + 1 : undefined);
   };
 
   return (
@@ -367,11 +376,15 @@ export default function CaseBrowser() {
             <button
               type="button"
               aria-pressed={showOnlyReviewed}
+              disabled={reviewedCaseCount === 0}
               className={`btn ${showOnlyReviewed ? '' : 'btn-ghost'}`}
               onClick={() => setReviewMode(reviewMode === 'reviewed' ? 'hide' : 'reviewed')}
+              title={reviewedCaseCount === 0 ? 'Reviewed metadata belum tersedia di library ini.' : undefined}
               style={showOnlyReviewed
                 ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
-                : {}}
+                : reviewedCaseCount === 0
+                  ? { opacity: 0.5, cursor: 'not-allowed' }
+                  : {}}
             >
               <CheckCircle size={14} /> Show Only Reviewed
             </button>
@@ -441,7 +454,7 @@ export default function CaseBrowser() {
               key={caseData._id}
               data-testid="case-card"
               className="case-card glass-card glass-card-interactive"
-              onClick={() => openCase(caseData._id, sequenceNumber)}
+                      onClick={() => openCase(caseData, sequenceNumber)}
               aria-label={`Open case ${sequenceNumber}: ${caseData.title}`}
               style={{ padding: 'var(--sp-5)', cursor: 'pointer', width: '100%', textAlign: 'left', background: 'transparent', border: 'var(--border-glass)' }}
             >

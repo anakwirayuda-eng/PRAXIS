@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { getCaseRouteId } from '../data/caseIdentity';
 import { getDueCards, getBrainStats, getCaseState, recalcRetrievability } from '../data/fsrs';
 import { useStore } from '../data/store';
 import Brain from 'lucide-react/dist/esm/icons/brain';
@@ -71,7 +72,8 @@ export default function ReviewPage() {
 
   const startReviewSession = () => {
     if (dueCards.length > 0) {
-      navigate(`/case/${dueCards[0].caseId}`);
+      const firstCase = casesById.get(dueCards[0].caseId);
+      if (firstCase) navigate(`/case/${encodeURIComponent(getCaseRouteId(firstCase))}`);
     }
   };
 
@@ -146,7 +148,7 @@ export default function ReviewPage() {
 
             return (
               <Motion.div key={due.caseId} className="glass-card glass-card-interactive"
-                onClick={() => navigate(`/case/${due.caseId}`)}
+                onClick={() => navigate(`/case/${encodeURIComponent(getCaseRouteId(c))}`)}
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
                 style={{ padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>

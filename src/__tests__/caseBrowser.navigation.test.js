@@ -122,7 +122,7 @@ describe('CaseBrowser quality-aware navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: /random case/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/case/101?n=1', expect.objectContaining({
-      state: expect.objectContaining({ caseNumber: 1, playlist: expect.arrayContaining([101]) }),
+      state: expect.objectContaining({ caseNumber: 1, playlist: expect.arrayContaining(['101']) }),
     }));
   });
 

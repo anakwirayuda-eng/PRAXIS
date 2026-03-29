@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 
 function buildCase(overrides = {}) {
   return {
@@ -79,20 +80,22 @@ describe('case player FSRS regression coverage', () => {
     const nextCase = vi.fn();
 
     render(
-      <CasePlayerSession
-        caseData={buildCase()}
-        caseBank={[buildCase()]}
-        navigate={vi.fn()}
-        machineState="ANSWERING"
-        selectedAnswer="A"
-        startCase={startCase}
-        selectAnswer={vi.fn()}
-        submitAnswer={submitAnswer}
-        nextCase={nextCase}
-        toggleBookmark={vi.fn()}
-        bookmarks={[]}
-        flagQuestion={vi.fn()}
-      />,
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={buildCase()}
+          caseBank={[buildCase()]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer="A"
+          startCase={startCase}
+          selectAnswer={vi.fn()}
+          submitAnswer={submitAnswer}
+          nextCase={nextCase}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Submit Answer/i }));

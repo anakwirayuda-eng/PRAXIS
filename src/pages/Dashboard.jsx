@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../data/store';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { getCaseRouteId } from '../data/caseIdentity';
 import Play from 'lucide-react/dist/esm/icons/play';
 import Shuffle from 'lucide-react/dist/esm/icons/shuffle';
 import Clock from 'lucide-react/dist/esm/icons/clock';
@@ -73,7 +74,7 @@ export default function Dashboard() {
     const pool = unseenPool.length > 0 ? unseenPool : qualityPool;
     if (pool.length === 0) return;
     const caseData = pool[Math.floor(Math.random() * pool.length)];
-    navigate(`/case/${caseData._id || caseData.id}`);
+    navigate(`/case/${encodeURIComponent(getCaseRouteId(caseData))}`);
   };
 
   // 🎰 SCT Roulette — random unseen SCT case, not always the first one
@@ -87,7 +88,7 @@ export default function Dashboard() {
     );
     if (sctPool.length > 0) {
       const pick = sctPool[Math.floor(Math.random() * sctPool.length)];
-      navigate(`/case/${pick._id || pick.id}`);
+      navigate(`/case/${encodeURIComponent(getCaseRouteId(pick))}`);
     } else {
       navigate('/cases?type=SCT&exam=UKMPPD');
     }
@@ -542,10 +543,10 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* SCT Progress Ring */}
-          <div style={{ position: 'relative', flexShrink: 0 }}>
-            <ProgressRing
-              value={sctStats.total > 0 ? 100 : 0}
+            {/* SCT readiness ring — SCT progress is not persisted */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <ProgressRing
+                value={sctStats.total > 0 ? 100 : 0}
               size={130}
               stroke={8}
               color="#a855f7"
@@ -554,11 +555,11 @@ export default function Dashboard() {
               position: 'absolute', inset: 0,
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: '#c084fc' }}>
-                {sctStats.total > 0 ? Math.round((sctStats.completed / sctStats.total) * 100) : 0}%
+              }}>
+              <span style={{ fontSize: 'var(--fs-xl)', fontWeight: 800, color: '#c084fc' }}>
+                {sctStats.total > 0 ? 'LIVE' : 'LOCK'}
               </span>
-              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>SCT PROGRESS</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>SCT READY</span>
             </div>
           </div>
         </div>

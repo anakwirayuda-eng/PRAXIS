@@ -6,6 +6,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { caseMatchesRouteId, getCaseRouteId } from '../data/caseIdentity';
 import { useStore } from '../data/store';
 import { updateReview } from '../data/fsrs';
 import { CaseSkeleton } from '../components/Skeleton';
@@ -371,14 +372,15 @@ export function CasePlayerSession({
 
   const handleNextCase = () => {
     const playlist = location.state?.playlist;
+    const currentRouteId = getCaseRouteId(caseData);
 
     if (playlist && Array.isArray(playlist)) {
-      const currentIdx = playlist.indexOf(caseData._id);
+      const currentIdx = playlist.indexOf(currentRouteId);
       if (currentIdx !== -1) {
         // Found in playlist — follow it
         if (currentIdx < playlist.length - 1) {
           const nextId = playlist[currentIdx + 1];
-          navigate(`/case/${nextId}`, { state: { ...location.state } });
+          navigate(`/case/${encodeURIComponent(nextId)}`, { state: { ...location.state } });
           return;
         }
         navigate(`/cases${location.state?.browserSearch ?? ''}`);
@@ -392,7 +394,7 @@ export function CasePlayerSession({
     for (let i = currentIdx + 1; i < caseBank.length; i++) {
       const next = caseBank[i];
       if (!next.meta?.quarantined && !next.meta?.needs_review && !next.meta?.truncated) {
-        navigate(`/case/${next._id}`);
+        navigate(`/case/${encodeURIComponent(getCaseRouteId(next))}`);
         return;
       }
     }
@@ -1121,13 +1123,11 @@ function ExplanationPanel({ rationale, correctOption, distractors, provenance })
 }
 
 export default function CasePlayer() {
-  const { id } = useParams();
+  const { id: rawId } = useParams();
+  const id = rawId ? decodeURIComponent(rawId) : '';
   const navigate = useNavigate();
   const { cases: caseBank, isLoading, error } = useCaseBank();
-  // String-safe ID comparison — handles numeric (_id), string IDs, AND case_code (e.g. MMC-IPD-MCQ-07537)
-  const caseData = caseBank.find((entry) =>
-    String(entry._id ?? entry.id) === String(id) || entry.case_code === id
-  ) ?? null;
+  const caseData = caseBank.find((entry) => caseMatchesRouteId(entry, id)) ?? null;
   const {
     machineState,
     selectedAnswer,
