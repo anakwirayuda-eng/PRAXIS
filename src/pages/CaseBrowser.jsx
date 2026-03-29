@@ -158,6 +158,15 @@ export default function CaseBrowser() {
   }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, reviewMode, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, status, unseenFirst]);
 
   // Genius Hack 2: IntersectionObserver infinite scroll
+  // Reset page when filters change to avoid rendering stale deep pagination
+  const prevFilteredRef = useRef(filteredCases);
+  useEffect(() => {
+    if (prevFilteredRef.current !== filteredCases) {
+      setPage(1);
+      prevFilteredRef.current = filteredCases;
+    }
+  }, [filteredCases]);
+
   const paginatedCases = useMemo(
     () => filteredCases.slice(0, page * PAGE_SIZE),
     [filteredCases, page]

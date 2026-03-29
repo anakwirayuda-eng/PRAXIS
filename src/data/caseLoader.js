@@ -108,6 +108,7 @@ function normalizeCase(rawCase, fallbackId) {
       difficulty: Number.isFinite(meta.difficulty) ? meta.difficulty : DEFAULT_META.difficulty,
       needs_review: meta.needs_review === true,
       truncated: meta.truncated === true,
+      reviewed: meta.reviewed === true,  // Positive flag — producer TBD; filter depends on this
       tags,
       provenance: Array.isArray(meta.provenance) ? meta.provenance : DEFAULT_META.provenance,
     },
