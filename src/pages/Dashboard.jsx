@@ -2,7 +2,7 @@
  * MedCase Pro — Dashboard Page
  * Hero stats, quick-start actions, category progress, recent activity
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../data/store';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';

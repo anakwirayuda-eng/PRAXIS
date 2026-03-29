@@ -2,7 +2,7 @@
  * PRAXIS (MedCase Pro) — The Citadel Router
  * Engineered for Offline-First Resilience, A11y, & High-Availability
  */
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigationType, Navigate } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary';
 import GlobalWatchdog from './components/GlobalWatchdog';

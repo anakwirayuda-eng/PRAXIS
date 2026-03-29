@@ -185,7 +185,7 @@ export function getDueCards(threshold = 0.9, limit = 20) {
   return due.slice(0, limit);
 }
 
-export function getBrainStats() {
+export function getBrainStats(validIds = null) {
   recalcRetrievability();
   let totalReviewed = 0;
   let totalRetention = 0;
@@ -194,6 +194,7 @@ export function getBrainStats() {
   for (let i = 0; i < MAX_CASES; i++) {
     const ptr = i * PARAMS_PER_CASE;
     if (brainMatrix[ptr + 4] === 0) continue;
+    if (validIds && !validIds.has(i)) continue; // Filter out contaminated cases
 
     totalReviewed++;
     totalRetention += brainMatrix[ptr + 2];

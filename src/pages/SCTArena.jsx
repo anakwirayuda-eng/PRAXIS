@@ -74,7 +74,12 @@ export default function SCTArena() {
       try {
         const { ensureCaseBankLoaded } = await import('../data/caseLoader');
         const allCases = await ensureCaseBankLoaded();
-        const sct = allCases.filter(c => c.q_type === 'SCT');
+        const sct = allCases.filter(c => 
+          c.q_type === 'SCT' &&
+          !c.meta?.quarantined &&
+          !c.meta?.truncated &&
+          !c.meta?.needs_review
+        );
         for (let i = sct.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [sct[i], sct[j]] = [sct[j], sct[i]];

@@ -37,21 +37,29 @@ export default function ReviewPage() {
   const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
   const [threshold, setThreshold] = useState(0.9);
   const [nowSeconds, setNowSeconds] = useState(() => Date.now() / 1000);
-  const brainStats = getBrainStats();
   const loadedCases = useMemo(() => caseBank.slice(0, totalCases), [caseBank, totalCases]);
   const casesById = useMemo(
     () => new Map(loadedCases.map((caseData) => [caseData._id, caseData])),
     [loadedCases],
   );
+
+  const validIds = useMemo(() => {
+    const valid = new Set();
+    casesById.forEach((c, id) => {
+      if (!c.meta?.quarantined && !c.meta?.truncated && !c.meta?.needs_review) {
+        valid.add(id);
+      }
+    });
+    return valid;
+  }, [casesById]);
+
+  // Clean stats — immune from quarantined/truncated memory
+  const brainStats = useMemo(() => getBrainStats(validIds), [validIds, nowSeconds]);
+
   const dueCards = useMemo(() => {
     recalcRetrievability();
-    return getDueCards(threshold, 50).filter((dueCard) => {
-      const c = casesById.get(dueCard.caseId);
-      if (!c) return false;
-      if (c.meta?.quarantined || c.meta?.truncated || c.meta?.needs_review) return false;
-      return true;
-    });
-  }, [casesById, threshold]);
+    return getDueCards(threshold, 50).filter((dueCard) => validIds.has(dueCard.caseId));
+  }, [validIds, threshold]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
