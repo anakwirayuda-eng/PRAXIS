@@ -14,7 +14,7 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../data/store';
 import { Shield, Lock, Brain, ChevronRight, RotateCcw, Trophy, Star, ArrowRight, Zap, AlertTriangle } from 'lucide-react';
 
-const SCT_UNLOCK_THRESHOLD = 0; // BETA: set to 200 for production launch
+const SCT_UNLOCK_THRESHOLD = 200; // Production threshold
 
 const LIKERT_LABELS = {
   '-2': 'Sangat Berkurang',
@@ -45,10 +45,7 @@ function concordanceLabel(score) {
   return 'Tidak konkorden — panel tidak memilih opsi ini';
 }
 
-// VIP Backdoor for beta testers (F12 → localStorage.setItem('PRAXIS_VIP','GOD_MODE'))
-function isBetaVIP() {
-  try { return localStorage.getItem('PRAXIS_VIP') === 'GOD_MODE'; } catch { return false; }
-}
+// Beta VIP backdoor removed for production integrity
 
 export default function SCTArena() {
   const navigate = useNavigate();
@@ -60,7 +57,7 @@ export default function SCTArena() {
   const [sessionStats, setSessionStats] = useState({ total: 0, sumScore: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
-  const isUnlocked = totalAnswered >= SCT_UNLOCK_THRESHOLD || isBetaVIP();
+  const isUnlocked = totalAnswered >= SCT_UNLOCK_THRESHOLD;
   const progress = Math.min(100, Math.round((totalAnswered / SCT_UNLOCK_THRESHOLD) * 100));
 
   // Fix #5: Hacker detection — cross-check totalAnswered vs completedCases

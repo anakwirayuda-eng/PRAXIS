@@ -82,7 +82,7 @@ export default function Dashboard() {
     const sctPool = caseBank.filter(c =>
       c.q_type === 'SCT' &&
       (c.meta?.examType === 'UKMPPD' || c.meta?.examType === 'BOTH') &&
-      !c.meta?.quarantined && !c.meta?.needs_review &&
+      !c.meta?.quarantined && !c.meta?.needs_review && !c.meta?.truncated &&
       !completedSet.has(c._id || c.id)
     );
     if (sctPool.length > 0) {
@@ -96,7 +96,7 @@ export default function Dashboard() {
   // 🧠 SCT-specific stats for the dedicated SCT Command Center
   const sctStats = useMemo(() => {
     const completedSet = new Set(completedCases);
-    const sctCases = caseBank.filter(c => c.q_type === 'SCT');
+    const sctCases = caseBank.filter(c => c.q_type === 'SCT' && !c.meta?.quarantined && !c.meta?.needs_review && !c.meta?.truncated);
     const sctCompleted = sctCases.filter(c => completedSet.has(c._id || c.id)).length;
     return { total: sctCases.length, completed: sctCompleted };
   }, [caseBank, completedCases]);

@@ -100,6 +100,7 @@ export default function ExamMode() {
 
   const getPoolForConfig = useCallback((cfg) => loadedCases.filter((caseData) => {
     if (caseData.q_type === 'CLINICAL_DISCUSSION') return false;
+    if (caseData.q_type === 'SCT') return false;
     if (caseData.options?.length < 2) return false;
     if (caseData.meta?.quarantined === true) return false;   // Quality gate
     if (caseData.meta?.truncated === true) return false;     // Quality gate

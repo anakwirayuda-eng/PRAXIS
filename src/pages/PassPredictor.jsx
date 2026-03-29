@@ -142,6 +142,7 @@ export default function PassPredictor() {
     cleanupWorker();
 
     const casePool = caseBank
+      .filter((caseData) => caseData.q_type === 'MCQ') // Essential: single-correct modeling only
       .filter((caseData) =>
         config.examType === 'all'
         || caseData.meta.examType === config.examType
@@ -320,7 +321,7 @@ export default function PassPredictor() {
             passMark: config.passMark,
             iterations: config.iterations,
             casePool,
-            guessRate: 0.20,
+            guessRate: config.examType === 'USMLE' ? 0.25 : 0.20, // 4-opt vs 5-opt blind guess
           },
         });
         captureMessage(
