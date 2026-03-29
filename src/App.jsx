@@ -18,15 +18,17 @@ initSecuritySuite();
 // ═══════════════════════════════════════
 const lazyWithRetry = (componentImport) =>
   lazy(async () => {
-    const hasRetried = sessionStorage.getItem('retry-lazy-load') === 'true';
+    // Per-route retry key derived from import function identity
+    const retryKey = `retry-lazy-${componentImport.toString().slice(0, 64).replace(/\W/g, '')}`;
+    const hasRetried = sessionStorage.getItem(retryKey) === 'true';
     try {
       const component = await componentImport();
       // Clear the curse after successful chunk load
-      if (hasRetried) sessionStorage.removeItem('retry-lazy-load');
+      if (hasRetried) sessionStorage.removeItem(retryKey);
       return component;
     } catch (error) {
       if (!hasRetried) {
-        sessionStorage.setItem('retry-lazy-load', 'true');
+        sessionStorage.setItem(retryKey, 'true');
         window.location.reload();
       }
       throw error;

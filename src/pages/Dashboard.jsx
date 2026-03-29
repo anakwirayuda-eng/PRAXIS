@@ -499,25 +499,22 @@ export default function Dashboard() {
             </p>
 
             {/* Quick Stats Row */}
-            <div style={{ display: 'flex', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
               <div>
                 <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: '#c084fc' }}>
                   {sctStats.total.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Soal SCT</div>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Playable SCT</div>
               </div>
               <div>
-                <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: 'var(--accent-success)' }}>
-                  {sctStats.completed}
+                <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: 'var(--text-muted)' }}>
+                  —
                 </div>
-                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Selesai</div>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Session-only</div>
               </div>
-              <div>
-                <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: 'var(--accent-warning)' }}>
-                  {sctStats.total - sctStats.completed}
-                </div>
-                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Tersisa</div>
-              </div>
+            </div>
+            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 'var(--sp-3)' }}>
+              SCT Arena menggunakan concordance scoring dan tidak mencatat progress permanen.
             </div>
 
             {/* Action Buttons */}
@@ -548,7 +545,7 @@ export default function Dashboard() {
           {/* SCT Progress Ring */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <ProgressRing
-              value={sctStats.total > 0 ? Math.round((sctStats.completed / sctStats.total) * 100) : 0}
+              value={sctStats.total > 0 ? 100 : 0}
               size={130}
               stroke={8}
               color="#a855f7"

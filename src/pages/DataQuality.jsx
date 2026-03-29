@@ -49,7 +49,7 @@ export default function DataQuality() {
   // Fix #4: Offline-safe fetch with retry — cache:default + version busting
   const fetchQuarantine = () => {
     setQuarantine(prev => ({ ...prev, loading: true, error: null }));
-    const appVer = import.meta.env.VITE_APP_VERSION || Date.now();
+    const appVer = import.meta.env.VITE_APP_VERSION || '1.0.0';
     const url = `${import.meta.env.BASE_URL}data/quarantine_manifest.json?v=${appVer}`;
     fetch(url, { cache: 'default' })
       .then((res) => {
@@ -83,6 +83,7 @@ export default function DataQuality() {
     let scored = 0;
     let withExplanation = 0;
     const flagged = [];
+    let flaggedCount = 0;
     const bySource = {};
 
     for (const caseData of caseBank) {
@@ -105,6 +106,7 @@ export default function DataQuality() {
       }
 
       if (caseData.confidence < 2.5 || (caseData.validation?.flags?.length > 0)) {
+        flaggedCount++;
         if (flagged.length < 50) flagged.push(caseData);
       }
     }
@@ -120,6 +122,7 @@ export default function DataQuality() {
       withExplanation,
       explPct: totalCases > 0 ? ((withExplanation / totalCases) * 100).toFixed(1) : '0.0',
       flagged,
+      flaggedCount,
       bySource,
     };
   }, [caseBank, totalCases, isReady]);
@@ -171,7 +174,7 @@ export default function DataQuality() {
           sub={totalCases > 0 ? `${((stats.byConfidence.low / totalCases) * 100).toFixed(0)}%` : '0%'}
           color={CONFIDENCE_COLORS.low}
         />
-        <StatCard icon={<Flag size={20} />} label="Flagged" value={validationStats.flagged.length} sub="needs review" color="#f59e0b" />
+        <StatCard icon={<Flag size={20} />} label="Flagged" value={validationStats.flaggedCount} sub={validationStats.flaggedCount > 50 ? `showing 50 of ${validationStats.flaggedCount}` : 'needs review'} color="#f59e0b" />
         <StatCard
           icon={<Trash2 size={20} />}
           label="Quarantined"

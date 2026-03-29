@@ -2,7 +2,7 @@
  * MedCase Pro — Pass Predictor Page (Monte Carlo Oracle)
  * Simulates 10,000 virtual exams using FSRS retrievability
  */
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useCaseBank } from '../data/caseLoader';
 import { brainMatrix, recalcRetrievability, getBrainStats } from '../data/fsrs';
@@ -85,7 +85,6 @@ export default function PassPredictor() {
   const [simulationError, setSimulationError] = useState('');
   const workerRef = useRef(null);
   const workerTimeoutRef = useRef(null);
-  const brainStats = getBrainStats();
 
   const [config, setConfig] = useState({
     examType: 'UKMPPD',
@@ -93,6 +92,18 @@ export default function PassPredictor() {
     passMark: 0.66,
     iterations: 10000,
   });
+
+  // Memory stats scoped to the active exam pool (not global)
+  const brainStats = useMemo(() => {
+    const poolIds = new Set(
+      caseBank
+        .filter(c => c.q_type === 'MCQ' && !c.meta?.quarantined && !c.meta?.truncated && !c.meta?.needs_review)
+        .filter(c => config.examType === 'all' || c.meta.examType === config.examType || c.meta.examType === 'BOTH')
+        .map(c => c._id)
+    );
+    return getBrainStats(poolIds);
+  }, [caseBank, config.examType]);
+
 
   const presets = {
     UKMPPD: { totalQuestions: 150, passMark: 0.66, label: 'UKMPPD CBT', icon: 'ID' },
