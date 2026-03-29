@@ -23,7 +23,7 @@ const TAG_COLORS = {
 };
 
 function useAdminAuth() {
-  const [key, setKey] = useState(() => sessionStorage.getItem('praxis_admin_key') || '');
+  const [key, setKey] = useState(() => localStorage.getItem('PRAXIS_ADMIN_KEY') || '');
   const [authed, setAuthed] = useState(false);
 
   const login = useCallback(async (inputKey) => {
@@ -32,7 +32,7 @@ function useAdminAuth() {
         headers: { 'X-Admin-Key': inputKey },
       });
       if (res.ok) {
-        sessionStorage.setItem('praxis_admin_key', inputKey);
+        localStorage.setItem('PRAXIS_ADMIN_KEY', inputKey);
         setKey(inputKey);
         setAuthed(true);
         return true;
@@ -43,7 +43,7 @@ function useAdminAuth() {
 
   // Fix #4: Logout function
   const logout = useCallback(() => {
-    sessionStorage.removeItem('praxis_admin_key');
+    localStorage.removeItem('PRAXIS_ADMIN_KEY');
     setKey('');
     setAuthed(false);
   }, []);
@@ -211,6 +211,7 @@ export default function AdminPanel() {
   const [proposals, setProposals] = useState([]);
   const [feedbackCounts, setFeedbackCounts] = useState(null);
   const [tab, setTab] = useState('feedback');
+  const [actionError, setActionError] = useState('');
 
   const fetchData = useCallback(async () => {
     if (!key) return;
@@ -241,21 +242,29 @@ export default function AdminPanel() {
   }, [authed, fetchData]);
 
   const handleStatusChange = async (id, status) => {
-    await fetch(`${API_BASE}/api/feedback/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
-      body: JSON.stringify({ status }),
-    });
-    fetchData();
+    setActionError('');
+    try {
+      const res = await fetch(`${API_BASE}/api/feedback/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) { setActionError(`Gagal update status (${res.status})`); return; }
+      fetchData();
+    } catch { setActionError('Tidak bisa terhubung ke server.'); }
   };
 
   const handleProposalAction = async (id, status) => {
-    await fetch(`${API_BASE}/api/admin/proposals/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
-      body: JSON.stringify({ status }),
-    });
-    fetchData();
+    setActionError('');
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/proposals/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) { setActionError(`Gagal update proposal (${res.status})`); return; }
+      fetchData();
+    } catch { setActionError('Tidak bisa terhubung ke server.'); }
   };
 
   if (!authed) return <LoginGate onLogin={login} />;
@@ -282,6 +291,13 @@ export default function AdminPanel() {
             <LogOut size={16} /> Lock Terminal
           </button>
         </div>
+
+        {actionError && (
+          <div style={{ marginBottom: 'var(--sp-4)', padding: 'var(--sp-3) var(--sp-4)', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 'var(--radius-md)', color: '#f87171', fontSize: 'var(--fs-sm)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>⚠ {actionError}</span>
+            <button onClick={() => setActionError('')} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: '0 4px', fontSize: 16 }}>×</button>
+          </div>
+        )}
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 'var(--sp-2)', marginBottom: 'var(--sp-6)', overflowX: 'auto' }}>

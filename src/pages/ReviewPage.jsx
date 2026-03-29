@@ -108,7 +108,7 @@ export default function ReviewPage() {
 
       {/* Controls */}
       <div className="glass-card" style={{ padding: 'var(--sp-4)', marginBottom: 'var(--sp-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Retention threshold:</span>
           {[0.95, 0.9, 0.8, 0.7].map(t => (
             <button key={t} className={`btn ${threshold === t ? 'btn-primary' : 'btn-ghost'}`}
@@ -117,8 +117,7 @@ export default function ReviewPage() {
             </button>
           ))}
         </div>
-        <button className="btn btn-primary btn-lg" onClick={startReviewSession} disabled={dueCards.length === 0}
-          style={{ opacity: dueCards.length === 0 ? 0.5 : 1 }}>
+        <button className="btn btn-primary btn-lg" onClick={startReviewSession} disabled={dueCards.length === 0}>
           <Play size={18} /> Start Review ({dueCards.length} cards)
         </button>
       </div>
@@ -137,7 +136,7 @@ export default function ReviewPage() {
                 onClick={() => navigate(`/case/${due.caseId}`)}
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
-                style={{ padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
+                style={{ padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
                 
                 {/* Priority badge */}
                 <div style={{
@@ -152,12 +151,12 @@ export default function ReviewPage() {
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-1)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-1)', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600, fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {c.title}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                     <span style={{ color: cat?.color }}>●</span>
                     <span>{cat?.label || c.category}</span>
                     <span>•</span>
@@ -167,7 +166,7 @@ export default function ReviewPage() {
                 </div>
 
                 {/* Retention */}
-                <div style={{ width: 130 }}>
+                <div style={{ minWidth: 100, flex: '1 1 100px' }}>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 2 }}>Retention</div>
                   <RetentionBar value={due.retrievability} />
                 </div>

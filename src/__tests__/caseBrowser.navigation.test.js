@@ -121,9 +121,9 @@ describe('CaseBrowser quality-aware navigation', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /random case/i }));
 
-    expect(mockNavigate).toHaveBeenCalledWith('/case/101?n=1', {
-      state: { caseNumber: 1 },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('/case/101?n=1', expect.objectContaining({
+      state: expect.objectContaining({ caseNumber: 1, playlist: expect.arrayContaining([101]) }),
+    }));
   });
 
   it('passes the filtered-view sequence number in both state and URL params', async () => {
@@ -154,9 +154,46 @@ describe('CaseBrowser quality-aware navigation', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate.mock.calls[0][0]).toMatch(/\?n=2$/);
-    expect(mockNavigate.mock.calls[0][1]).toEqual({
-      state: { caseNumber: 2 },
-    });
+    expect(mockNavigate.mock.calls[0][1]).toEqual(expect.objectContaining({
+      state: expect.objectContaining({ caseNumber: 2, playlist: expect.any(Array) }),
+    }));
+  });
+
+  it('keeps loading-state cards in source order so clicks stay aligned with the previewed case', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      status: 'loading',
+      isLoading: true,
+      cases: [
+        buildCase({ _id: 301, title: 'First streamed case' }),
+        buildCase({ _id: 302, title: 'Second streamed case' }),
+        buildCase({ _id: 303, title: 'Third streamed case' }),
+      ],
+      totalCases: 3,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    const cards = screen.getAllByTestId('case-card');
+    expect(cards).toHaveLength(3);
+    expect(cards[0]).toHaveTextContent('First streamed case');
+    expect(cards[1]).toHaveTextContent('Second streamed case');
+    expect(cards[2]).toHaveTextContent('Third streamed case');
+
+    fireEvent.click(cards[1]);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/case/302?n=2', expect.objectContaining({
+      state: expect.objectContaining({ caseNumber: 2, playlist: expect.any(Array) }),
+    }));
+    expect(screen.getByText(/case order is temporarily locked until loading finishes/i)).toBeInTheDocument();
   });
 
   it.todo('CasePlayerSession handleNextCase skips quarantined, needs_review, and truncated cases.');

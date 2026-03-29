@@ -131,13 +131,17 @@ export default function Dashboard() {
     { label: 'Study Streak', value: `${streak}d`, icon: Zap, color: 'var(--accent-warning)' },
   ];
 
+  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return !!localStorage.getItem('praxis_banner_q1_dismissed');
+  });
+
   return (
     <div>
       {/* Clinical Calibration Banner — Q1 2026 Data Harmonization (Sunset: 7 days) */}
       {(() => {
-        const isDismissed = typeof window !== 'undefined' && localStorage.getItem('praxis_banner_q1_dismissed');
         const isExpired = Date.now() > new Date('2026-03-26T23:59:59+07:00').getTime();
-        if (isDismissed || isExpired) return null;
+        if (isBannerDismissed || isExpired) return null;
         return (
           <div style={{
             position: 'relative',
@@ -147,7 +151,7 @@ export default function Dashboard() {
             marginBottom: 'var(--sp-6)', boxShadow: '0 4px 24px rgba(16,185,129,0.05)',
           }}>
             <button
-              onClick={() => { localStorage.setItem('praxis_banner_q1_dismissed', 'true'); window.location.reload(); }}
+              onClick={() => { localStorage.setItem('praxis_banner_q1_dismissed', 'true'); setIsBannerDismissed(true); }}
               style={{
                 position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
                 color: 'rgba(52,211,153,0.4)', cursor: 'pointer', padding: 4, borderRadius: 'var(--radius-sm)',
@@ -410,14 +414,14 @@ export default function Dashboard() {
               key={key}
               type="button"
               className="glass-card glass-card-interactive"
-              onClick={() => navigate(`/cases?category=${key}`)}
+              onClick={() => navigate(`/cases?category=${encodeURIComponent(key)}`)}
               style={{ padding: 'var(--sp-5)', cursor: 'pointer', textAlign: 'left', border: 'var(--border-glass)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--sp-3)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
                   <div style={{ width: 10, height: 10, borderRadius: 'var(--radius-full)', background: cat.color }} />
                   <span style={{ fontWeight: 600, fontSize: 'var(--fs-sm)' }}>{cat.label}</span>
-                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>({cat.labelId})</span>
+                  {cat.labelEn && <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>({cat.labelEn})</span>}
                 </div>
                 <ArrowRight size={14} style={{ color: 'var(--text-muted)' }} />
               </div>

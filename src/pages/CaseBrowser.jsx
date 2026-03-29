@@ -139,6 +139,13 @@ export default function CaseBrowser() {
       return true;
     });
 
+    // Keep loading results stable while compiled chunks are still streaming in.
+    // Otherwise the seeded shuffle keeps re-running against a growing dataset
+    // and cards can visually "morph" into different cases between glance and click.
+    if (status !== 'ready') {
+      return filtered;
+    }
+
     // Genius Hack 6: Unseen-first ordering + daily seed shuffle
     const completedSet = new Set(completedCases);
     if (unseenFirst && !deferredSearch) {
@@ -147,7 +154,7 @@ export default function CaseBrowser() {
       return [...seededShuffle(unseen, getDailySeed()), ...seededShuffle(seen, getDailySeed() + 1)];
     }
     return deferredSearch ? filtered : seededShuffle(filtered, getDailySeed());
-  }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, reviewMode, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, unseenFirst]);
+  }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, reviewMode, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, status, unseenFirst]);
 
   // Genius Hack 2: IntersectionObserver infinite scroll
   const paginatedCases = useMemo(
@@ -199,12 +206,18 @@ export default function CaseBrowser() {
 
   const openCase = (caseId, caseNumber) => {
     const suffix = Number.isInteger(caseNumber) ? `?n=${caseNumber}` : '';
+    // Cap at 2000 to prevent oversized history state on large libraries
+    const playlist = filteredCases.slice(0, 2000).map(c => c._id);
     navigate(`/case/${caseId}${suffix}`, {
-      state: Number.isInteger(caseNumber) ? { caseNumber } : undefined,
+      state: { 
+        caseNumber: Number.isInteger(caseNumber) ? caseNumber : undefined,
+        playlist,
+        // Preserve current filter URL so back button can restore context
+        browserSearch: window.location.search,
+      },
     });
   };
 
-  // Genius Hack 7: Random Case — truly random unseen case
   const goRandomCase = () => {
     const completedSet = new Set(completedCases);
     const visiblePool = filteredCases.length > 0 ? filteredCases : caseBank;
@@ -395,7 +408,7 @@ export default function CaseBrowser() {
         {status !== 'ready' && (
           <div style={{ marginTop: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
             {isLoading
-              ? 'Loading the full case library in the background. Results will expand automatically.'
+              ? 'Loading the full case library in the background. Case order is temporarily locked until loading finishes.'
               : 'Compiled case library is unavailable. Showing the starter library only.'}
           </div>
         )}

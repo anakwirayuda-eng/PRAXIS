@@ -3,11 +3,13 @@
  * Core vignette display + MCQ/SCT rendering + DFA state
  */
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
 import { useStore } from '../data/store';
 import { updateReview } from '../data/fsrs';
+import { CaseSkeleton } from '../components/Skeleton';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import { ShortcutHints } from '../components/KeyboardShortcuts';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { QuestionFeedback } from '../components/QuestionFeedback';
@@ -162,23 +164,27 @@ function CaseImageGallery({ images, imageType }) {
           role="dialog"
           aria-label="Image lightbox"
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '92vw', maxHeight: '92vh' }}>
-            <img
-              src={`${import.meta.env.BASE_URL}images/cases/${images[lightboxIdx]}`}
-              alt={`${typeBadge} ${lightboxIdx + 1} (full size)`}
-              style={{
-                maxWidth: '90vw', maxHeight: '88vh',
-                borderRadius: 'var(--radius-lg)', objectFit: 'contain',
-                boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-                filter: inverted ? 'invert(100%)' : 'none',
-                background: isPacs ? '#000' : isEcg ? '#fff' : 'transparent',
-                transition: 'filter 0.3s ease',
-                touchAction: 'pinch-zoom',
-              }}
-            />
+          <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '100vw', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw' }}>
+            <TransformWrapper centerOnInit={true} minScale={0.5} maxScale={4} initialScale={1}>
+              <TransformComponent wrapperStyle={{ width: '100vw', height: '100vh' }}>
+                <img
+                  src={`${import.meta.env.BASE_URL}images/cases/${images[lightboxIdx]}`}
+                  alt={`${typeBadge} ${lightboxIdx + 1} (full size)`}
+                  style={{
+                    maxWidth: '100vw', maxHeight: '100vh',
+                    margin: 'auto', display: 'block',
+                    objectFit: 'contain',
+                    filter: inverted ? 'invert(100%)' : 'none',
+                    background: isPacs ? '#000' : isEcg ? '#fff' : 'transparent',
+                    transition: 'filter 0.3s ease',
+                  }}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+            
             {/* Controls row */}
             <div style={{
-              position: 'absolute', bottom: -40, left: 0, right: 0,
+              position: 'absolute', bottom: 24, left: 0, right: 0, zIndex: 10,
               display: 'flex', justifyContent: 'center', gap: 'var(--sp-2)',
             }}>
               {isPacs && (
@@ -210,12 +216,16 @@ function CaseImageGallery({ images, imageType }) {
           <button
             onClick={() => setLightboxIdx(null)}
             style={{
-              position: 'absolute', top: 24, right: 24,
-              background: 'rgba(255,255,255,0.1)', border: 'none',
+              position: 'absolute', 
+              top: 'max(24px, env(safe-area-inset-top))', 
+              right: 'max(24px, env(safe-area-inset-right))',
+              background: 'rgba(15,23,42,0.6)', 
+              border: 'none',
               color: 'white', fontSize: 24, width: 44, height: 44,
               borderRadius: 'var(--radius-full)', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backdropFilter: 'blur(8px)',
+              backdropFilter: 'blur(12px)',
+              zIndex: 1000
             }}
             aria-label="Close lightbox"
           >
@@ -241,6 +251,7 @@ export function CasePlayerSession({
   bookmarks,
   flagQuestion,
 }) {
+  const location = useLocation();
   const [timer, setTimer] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [fsrsGraded, setFsrsGraded] = useState(false);
@@ -359,8 +370,21 @@ export function CasePlayerSession({
   };
 
   const handleNextCase = () => {
+    const playlist = location.state?.playlist;
+
+    if (playlist && Array.isArray(playlist)) {
+      const currentIdx = playlist.indexOf(caseData._id);
+      if (currentIdx !== -1 && currentIdx < playlist.length - 1) {
+        const nextId = playlist[currentIdx + 1];
+        navigate(`/case/${nextId}`, { state: { ...location.state } });
+        return;
+      }
+      navigate('/cases');
+      return;
+    }
+
+    // Fallback: Raw linear search in caseBank
     const currentIdx = caseBank.findIndex((entry) => entry._id === caseData._id);
-    // Skip quarantined/needs_review cases (P1 fix)
     for (let i = currentIdx + 1; i < caseBank.length; i++) {
       const next = caseBank[i];
       if (!next.meta?.quarantined && !next.meta?.needs_review) {
@@ -385,7 +409,7 @@ export function CasePlayerSession({
     },
     onSubmit: handleSubmit,
     onNext: handleNextCase,
-    onBack: () => navigate('/cases'),
+    onBack: () => navigate(`/cases${location.state?.browserSearch ?? ''}`, { replace: false }),
     onBookmark: () => toggleBookmark(caseData._id),
     onFlag: () => flagQuestion(caseData._id, 'review'),
     onToggleExplanation: () => setShowExplanation((current) => !current),
@@ -411,12 +435,12 @@ export function CasePlayerSession({
         flexWrap: 'wrap',
         gap: 'var(--sp-3)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
           <button
             className="btn btn-ghost btn-icon"
             data-testid="case-player-back"
             aria-label="Back to Case Browser"
-            onClick={() => navigate('/cases')}
+            onClick={() => navigate(`/cases${location.state?.browserSearch ?? ''}`, { replace: false })}
           >
             <Home size={16} />
           </button>
@@ -459,7 +483,7 @@ export function CasePlayerSession({
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
           {/* Confidence badge */}
           {caseData.confidence > 0 && (
             <span style={{
@@ -478,6 +502,7 @@ export function CasePlayerSession({
           <button
             className="btn btn-ghost btn-icon"
             onClick={() => toggleBookmark(caseData._id)}
+            aria-label="Toggle bookmark"
             style={{ color: isBookmarked ? 'var(--accent-warning)' : 'var(--text-muted)' }}
           >
             <Bookmark size={16} fill={isBookmarked ? 'var(--accent-warning)' : 'none'} />
@@ -485,6 +510,7 @@ export function CasePlayerSession({
           <button
             className="btn btn-ghost btn-icon"
             onClick={() => flagQuestion(caseData._id, 'review')}
+            aria-label="Flag question for review"
             style={{ color: 'var(--text-muted)' }}
           >
             <Flag size={16} />
@@ -631,6 +657,8 @@ export function CasePlayerSession({
                 color: 'var(--text-secondary)',
                 lineHeight: 1.7,
                 fontFamily: 'var(--font-mono)',
+                whiteSpace: 'pre-wrap',
+                overflowX: 'auto'
               }}>
                 {vignette.labFindings}
               </div>
@@ -760,7 +788,7 @@ export function CasePlayerSession({
 
         <div className="case-action-bar" style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-3)', marginTop: 'var(--sp-6)' }}>
           {!isReviewing && (
-            <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={selectedAnswer === null} style={{ opacity: selectedAnswer === null ? 0.5 : 1 }}>
+            <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={selectedAnswer === null}>
               <ChevronRight size={18} /> Submit Answer
             </button>
           )}
@@ -788,7 +816,7 @@ export function CasePlayerSession({
             <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 'var(--sp-2)', display: 'block' }}>
               How well did you know this?
             </span>
-            <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
+            <div className="fsrs-buttons" style={{ display: 'flex', gap: 'var(--sp-2)' }}>
               {[
                 { grade: 1, label: 'Forgot', color: 'var(--accent-danger)', bg: 'rgba(239,68,68,0.1)' },
                 { grade: 2, label: 'Hard', color: 'var(--accent-warning)', bg: 'rgba(245,158,11,0.1)' },
@@ -1109,15 +1137,7 @@ export default function CasePlayer() {
   } = useStore();
 
   if (!caseData && isLoading) {
-    return (
-      <div className="glass-card" style={{ padding: 'var(--sp-12)', textAlign: 'center' }}>
-        <BookOpen size={48} style={{ color: 'var(--accent-primary)', marginBottom: 'var(--sp-4)' }} />
-        <h2>Loading Case Library</h2>
-        <p style={{ color: 'var(--text-muted)', marginTop: 'var(--sp-2)' }}>
-          Fetching the full case library so case {id} can open safely.
-        </p>
-      </div>
-    );
+    return <CaseSkeleton />;
   }
 
   if (!caseData) {

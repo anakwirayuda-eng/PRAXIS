@@ -15,8 +15,8 @@ function AccuracyGauge({ value }) {
   const angle = (value / 100) * 180;
   const color = value >= 70 ? 'var(--accent-success)' : value >= 50 ? 'var(--accent-warning)' : 'var(--accent-danger)';
   return (
-    <div style={{ position: 'relative', width: 200, height: 110, margin: '0 auto' }}>
-      <svg width="200" height="110" viewBox="0 0 200 110">
+    <div style={{ position: 'relative', width: '100%', maxWidth: 200, height: 110, margin: '0 auto' }}>
+      <svg width="100%" height="110" viewBox="0 0 200 110">
         <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="rgba(148,163,184,0.1)" strokeWidth="12" strokeLinecap="round" />
         <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke={color} strokeWidth="12" strokeLinecap="round"
           strokeDasharray={`${(angle / 180) * 283} 283`}

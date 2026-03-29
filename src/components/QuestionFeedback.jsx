@@ -50,15 +50,24 @@ function saveFeedback(data) {
 
 async function syncToServer(caseId, tags, comment) {
   try {
-    await fetch(`${API_BASE}/api/feedback`, {
+    const res = await fetch(`${API_BASE}/api/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ case_id: caseId, tags, comment }),
     });
-    return true;
+    return res.ok;
   } catch {
     return false;
   }
+}
+
+async function deleteFromServer(caseId) {
+  try {
+    await fetch(`${API_BASE}/api/feedback/by-case/${caseId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch { /* fire-and-forget */ }
 }
 
 export function QuestionFeedback({ caseId, caseData }) {
@@ -95,18 +104,20 @@ export function QuestionFeedback({ caseId, caseData }) {
 
   const handleSubmit = async () => {
     if (selectedTags.length === 0 && !comment.trim()) return;
+
+    // Sync to backend first — only persist locally on success
+    const ok = await syncToServer(caseId, selectedTags, comment.trim());
+
     const all = loadFeedback();
     all[caseId] = {
       tags: selectedTags,
       comment: comment.trim(),
       timestamp: Date.now(),
+      synced: ok,
     };
     saveFeedback(all);
     setExistingFeedback(all[caseId]);
     setSubmitted(true);
-
-    // Sync to backend (fire-and-forget with fallback)
-    await syncToServer(caseId, selectedTags, comment.trim());
 
     window.clearTimeout(closeTimerRef.current);
     closeTimerRef.current = window.setTimeout(() => setIsOpen(false), 1200);
@@ -120,6 +131,8 @@ export function QuestionFeedback({ caseId, caseData }) {
     setSelectedTags([]);
     setComment('');
     setSubmitted(false);
+    // Notify server so admin inbox stays clean
+    deleteFromServer(caseId);
   };
 
   const feedbackCount = Object.keys(loadFeedback()).length;
@@ -229,10 +242,12 @@ export function QuestionFeedback({ caseId, caseData }) {
                 >
                   <Check size={32} style={{ marginBottom: 8 }} />
                   <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
-                    Feedback Tersimpan! 🎉
+                    {existingFeedback?.synced === false ? 'Tersimpan lokal ✓' : 'Feedback Terkirim! 🎉'}
                   </div>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: 4 }}>
-                    Terima kasih atas kontribusinya
+                    {existingFeedback?.synced === false
+                      ? 'Offline — akan disinkron saat koneksi tersedia'
+                      : 'Terima kasih atas kontribusinya'}
                   </div>
                 </Motion.div>
               ) : (

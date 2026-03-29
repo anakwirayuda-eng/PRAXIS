@@ -1,7 +1,36 @@
+import fs from 'fs';
+
 import { runOrchestrator } from './openclaw.mjs';
 import { openCaseStorage } from './case-storage.mjs';
 
+try {
+  const envContent = fs.readFileSync('.env', 'utf8');
+  for (const line of envContent.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx > 0) {
+      const key = trimmed.slice(0, eqIdx).trim();
+      const value = trimmed.slice(eqIdx + 1).trim();
+      if (!process.env[key]) process.env[key] = value;
+    }
+  }
+} catch {}
+
+const args = process.argv.slice(2);
+const getNumericArg = (name, fallback) => {
+  const found = args.find((arg) => arg.startsWith(`--${name}=`));
+  return found ? Number(found.split('=')[1]) : fallback;
+};
+
+const MAX_TARGETS = getNumericArg('max', 25);
+const START_AFTER_ID = getNumericArg('after', 0);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+if (!OPENAI_API_KEY) {
+  console.error('OPENAI_API_KEY not found in .env or environment. Aborting.');
+  process.exit(1);
+}
 
 function normalizeComparable(str) {
   if (!str) return '';
@@ -13,18 +42,7 @@ function normalizeComparable(str) {
     .toLowerCase();
 }
 
-function selectorFn(item) {
-  const isMedMcqa = item.meta?.source === 'medmcqa';
-  const isNotQuarantined = !item.meta?.status?.startsWith('QUARANTINED');
-  const isPending = item.meta?._openclaw_t9_v2 !== true;
-  return isMedMcqa && isNotQuarantined && isPending;
-}
-
 async function clawT9v2(item) {
-  if (!OPENAI_API_KEY) {
-    return { success: false, error: 'OPENAI_API_KEY missing from environment.' };
-  }
-
   let optionsText = '';
   const indexMap = {};
   item.options.forEach((option, index) => {
@@ -113,31 +131,58 @@ Choose the single most clinically accurate option. Return ONLY JSON in this form
   }
 }
 
-async function start() {
-  const storage = await openCaseStorage();
-  console.log(`T9 storage backend: ${storage.label}`);
+console.log('\nT9 CANARY MODE');
+console.log(`   MAX_TARGETS: ${MAX_TARGETS}`);
+console.log(`   START_AFTER_ID: ${START_AFTER_ID}`);
+console.log('   Quarantine: EXCLUDED');
 
-  try {
-    const dataset = storage.dataset;
-    if (process.env.TEST_IDS) {
-      const ids = process.env.TEST_IDS.split(',').map(Number);
-      console.log('T9 testing mode IDs:', ids);
-      await runOrchestrator('T9_v2_Test_Tribunal', dataset, (item) => ids.includes(item._id), clawT9v2, {
-        BATCH_SIZE: 1,
-        DELAY_MS: 1000,
-        saveFn: storage.saveFn,
-      });
-      return;
-    }
+const storage = await openCaseStorage();
+console.log(`   Storage: ${storage.label}\n`);
 
-    await runOrchestrator('T9_v2_Blind_Tribunal', dataset, selectorFn, clawT9v2, {
-      BATCH_SIZE: 3,
-      DELAY_MS: 2000,
-      saveFn: storage.saveFn,
-    });
-  } finally {
-    await storage.close();
+let selectedCount = 0;
+function canarySelectorFn(item) {
+  if (selectedCount >= MAX_TARGETS) return false;
+  const isMedMcqa = item.meta?.source === 'medmcqa';
+  const isNotQuarantined = !item.meta?.status?.startsWith('QUARANTINED');
+  const isPending = item.meta?._openclaw_t9_v2 !== true;
+  const isAfterCursor = item._id > START_AFTER_ID;
+
+  if (isMedMcqa && isNotQuarantined && isPending && isAfterCursor) {
+    selectedCount++;
+    return true;
   }
+  return false;
 }
 
-start();
+try {
+  const dataset = storage.dataset;
+  const result = await runOrchestrator(
+    `T9_Canary_max${MAX_TARGETS}_after${START_AFTER_ID}`,
+    dataset,
+    canarySelectorFn,
+    clawT9v2,
+    { BATCH_SIZE: 5, DELAY_MS: 2000, saveFn: storage.saveFn },
+  );
+
+  const aiAgrees = dataset.filter(
+    (item) => item.meta?._openclaw_t9_v2 && item.meta?.clinical_consensus === 'AI_AGREES_WITH_BASELINE',
+  ).length;
+  const aiConflict = dataset.filter((item) => item.meta?.status === 'QUARANTINED_AI_CONFLICT').length;
+  const t9Total = dataset.filter((item) => item.meta?._openclaw_t9_v2).length;
+  const remainingPending = dataset.filter(
+    (item) =>
+      item.meta?.source === 'medmcqa' &&
+      !item.meta?.status?.startsWith('QUARANTINED') &&
+      item.meta?._openclaw_t9_v2 !== true,
+  ).length;
+
+  console.log(`\n${'='.repeat(50)}`);
+  console.log('T9 CANARY REPORT');
+  console.log(`${'='.repeat(50)}`);
+  console.log(`   This run:   ${result.successCount} processed | ${result.failCount} failed`);
+  console.log(`   Cumulative: ${t9Total} T9-done | ${aiAgrees} AI_AGREES | ${aiConflict} AI_CONFLICT`);
+  console.log(`   Remaining:  ${remainingPending} pending`);
+  console.log(`${'='.repeat(50)}\n`);
+} finally {
+  await storage.close();
+}

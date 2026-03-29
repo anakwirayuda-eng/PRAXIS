@@ -156,7 +156,7 @@ export default function MedBlitz() {
             background: 'rgba(148,163,184,0.06)', border: 'var(--border-subtle)',
             borderRadius: 'var(--radius-lg)', padding: 'var(--sp-4)', marginBottom: 'var(--sp-6)',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-around', gap: 'var(--sp-4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-around', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
               <div><div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 700, color: 'var(--accent-primary)' }}>{pool.length.toLocaleString()}</div><div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Available</div></div>
               <div><div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 700, color: '#f59e0b' }}>{TIME_PER_Q}s</div><div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Per Question</div></div>
               <div><div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 700, color: '#ef4444' }}>{BLITZ_SIZE}</div><div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Questions</div></div>
@@ -208,7 +208,7 @@ export default function MedBlitz() {
             {pct}%
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--sp-3)', marginBottom: 'var(--sp-6)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 'var(--sp-3)', marginBottom: 'var(--sp-6)' }}>
             <div style={{ background: 'rgba(34,197,94,0.08)', borderRadius: 'var(--radius-md)', padding: 'var(--sp-3)' }}>
               <CheckCircle size={20} style={{ color: 'rgb(34,197,94)' }} />
               <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 700 }}>{correct}</div>
@@ -226,7 +226,7 @@ export default function MedBlitz() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--sp-3)', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-3)', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button id="retry-blitz" onClick={startBlitz} style={{
               padding: 'var(--sp-3) var(--sp-5)', border: 'none', borderRadius: 'var(--radius-lg)',
               background: 'linear-gradient(135deg, #f59e0b, #ef4444)', color: '#fff', fontWeight: 700,

@@ -72,7 +72,7 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
 
       if (res.ok) {
         setSubmitted(true);
-        setTimeout(onClose, 2000);
+        setTimeout(() => { reset(); onClose(); }, 2000);
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Gagal mengirim. Coba lagi.');
@@ -97,7 +97,7 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 'var(--sp-4)',
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+          onClick={(e) => { if (e.target === e.currentTarget) { reset(); onClose(); } }}
         >
           <Motion.div
             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}

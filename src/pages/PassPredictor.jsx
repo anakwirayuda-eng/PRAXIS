@@ -24,13 +24,11 @@ function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
   if (!distribution) return null;
 
   const maxCount = Math.max(...distribution);
-  const barWidth = Math.max(1, Math.floor(600 / totalQuestions));
+  const barWidth = `${100 / totalQuestions}%`;
 
   return (
-    <div style={{ position: 'relative', height: 120, display: 'flex', alignItems: 'flex-end', gap: 0, overflow: 'hidden', borderRadius: 'var(--radius-md)', padding: 'var(--sp-2)' }}>
+    <div style={{ position: 'relative', height: 120, display: 'flex', alignItems: 'flex-end', gap: 0, overflow: 'visible', borderRadius: 'var(--radius-md)', padding: 'var(--sp-2)' }}>
       {distribution.map((count, score) => {
-        if (count === 0) return null;
-
         const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
         const isPassing = score >= passMarkScore;
 
@@ -46,6 +44,7 @@ function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
                 : 'linear-gradient(180deg, var(--accent-danger), rgba(239,68,68,0.3))',
               borderRadius: '2px 2px 0 0',
               transition: 'height 0.5s ease',
+              opacity: count === 0 ? 0 : 1, // Placeholder for alignment
             }}
             title={`Score ${score}: ${count} simulations`}
           />
@@ -64,6 +63,7 @@ function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
           position: 'absolute',
           top: -2,
           left: 4,
+          transform: 'translateX(-50%)',
           fontSize: 9,
           color: 'var(--accent-warning)',
           fontWeight: 700,

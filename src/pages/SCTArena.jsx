@@ -233,7 +233,7 @@ export default function SCTArena() {
             Anda telah menyelesaikan semua {sctCases.length} kasus SCT.
           </p>
 
-          <div style={{ display: 'flex', gap: 'var(--sp-4)', justifyContent: 'center', marginBottom: 'var(--sp-6)' }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-4)', justifyContent: 'center', flexWrap: 'wrap', marginBottom: 'var(--sp-6)' }}>
             <div className="glass-card" style={{ padding: 'var(--sp-4)', minWidth: 100 }}>
               <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 700, color: 'var(--accent-primary)' }}>{sessionStats.total}</div>
               <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Dijawab</div>
@@ -244,11 +244,11 @@ export default function SCTArena() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--sp-3)' }}>
-            <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => { setCurrentIndex(0); setSessionStats({ total: 0, sumScore: 0 }); }}>
+          <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" style={{ flex: '1 1 140px' }} onClick={() => { setCurrentIndex(0); setSessionStats({ total: 0, sumScore: 0 }); }}>
               <RotateCcw size={16} /> Ulang Sesi
             </button>
-            <button className="btn btn-ghost" style={{ flex: 1 }} onClick={() => navigate('/')}>Dashboard</button>
+            <button className="btn btn-ghost" style={{ flex: '1 1 140px' }} onClick={() => navigate('/')}>Dashboard</button>
           </div>
         </div>
       </Motion.div>
@@ -310,7 +310,7 @@ export default function SCTArena() {
 
           {/* Likert Scale — Heatmap scoring, NOT binary */}
           <div className="glass-card" style={{ padding: 'var(--sp-6)', marginBottom: 'var(--sp-4)' }}>
-            <div style={{ display: 'flex', gap: 'var(--sp-2)', justifyContent: 'center', flexWrap: 'wrap', marginBottom: isReviewing ? 'var(--sp-4)' : 0 }}>
+            <div style={{ display: 'flex', gap: 'var(--sp-1)', justifyContent: 'center', flexWrap: 'nowrap', width: '100%', marginBottom: isReviewing ? 'var(--sp-4)' : 0 }}>
               {options.map(opt => {
                 const label = LIKERT_LABELS[opt.id] || opt.text;
                 let bg = 'rgba(148,163,184,0.06)';
@@ -346,7 +346,7 @@ export default function SCTArena() {
                     whileTap={!isReviewing ? { scale: 0.95 } : {}}
                     style={{
                       background: bg, border, color, flexDirection: 'column',
-                      padding: 'var(--sp-3) var(--sp-4)', minWidth: 100, gap: 4,
+                      padding: 'var(--sp-2) var(--sp-1)', flex: 1, minWidth: 0, gap: 4,
                       cursor: isReviewing ? 'default' : 'pointer', transition: 'all 0.2s ease',
                     }}
                   >
@@ -432,7 +432,7 @@ export default function SCTArena() {
             {!isReviewing ? (
               <button
                 className="btn btn-primary"
-                style={{ flex: 1, opacity: selectedAnswer ? 1 : 0.5 }}
+                style={{ flex: 1 }}
                 disabled={!selectedAnswer}
                 onClick={handleSubmit}
               >

@@ -263,11 +263,11 @@ export default function ExamMode() {
               const categoryPct = Math.round((categoryStats.correct / categoryStats.total) * 100);
               return (
                 <div key={categoryKey} style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-                  <span style={{ width: 120, fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>{category.label}</span>
-                  <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
+                  <span style={{ flex: 2, minWidth: 0, fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{category.label}</span>
+                  <div style={{ flex: 3, minWidth: 80, height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
                     <div style={{ width: `${categoryPct}%`, height: '100%', background: category.color, borderRadius: 4, transition: 'width 0.5s' }} />
                   </div>
-                  <span style={{ width: 60, textAlign: 'right', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{categoryStats.correct}/{categoryStats.total}</span>
+                  <span style={{ minWidth: 60, flex: '1 1 60px', textAlign: 'right', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{categoryStats.correct}/{categoryStats.total}</span>
                 </div>
               );
             })}
@@ -373,7 +373,7 @@ export default function ExamMode() {
                   aria-disabled={isReviewing}
                   className={className}
                   onClick={() => !isReviewing && selectAnswer(option.id)}
-                  style={{ width: '100%', textAlign: 'left', background: 'transparent' }}
+                  style={{ width: '100%', textAlign: 'left' }}
                 >
                   <div className="option-letter">{option.id}</div>
                   <div style={{ flex: 1, fontSize: 'var(--fs-sm)', lineHeight: 1.5 }}>{option.text}</div>
@@ -386,7 +386,7 @@ export default function ExamMode() {
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-3)', marginTop: 'var(--sp-5)' }}>
             {!isReviewing && (
-              <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={selectedAnswer === null} style={{ opacity: selectedAnswer === null ? 0.5 : 1 }}>
+              <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={selectedAnswer === null}>
                 Submit Answer
               </button>
             )}
@@ -567,7 +567,6 @@ export default function ExamMode() {
             className="btn btn-primary btn-lg"
             onClick={() => startExam()}
             disabled={availableCases.length === 0 || status !== 'ready'}
-            style={{ opacity: availableCases.length === 0 || status !== 'ready' ? 0.5 : 1 }}
           >
             <Play size={18} /> Start Exam
           </button>

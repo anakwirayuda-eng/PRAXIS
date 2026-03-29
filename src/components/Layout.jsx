@@ -119,15 +119,20 @@ export default function Layout({ children }) {
     if (!settingsOpen) return;
     const handlePointerDown = (e) => { if (!settingsRef.current?.contains(e.target)) setSettingsOpen(false); };
     const handleKeyDown = (e) => { if (e.key === 'Escape') setSettingsOpen(false); };
-    window.addEventListener('mousedown', handlePointerDown);
+    window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('keydown', handleKeyDown);
-    return () => { window.removeEventListener('mousedown', handlePointerDown); window.removeEventListener('keydown', handleKeyDown); };
+    return () => { window.removeEventListener('pointerdown', handlePointerDown); window.removeEventListener('keydown', handleKeyDown); };
   }, [settingsOpen]);
+
+  const isAdmin = (() => {
+    try { return localStorage.getItem('PRAXIS_ADMIN_KEY') !== null; }
+    catch { return false; }
+  })();
 
   const runtimeIssueBadge = runtimeIssueCount > 99 ? '99+' : String(runtimeIssueCount);
   const navItems = [
-    ...baseNavItems,
-    { to: '/watchdog', icon: Bug, label: 'Watchdog', badge: runtimeIssueCount > 0 ? runtimeIssueBadge : null }
+    ...baseNavItems.filter(item => isAdmin || item.label !== 'Data Quality'),
+    ...(isAdmin ? [{ to: '/watchdog', icon: Bug, label: 'Watchdog', badge: runtimeIssueCount > 0 ? runtimeIssueBadge : null }] : [])
   ];
 
   return (
@@ -140,7 +145,7 @@ export default function Layout({ children }) {
         <div className="sidebar-header">
           <div className="sidebar-brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
             <div className="sidebar-brand-icon">
-              <img src="/praxis-logo.png" alt="PRAXIS" style={{ width: 28, height: 28, borderRadius: 6 }} />
+              <img src="./praxis-logo.png" alt="PRAXIS" style={{ width: 28, height: 28, borderRadius: 6 }} />
             </div>
             <div className="sidebar-brand-text">
               <h1 style={{ letterSpacing: '0.05em' }}>PRAXIS</h1>
@@ -209,7 +214,7 @@ export default function Layout({ children }) {
           </div>
           {/* Institutional Credit */}
           <div style={{ marginTop: 'var(--sp-4)', paddingTop: 'var(--sp-3)', borderTop: '1px solid rgba(148,163,184,0.08)', textAlign: 'center' }}>
-            <div style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: 1.5, opacity: 0.7 }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
               <div style={{ fontWeight: 600, letterSpacing: '0.03em' }}>Institut Teknologi Sepuluh Nopember</div>
               <div style={{ marginTop: 2 }}>© {new Date().getFullYear()} Anak Agung Bagus Wirayuda, MD PhD</div>
             </div>
@@ -232,7 +237,8 @@ export default function Layout({ children }) {
                   background: 'rgba(15, 23, 42, 0.4)', border: '1px solid rgba(148, 163, 184, 0.1)',
                   width: '260px', justifyContent: 'flex-start', color: 'var(--text-muted)'
                 }}
-                onClick={() => alert('🚀 PRAXIS Omni-Command — coming soon')}
+                onClick={() => {}}
+                title="Omni-Command Search — Coming Soon"
               >
                 <Search size={14} style={{ opacity: 0.5 }} />
                 <span style={{ fontSize: 'var(--fs-sm)', flex: 1, textAlign: 'left' }}>Search PRAXIS...</span>
@@ -244,8 +250,8 @@ export default function Layout({ children }) {
           </div>
 
           <div className="header-right">
-            {runtimeIssueCount > 0 && (
-              <button className="btn btn-ghost" style={{ gap: 'var(--sp-2)', color: 'var(--accent-danger)' }} onClick={() => navigate('/watchdog')}>
+            {isAdmin && runtimeIssueCount > 0 && (
+              <button className="btn btn-ghost" style={{ gap: 'var(--sp-2)', color: 'var(--accent-danger)' }} aria-label="View watchdog issues" onClick={() => navigate('/watchdog')}>
                 <Bug size={16} />
                 <span className="nav-link-badge" style={{ background: 'var(--accent-danger)' }}>{runtimeIssueBadge}</span>
               </button>
@@ -256,12 +262,13 @@ export default function Layout({ children }) {
               style={{ gap: 'var(--sp-2)', minWidth: 'auto', color: isPrometric ? 'var(--accent-primary)' : 'inherit' }}
               onClick={cycleTheme}
               title={`Theme: ${THEMES[themeIndex].label} (Alt+T)`}
+              aria-label="Cycle theme"
             >
               <Eye size={16} />
               {!isMobile && <span style={{ fontSize: 'var(--fs-xs)' }}>{THEMES[themeIndex].desc}</span>}
             </button>
 
-            <button className="btn btn-ghost" style={{ gap: 'var(--sp-2)' }} onClick={() => navigate('/cases?bookmarks=1')}>
+            <button className="btn btn-ghost" style={{ gap: 'var(--sp-2)' }} aria-label="View bookmarks" onClick={() => navigate('/cases?bookmarks=1')}>
               <Bookmark size={16} />
               <span className="nav-link-badge">{bookmarks.length}</span>
             </button>

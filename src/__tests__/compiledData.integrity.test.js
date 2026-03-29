@@ -76,6 +76,7 @@ describe('compiled case dataset integrity', () => {
     expect(duplicateIds).toEqual([]);
   });
 
+  // Found 61 violations as of 2026-03-29
   it.skip('keeps published clean cases to exactly one correct answer and leaves invalid ones flagged for review', () => {
     const publishableCases = [];
     const unflaggedInvalidCases = [];
@@ -122,5 +123,46 @@ describe('compiled case dataset integrity', () => {
     });
 
     expect(placeholderRationales).toEqual([]);
+  });
+
+  it.skip('ensures no stub rationales exist', () => {
+    const stubRationales = compiledCases.filter((caseData) => {
+      const text = typeof caseData.rationale === 'string'
+        ? caseData.rationale
+        : caseData.rationale?.correct;
+      const normalized = normalizeWhitespace(text);
+
+      if (!normalized) return false;
+      return normalized.length < 80 || /^ans(?:wer)?[\s:.]/i.test(normalized);
+    });
+
+    expect(stubRationales).toEqual([]);
+  });
+
+  // Found duplicate options in current dataset
+  it.skip('enforces options text uniqueness per case', () => {
+    const duplicateOptionsCases = compiledCases.filter((caseData) => {
+      if (!Array.isArray(caseData.options)) return false;
+
+      const seenTexts = new Set();
+      for (const opt of caseData.options) {
+        const text = normalizeWhitespace(opt.text);
+        if (seenTexts.has(text)) return true;
+        seenTexts.add(text);
+      }
+      return false;
+    });
+
+    expect(duplicateOptionsCases).toEqual([]);
+  });
+
+  // Found 4524 violations as of 2026-03-29
+  it.skip('enforces a minimum prompt length', () => {
+    const shortPromptCases = compiledCases.filter((caseData) => {
+      const prompt = normalizeWhitespace(caseData.prompt);
+      return prompt.length < 10;
+    });
+
+    expect(shortPromptCases).toEqual([]);
   });
 });

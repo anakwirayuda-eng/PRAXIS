@@ -60,7 +60,7 @@ function ScrollToTop() {
 
   useEffect(() => {
     if (navType !== 'POP') {
-      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
   }, [pathname, navType]);
   return null;
@@ -71,12 +71,34 @@ function ScrollToTop() {
 // Redirects non-admin users silently to Dashboard
 // ═══════════════════════════════════════
 function AdminRoute({ children }) {
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(3);
   const isAdmin = (() => {
     try { return localStorage.getItem('PRAXIS_ADMIN_KEY') !== null; }
     catch { return false; }
   })();
 
-  if (!isAdmin) return <Navigate to="/" replace />;
+  useEffect(() => {
+    if (!isAdmin) {
+      if (countdown <= 0) {
+        navigate('/', { replace: true });
+        return;
+      }
+      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isAdmin, countdown, navigate]);
+
+  if (!isAdmin) return (
+    <div className="glass-card" role="alert" style={{ padding: 'var(--sp-8)', textAlign: 'center', maxWidth: 480, margin: '10vh auto 0' }}>
+      <h2 style={{ marginBottom: 'var(--sp-2)', color: 'var(--accent-warning)' }}>🔒 Akses Terbatas</h2>
+      <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-4)' }}>
+        Halaman ini hanya tersedia untuk administrator.<br />
+        Dialihkan ke Dashboard dalam <strong>{countdown} detik</strong>.
+      </p>
+      <div className="loader-dots" style={{ margin: 'var(--sp-4) auto' }} />
+    </div>
+  );
   return children;
 }
 

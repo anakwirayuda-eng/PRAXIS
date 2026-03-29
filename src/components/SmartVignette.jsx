@@ -4,7 +4,7 @@
  * Detects lab values in vignette text and wraps them with
  * hover tooltips showing normal ranges. Zero context-switching!
  */
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 // Comprehensive lab value reference database
 const LAB_DB = [
@@ -116,9 +116,19 @@ function identifyLabMatch(matchText) {
 }
 
 function LabTooltip({ text, labEntry }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const toggle = (e) => { e.preventDefault(); setIsOpen(!isOpen); };
+
   return (
     <span
       className="lab-tooltip-trigger"
+      tabIndex="0"
+      role="button"
+      onClick={toggle}
+      onMouseEnter={() => setIsOpen(true)}
+      onMouseLeave={() => setIsOpen(false)}
+      onFocus={() => setIsOpen(true)}
+      onBlur={() => setIsOpen(false)}
       style={{
         position: 'relative',
         borderBottom: '1.5px dashed var(--accent-info)',
@@ -145,8 +155,8 @@ function LabTooltip({ text, labEntry }) {
           fontSize: '0.75rem',
           lineHeight: 1.4,
           color: 'var(--text-secondary)',
-          opacity: 0,
-          pointerEvents: 'none',
+          opacity: isOpen ? 1 : 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
           zIndex: 50,
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
           transition: 'opacity 0.15s ease',
