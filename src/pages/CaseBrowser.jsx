@@ -10,7 +10,7 @@
  *  6. Unseen First — prioritize cases user hasn't completed
  */
 import { useMemo, useState, useEffect, useRef, useDeferredValue } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
 import { getCaseRouteId } from '../data/caseIdentity';
 import { useStore } from '../data/store';
@@ -73,6 +73,21 @@ function updateQueryParams(searchParams, updates) {
   return next;
 }
 
+export function buildCasePlaylist(cases, currentIndex, maxSize = 2000) {
+  const safeCases = Array.isArray(cases) ? cases : [];
+  const cappedSize = Math.max(1, maxSize);
+  if (safeCases.length === 0) return [];
+
+  const maxStart = Math.max(0, safeCases.length - cappedSize);
+  const startIndex = currentIndex >= 0
+    ? Math.max(0, Math.min(currentIndex, maxStart))
+    : 0;
+
+  return safeCases
+    .slice(startIndex, startIndex + cappedSize)
+    .map(getCaseRouteId);
+}
+
 // Genius Hack 1: Unicode stars instead of 42K SVG DOM nodes
 function DifficultyStars({ level }) {
   return (
@@ -83,17 +98,23 @@ function DifficultyStars({ level }) {
 }
 
 export default function CaseBrowser() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { completedCases, bookmarks } = useStore();
   const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
 
-  const [search, setSearch] = useState('');
+  const searchQuery = searchParams.get('q') || '';
+  const [search, setSearch] = useState(searchQuery);
   const [page, setPage] = useState(1);
   const observerTarget = useRef(null);
 
   // Genius Hack 3: Deferred search — no re-filter on every keystroke
   const deferredSearch = useDeferredValue(search.toLowerCase());
+
+  useEffect(() => {
+    setSearch(searchQuery);
+  }, [searchQuery]);
 
   const selectedCategory = searchParams.get('category') || 'all';
   const selectedDifficulty = searchParams.get('difficulty') || 'all';
@@ -199,6 +220,11 @@ export default function CaseBrowser() {
     setSearchParams(updateQueryParams(searchParams, { [key]: value }));
   };
 
+  const setSearchQuery = (value) => {
+    setSearch(value);
+    setSearchParams(updateQueryParams(searchParams, { q: value }), { replace: true });
+  };
+
   const setReviewMode = (nextMode) => {
     const nextParams = updateQueryParams(searchParams, {
       hideUnreviewed: nextMode === 'all' || nextMode === 'reviewed' ? '0' : null,
@@ -210,6 +236,15 @@ export default function CaseBrowser() {
   const clearQuickFilters = () => {
     setSearchParams(new URLSearchParams());
   };
+
+  useEffect(() => {
+    const restoreScrollY = location.state?.restoreScrollY;
+    if (typeof restoreScrollY !== 'number') return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: restoreScrollY, left: 0, behavior: 'auto' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.key, location.state]);
 
   const hasQuickFilters = showBookmarksOnly
     || hideCompleted
@@ -225,14 +260,19 @@ export default function CaseBrowser() {
   const openCase = (caseData, caseNumber) => {
     const suffix = Number.isInteger(caseNumber) ? `?n=${caseNumber}` : '';
     const routeId = getCaseRouteId(caseData);
-    // Cap at 2000 to prevent oversized history state on large libraries
-    const playlist = filteredCases.slice(0, 2000).map(getCaseRouteId);
+    const currentIndex = Number.isInteger(caseNumber)
+      ? caseNumber - 1
+      : filteredCases.findIndex((entry) => entry._id === caseData._id);
+    // Cap at 2000 to prevent oversized history state on large libraries,
+    // but always include the current case so Next Case stays in-context.
+    const playlist = buildCasePlaylist(filteredCases, currentIndex);
     navigate(`/case/${encodeURIComponent(routeId)}${suffix}`, {
       state: { 
         caseNumber: Number.isInteger(caseNumber) ? caseNumber : undefined,
         playlist,
         // Preserve current filter URL so back button can restore context
         browserSearch: window.location.search,
+        browserScrollY: window.scrollY,
       },
     });
   };
@@ -270,7 +310,7 @@ export default function CaseBrowser() {
               className="input"
               placeholder="Search cases, tags, diseases..."
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               style={{ paddingLeft: 36 }}
             />
           </div>

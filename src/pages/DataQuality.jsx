@@ -257,7 +257,7 @@ export default function DataQuality() {
       </CollapsibleSection>
 
       <CollapsibleSection
-        title={`Flagged Questions (${validationStats.flagged.length})`}
+        title={`Flagged Questions (${validationStats.flaggedCount})`}
         icon={<AlertTriangle size={18} />}
         isOpen={openSections.has('flagged')}
         onToggle={() => toggle('flagged')}
@@ -265,21 +265,26 @@ export default function DataQuality() {
         {validationStats.flagged.length === 0 ? (
           <p style={{ color: '#10b981' }}>No flagged questions</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 400, overflowY: 'auto' }}>
-            {validationStats.flagged.slice(0, 20).map((caseData) => (
-              <div key={caseData._id} style={{ padding: '0.75rem', background: 'rgba(245,158,11,0.1)', borderRadius: 8, borderLeft: '3px solid #f59e0b' }}>
-                <div style={{ fontSize: '0.8rem', color: '#f59e0b', marginBottom: '0.25rem' }}>
-                  #{caseData._id} | {caseData.meta?.source} | Confidence: {caseData.confidence}
-                  {caseData.validation?.flags?.map((flag) => (
-                    <span key={flag} style={{ marginLeft: 8, background: 'rgba(239,68,68,0.2)', padding: '2px 6px', borderRadius: 4, fontSize: '0.7rem' }}>
-                      {flag}
-                    </span>
-                  ))}
+          <>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary, #94a3b8)', marginBottom: '0.75rem' }}>
+              Showing {Math.min(validationStats.flagged.length, 20)} sample cases out of {validationStats.flaggedCount.toLocaleString()} flagged.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 400, overflowY: 'auto' }}>
+              {validationStats.flagged.slice(0, 20).map((caseData) => (
+                <div key={caseData._id} style={{ padding: '0.75rem', background: 'rgba(245,158,11,0.1)', borderRadius: 8, borderLeft: '3px solid #f59e0b' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#f59e0b', marginBottom: '0.25rem' }}>
+                    #{caseData._id} | {caseData.meta?.source} | Confidence: {caseData.confidence}
+                    {caseData.validation?.flags?.map((flag) => (
+                      <span key={flag} style={{ marginLeft: 8, background: 'rgba(239,68,68,0.2)', padding: '2px 6px', borderRadius: 4, fontSize: '0.7rem' }}>
+                        {flag}
+                      </span>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '0.85rem' }}>{(caseData.title || '').substring(0, 120)}</div>
                 </div>
-                <div style={{ fontSize: '0.85rem' }}>{(caseData.title || '').substring(0, 120)}</div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </CollapsibleSection>
 

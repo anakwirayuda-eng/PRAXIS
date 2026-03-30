@@ -25,6 +25,8 @@ const getNumericArg = (name, fallback) => {
 
 const MAX_TARGETS = getNumericArg('max', 25);
 const START_AFTER_ID = getNumericArg('after', 0);
+const BATCH_SIZE = getNumericArg('batch-size', 5);
+const DELAY_MS = getNumericArg('delay-ms', 2000);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
@@ -134,6 +136,8 @@ Choose the single most clinically accurate option. Return ONLY JSON in this form
 console.log('\nT9 CANARY MODE');
 console.log(`   MAX_TARGETS: ${MAX_TARGETS}`);
 console.log(`   START_AFTER_ID: ${START_AFTER_ID}`);
+console.log(`   BATCH_SIZE: ${BATCH_SIZE}`);
+console.log(`   DELAY_MS: ${DELAY_MS}`);
 console.log('   Quarantine: EXCLUDED');
 
 const storage = await openCaseStorage();
@@ -161,7 +165,7 @@ try {
     dataset,
     canarySelectorFn,
     clawT9v2,
-    { BATCH_SIZE: 5, DELAY_MS: 2000, saveFn: storage.saveFn },
+    { BATCH_SIZE, DELAY_MS, saveFn: storage.saveFn },
   );
 
   const aiAgrees = dataset.filter(

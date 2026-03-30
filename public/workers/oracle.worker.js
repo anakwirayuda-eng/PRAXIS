@@ -19,9 +19,13 @@ self.onmessage = function(e) {
     passMark = 0.66,          // 66% for UKMPPD
     iterations = 10000,
     casePool = [],            // Array of case IDs to draw from
+    guessRateByCase = null,   // Preferred per-case guess probability lookup
     guessRates = null,        // Array of custom guess probabilities 1:1 with casePool
     guessRate = 0.20,         // Fallback 1/5 chance for 5-option MCQ blind guess
   } = examConfig;
+  const fallbackGuessRateByCase = (!guessRateByCase && Array.isArray(casePool) && Array.isArray(guessRates))
+    ? Object.fromEntries(casePool.map((caseId, index) => [String(caseId), guessRates[index]]))
+    : null;
 
   const now = Date.now() / 1000;
   const examQuestionCount = casePool.length > 0
@@ -46,7 +50,10 @@ self.onmessage = function(e) {
 
       let recallProbability;
 
-      const currentGuessRate = guessRates ? guessRates[q] : guessRate;
+      const currentGuessRate =
+        guessRateByCase?.[String(caseId)]
+        ?? fallbackGuessRateByCase?.[String(caseId)]
+        ?? guessRate;
 
       if (lastReview === 0 || stability === 0) {
         // Never studied: rely on guessing probability

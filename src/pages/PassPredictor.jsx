@@ -20,6 +20,15 @@ import Settings from 'lucide-react/dist/esm/icons/settings';
 const WORKER_STALL_TIMEOUT_MS = 15000;
 const WORKER_MAX_RESTARTS = 1;
 
+function isPlayablePredictorCase(caseData, examType) {
+  if (caseData?.q_type !== 'MCQ') return false;
+  if (caseData?.meta?.quarantined || caseData?.meta?.truncated || caseData?.meta?.needs_review) return false;
+  if (caseData?.meta?.status?.startsWith?.('QUARANTINED')) return false;
+  return examType === 'all'
+    || caseData?.meta?.examType === examType
+    || caseData?.meta?.examType === 'BOTH';
+}
+
 function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
   if (!distribution) return null;
 
@@ -97,8 +106,7 @@ export default function PassPredictor() {
   const brainStats = useMemo(() => {
     const poolIds = new Set(
       caseBank
-        .filter(c => c.q_type === 'MCQ' && !c.meta?.quarantined && !c.meta?.truncated && !c.meta?.needs_review)
-        .filter(c => config.examType === 'all' || c.meta.examType === config.examType || c.meta.examType === 'BOTH')
+        .filter((caseData) => isPlayablePredictorCase(caseData, config.examType))
         .map(c => c._id)
     );
     return getBrainStats(poolIds);
@@ -152,16 +160,14 @@ export default function PassPredictor() {
 
     cleanupWorker();
 
-    const casePoolRaw = caseBank
-      .filter((caseData) => caseData.q_type === 'MCQ') // Essential: single-correct modeling only
-      .filter((caseData) => !caseData.meta?.quarantined && !caseData.meta?.truncated && !caseData.meta?.needs_review)
-      .filter((caseData) =>
-        config.examType === 'all'
-        || caseData.meta.examType === config.examType
-        || caseData.meta.examType === 'BOTH');
-        
+    const casePoolRaw = caseBank.filter((caseData) => isPlayablePredictorCase(caseData, config.examType));
     const casePool = casePoolRaw.map((caseData) => caseData._id);
-    const guessRates = casePoolRaw.map((caseData) => caseData.options?.length ? 1 / caseData.options.length : 0.20);
+    const guessRateByCase = Object.fromEntries(
+      casePoolRaw.map((caseData) => [
+        String(caseData._id),
+        caseData.options?.length ? 1 / caseData.options.length : 0.20,
+      ]),
+    );
 
     if (casePool.length === 0) {
       setRunning(false);
@@ -335,7 +341,7 @@ export default function PassPredictor() {
             passMark: config.passMark,
             iterations: config.iterations,
             casePool,
-            guessRates,
+            guessRateByCase,
             guessRate: 0.20, // fallback for older worker cache
           },
         });
