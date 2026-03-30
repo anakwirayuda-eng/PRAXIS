@@ -1,6 +1,6 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 const mockNavigate = vi.fn();
@@ -56,6 +56,7 @@ function buildCase({
     title,
     category,
     q_type,
+    _searchKey: `${title} ${narrative} ${tags.join(' ')}`.toLowerCase(),
     prompt: title,
     vignette: {
       demographics: { age: 30, sex: 'M' },
@@ -95,6 +96,12 @@ describe('CaseBrowser quality-aware navigation', () => {
       disconnect() {}
       unobserve() {}
     });
+
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 0,
+      writable: true,
+    });
   });
 
   it('random selection respects the default clean-case filters', async () => {
@@ -124,6 +131,32 @@ describe('CaseBrowser quality-aware navigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/case/101?n=1', expect.objectContaining({
       state: expect.objectContaining({ caseNumber: 1, playlist: expect.arrayContaining(['101']) }),
     }));
+  });
+
+  it('does not open an unrelated random case when the current filters yield no results', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 110, title: 'Visible case', category: 'internal-medicine' }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases?category=surgery'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    const randomButton = screen.getByRole('button', { name: /random case/i });
+    expect(randomButton).toBeDisabled();
+
+    fireEvent.click(randomButton);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('passes the filtered-view sequence number in both state and URL params', async () => {
@@ -156,6 +189,45 @@ describe('CaseBrowser quality-aware navigation', () => {
     expect(mockNavigate.mock.calls[0][0]).toMatch(/\?n=2$/);
     expect(mockNavigate.mock.calls[0][1]).toEqual(expect.objectContaining({
       state: expect.objectContaining({ caseNumber: 2, playlist: expect.any(Array) }),
+    }));
+  });
+
+  it('preserves search params and scroll position when opening a case from the browser', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 210, title: 'Renal visible case', tags: ['renal'] }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    Object.defineProperty(window, 'scrollY', {
+      configurable: true,
+      value: 420,
+      writable: true,
+    });
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases?q=renal&category=internal-medicine'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.getByLabelText(/search cases/i)).toHaveValue('renal');
+
+    fireEvent.click(screen.getByTestId('case-card'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/case/210?n=1', expect.objectContaining({
+      state: expect.objectContaining({
+        caseNumber: 1,
+        browserSearch: '?q=renal&category=internal-medicine',
+        browserScrollY: 420,
+        browserPage: 1,
+      }),
     }));
   });
 
@@ -194,6 +266,81 @@ describe('CaseBrowser quality-aware navigation', () => {
       state: expect.objectContaining({ caseNumber: 2, playlist: expect.any(Array) }),
     }));
     expect(screen.getByText(/case order is temporarily locked until loading finishes/i)).toBeInTheDocument();
+  });
+
+  it('builds a capped playlist that still contains the clicked case deep in long result sets', async () => {
+    const { buildCasePlaylist } = await import('../pages/CaseBrowser.jsx');
+    const cases = Array.from({ length: 2505 }, (_, index) => buildCase({
+      _id: index + 1,
+      title: `Case ${index + 1}`,
+    }));
+
+    const playlist = buildCasePlaylist(cases, 2400);
+
+    expect(playlist).toHaveLength(2000);
+    expect(playlist[0]).toBe('506');
+    expect(playlist).toContain('2401');
+    expect(playlist.at(-1)).toBe('2505');
+  });
+
+  it('restores the loaded browser page count from navigation state before reapplying scroll', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: Array.from({ length: 125 }, (_, index) => buildCase({
+        _id: index + 1,
+        title: `Case ${index + 1}`,
+        narrative: `Narrative ${index + 1}`,
+      })),
+      totalCases: 125,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        {
+          initialEntries: [{
+            pathname: '/cases',
+            search: '',
+            state: { restorePage: 3 },
+          }],
+        },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.getAllByTestId('case-card')).toHaveLength(125);
+  });
+
+  it('focuses the search input when navigation requests browser search intent', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 310, title: 'Focused search case' }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        {
+          initialEntries: [{
+            pathname: '/cases',
+            search: '',
+            state: { focusSearch: true },
+          }],
+        },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/search cases/i)).toHaveFocus();
+    });
   });
 
   it.todo('CasePlayerSession handleNextCase skips quarantined, needs_review, and truncated cases.');

@@ -3,7 +3,7 @@
  * Appears during REVIEWING state, lets users tag question quality issues.
  * Persisted to localStorage as `mc_feedback`.
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
 import X from 'lucide-react/dist/esm/icons/x';
@@ -99,6 +99,51 @@ export function QuestionFeedback({ caseId, caseData }) {
     return () => window.clearTimeout(closeTimerRef.current);
   }, [caseId]);
 
+  const persistFeedbackState = useCallback((nextEntry) => {
+    const all = loadFeedback();
+    if (nextEntry) {
+      all[caseId] = nextEntry;
+    } else {
+      delete all[caseId];
+    }
+    saveFeedback(all);
+    return all[caseId] ?? null;
+  }, [caseId]);
+
+  const retryUnsyncedFeedback = useCallback(async () => {
+    const all = loadFeedback();
+    const pending = all[caseId];
+    if (!pending || pending.synced !== false) return false;
+
+    const ok = await syncToServer(caseId, pending.tags || [], pending.comment || '');
+    if (!ok) return false;
+
+    const syncedEntry = {
+      ...pending,
+      synced: true,
+      syncedAt: Date.now(),
+    };
+    persistFeedbackState(syncedEntry);
+    setExistingFeedback(syncedEntry);
+    setFeedbackError('');
+    return true;
+  }, [caseId, persistFeedbackState]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    if (navigator.onLine !== false) {
+      void retryUnsyncedFeedback();
+    }
+
+    const handleOnline = () => {
+      void retryUnsyncedFeedback();
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [retryUnsyncedFeedback]);
+
   const toggleTag = (tagId) => {
     setSelectedTags(prev =>
       prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]
@@ -112,15 +157,14 @@ export function QuestionFeedback({ caseId, caseData }) {
     const ok = await syncToServer(caseId, selectedTags, comment.trim());
     setFeedbackError(ok ? '' : 'Tidak bisa mengirim ke server. Feedback disimpan lokal dulu.');
 
-    const all = loadFeedback();
-    all[caseId] = {
+    const nextEntry = {
       tags: selectedTags,
       comment: comment.trim(),
       timestamp: Date.now(),
       synced: ok,
     };
-    saveFeedback(all);
-    setExistingFeedback(all[caseId]);
+    persistFeedbackState(nextEntry);
+    setExistingFeedback(nextEntry);
     setSubmitted(true);
 
     window.clearTimeout(closeTimerRef.current);
@@ -128,6 +172,16 @@ export function QuestionFeedback({ caseId, caseData }) {
   };
 
   const handleClear = async () => {
+    if (existingFeedback?.synced === false) {
+      persistFeedbackState(null);
+      setExistingFeedback(null);
+      setSelectedTags([]);
+      setComment('');
+      setSubmitted(false);
+      setFeedbackError('');
+      return;
+    }
+
     // Notify server so admin inbox stays clean
     const ok = await deleteFromServer(caseId);
     if (!ok) {
@@ -135,9 +189,7 @@ export function QuestionFeedback({ caseId, caseData }) {
       return; // Prevent local wipe if server wipe failed
     }
 
-    const all = loadFeedback();
-    delete all[caseId];
-    saveFeedback(all);
+    persistFeedbackState(null);
     setExistingFeedback(null);
     setSelectedTags([]);
     setComment('');

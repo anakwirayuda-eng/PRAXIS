@@ -145,7 +145,7 @@ export default function Layout({ children }) {
         <div className="sidebar-header">
           <div className="sidebar-brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
             <div className="sidebar-brand-icon">
-              <img src="./praxis-logo.png" alt="PRAXIS" style={{ width: 28, height: 28, borderRadius: 6 }} />
+              <img src={`${import.meta.env.BASE_URL}praxis-logo.png`} alt="PRAXIS" style={{ width: 28, height: 28, borderRadius: 6 }} />
             </div>
             <div className="sidebar-brand-text">
               <h1 style={{ letterSpacing: '0.05em' }}>PRAXIS</h1>
@@ -237,8 +237,8 @@ export default function Layout({ children }) {
                   background: 'rgba(15, 23, 42, 0.4)', border: '1px solid rgba(148, 163, 184, 0.1)',
                   width: '260px', justifyContent: 'flex-start', color: 'var(--text-muted)'
                 }}
-                onClick={() => {}}
-                title="Omni-Command Search — Coming Soon"
+                onClick={() => navigate('/cases', { state: { focusSearch: true } })}
+                title="Open Case Browser search"
               >
                 <Search size={14} style={{ opacity: 0.5 }} />
                 <span style={{ fontSize: 'var(--fs-sm)', flex: 1, textAlign: 'left' }}>Search PRAXIS...</span>

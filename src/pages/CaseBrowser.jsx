@@ -106,8 +106,12 @@ export default function CaseBrowser() {
 
   const searchQuery = searchParams.get('q') || '';
   const [search, setSearch] = useState(searchQuery);
-  const [page, setPage] = useState(1);
+  const initialPage = typeof location.state?.restorePage === 'number' && location.state.restorePage > 1
+    ? location.state.restorePage
+    : 1;
+  const [page, setPage] = useState(initialPage);
   const observerTarget = useRef(null);
+  const searchInputRef = useRef(null);
 
   // Genius Hack 3: Deferred search — no re-filter on every keystroke
   const deferredSearch = useDeferredValue(search.toLowerCase());
@@ -187,14 +191,16 @@ export default function CaseBrowser() {
   }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, reviewMode, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, status, unseenFirst]);
 
   // Genius Hack 2: IntersectionObserver infinite scroll
-  // Reset page when filters change to avoid rendering stale deep pagination
-  const prevFilteredRef = useRef(filteredCases);
+  // Reset page only when the browsing query actually changes.
+  // Streaming more cases into the library should not collapse a deep scroll session.
+  const prevBrowserQueryRef = useRef(location.search);
   useEffect(() => {
-    if (prevFilteredRef.current !== filteredCases) {
+    if (prevBrowserQueryRef.current !== location.search) {
       setPage(1);
-      prevFilteredRef.current = filteredCases;
+      prevBrowserQueryRef.current = location.search;
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
-  }, [filteredCases]);
+  }, [location.search]);
 
   const paginatedCases = useMemo(
     () => filteredCases.slice(0, page * PAGE_SIZE),
@@ -246,6 +252,15 @@ export default function CaseBrowser() {
     return () => window.cancelAnimationFrame(frame);
   }, [location.key, location.state]);
 
+  useEffect(() => {
+    if (!location.state?.focusSearch) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [location.key, location.state]);
+
   const hasQuickFilters = showBookmarksOnly
     || hideCompleted
     || showImagesOnly
@@ -271,15 +286,17 @@ export default function CaseBrowser() {
         caseNumber: Number.isInteger(caseNumber) ? caseNumber : undefined,
         playlist,
         // Preserve current filter URL so back button can restore context
-        browserSearch: window.location.search,
+        browserSearch: location.search,
         browserScrollY: window.scrollY,
+        browserPage: page,
       },
     });
   };
 
   const goRandomCase = () => {
     const completedSet = new Set(completedCases);
-    const visiblePool = filteredCases.length > 0 ? filteredCases : caseBank;
+    const visiblePool = filteredCases;
+    if (visiblePool.length === 0) return;
     const unseenPool = visiblePool.filter((caseData) => !completedSet.has(caseData._id));
     const pool = unseenPool.length > 0 ? unseenPool : visiblePool;
     const pick = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : null;
@@ -295,7 +312,22 @@ export default function CaseBrowser() {
           <h1 className="page-title">Case Browser</h1>
           <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases • Shuffled daily • Unseen first</p>
         </div>
-        <button className="btn" aria-label="Start random case" onClick={goRandomCase} style={{ background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))', border: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button
+          className="btn"
+          aria-label="Start random case"
+          onClick={goRandomCase}
+          disabled={filteredCases.length === 0}
+          title={filteredCases.length === 0 ? 'Tidak ada case yang cocok dengan filter saat ini.' : undefined}
+          style={{
+            background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
+            border: 'none',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            ...(filteredCases.length === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
+          }}
+        >
           <Shuffle aria-hidden="true" size={16} /> Random Case <span aria-hidden="true">🎲</span>
         </button>
       </div>
@@ -306,6 +338,7 @@ export default function CaseBrowser() {
             <label htmlFor="case-search" style={srOnlyStyle}>Search cases</label>
             <Search aria-hidden="true" size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
+              ref={searchInputRef}
               id="case-search"
               className="input"
               placeholder="Search cases, tags, diseases..."

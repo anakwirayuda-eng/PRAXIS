@@ -3,7 +3,7 @@
  * Crowdsource QA: students propose corrections to bad data.
  * Submits to POST /api/feedback/propose (shadowban-gated).
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import X from 'lucide-react/dist/esm/icons/x';
 import Send from 'lucide-react/dist/esm/icons/send';
@@ -38,6 +38,24 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const closeTimerRef = useRef(null);
+
+  const reset = () => {
+    setField('');
+    setCorrection('');
+    setReference('');
+    setSubmitted(false);
+    setError('');
+    setSubmitting(false);
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      window.clearTimeout(closeTimerRef.current);
+      reset();
+    }
+    return () => window.clearTimeout(closeTimerRef.current);
+  }, [isOpen]);
 
   const handleSubmit = async () => {
     if (!field || !correction.trim() || reference.trim().length < 5) {
@@ -72,7 +90,11 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
 
       if (res.ok) {
         setSubmitted(true);
-        setTimeout(() => { reset(); onClose(); }, 2000);
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = window.setTimeout(() => {
+          reset();
+          onClose();
+        }, 2000);
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Gagal mengirim. Coba lagi.');
@@ -83,8 +105,6 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
       setSubmitting(false);
     }
   };
-
-  const reset = () => { setField(''); setCorrection(''); setReference(''); setSubmitted(false); setError(''); };
 
   return (
     <AnimatePresence>

@@ -290,6 +290,21 @@ export function CasePlayerSession({
   const isCorrect = isReviewing && selectedAnswer === correctOption?.id;
   const isSCT = caseData.q_type === 'SCT';
   const isRapidRecall = caseData.meta?.questionMode === 'rapid_recall';
+  const browserSearch = typeof location.state?.browserSearch === 'string' ? location.state.browserSearch : '';
+  const browserScrollY = typeof location.state?.browserScrollY === 'number' ? location.state.browserScrollY : null;
+  const browserPage = typeof location.state?.browserPage === 'number' ? location.state.browserPage : null;
+
+  const returnToBrowser = () => {
+    navigate(`/cases${browserSearch}`, {
+      replace: false,
+      state: browserScrollY === null && browserPage === null
+        ? undefined
+        : {
+            ...(browserScrollY === null ? {} : { restoreScrollY: browserScrollY }),
+            ...(browserPage === null ? {} : { restorePage: browserPage }),
+          },
+    });
+  };
   
   // 🔥 Shuffle options strictly for display, mapping visual letters (A-E) to original IDs
   const { displayOptions, letterToActualIdMap } = useMemo(() => {
@@ -383,7 +398,7 @@ export function CasePlayerSession({
           navigate(`/case/${encodeURIComponent(nextId)}`, { state: { ...location.state } });
           return;
         }
-        navigate(`/cases${location.state?.browserSearch ?? ''}`);
+        returnToBrowser();
         return;
       }
       // currentIdx === -1: case was beyond the 2000-cap — fall through to caseBank
@@ -394,11 +409,11 @@ export function CasePlayerSession({
     for (let i = currentIdx + 1; i < caseBank.length; i++) {
       const next = caseBank[i];
       if (!next.meta?.quarantined && !next.meta?.needs_review && !next.meta?.truncated) {
-        navigate(`/case/${encodeURIComponent(getCaseRouteId(next))}`);
+        navigate(`/case/${encodeURIComponent(getCaseRouteId(next))}`, { state: { ...location.state } });
         return;
       }
     }
-    navigate('/cases');
+    returnToBrowser();
   };
 
   const handleFSRSGrade = (grade) => {
@@ -415,7 +430,7 @@ export function CasePlayerSession({
     },
     onSubmit: handleSubmit,
     onNext: handleNextCase,
-    onBack: () => navigate(`/cases${location.state?.browserSearch ?? ''}`, { replace: false }),
+    onBack: returnToBrowser,
     onBookmark: () => toggleBookmark(caseData._id),
     onFlag: () => flagQuestion(caseData._id, 'review'),
     onToggleExplanation: () => setShowExplanation((current) => !current),
@@ -446,7 +461,7 @@ export function CasePlayerSession({
             className="btn btn-ghost btn-icon"
             data-testid="case-player-back"
             aria-label="Back to Case Browser"
-            onClick={() => navigate(`/cases${location.state?.browserSearch ?? ''}`, { replace: false })}
+            onClick={returnToBrowser}
           >
             <Home size={16} />
           </button>
@@ -1126,8 +1141,12 @@ export default function CasePlayer() {
   const { id: rawId } = useParams();
   const id = rawId ? decodeURIComponent(rawId) : '';
   const navigate = useNavigate();
+  const location = useLocation();
   const { cases: caseBank, isLoading, error } = useCaseBank();
   const caseData = caseBank.find((entry) => caseMatchesRouteId(entry, id)) ?? null;
+  const browserSearch = typeof location.state?.browserSearch === 'string' ? location.state.browserSearch : '';
+  const browserScrollY = typeof location.state?.browserScrollY === 'number' ? location.state.browserScrollY : null;
+  const browserPage = typeof location.state?.browserPage === 'number' ? location.state.browserPage : null;
   const {
     machineState,
     selectedAnswer,
@@ -1154,7 +1173,17 @@ export default function CasePlayer() {
             ? 'The compiled case library could not be loaded, so this case is not available right now.'
             : `The clinical case with ID ${id} does not exist.`}
         </p>
-        <button className="btn btn-primary" onClick={() => navigate('/cases')}>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate(`/cases${browserSearch}`, {
+            state: browserScrollY === null && browserPage === null
+              ? undefined
+              : {
+                  ...(browserScrollY === null ? {} : { restoreScrollY: browserScrollY }),
+                  ...(browserPage === null ? {} : { restorePage: browserPage }),
+                },
+          })}
+        >
           <BookOpen size={16} /> Browse Cases
         </button>
       </div>

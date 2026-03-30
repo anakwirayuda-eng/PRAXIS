@@ -26,8 +26,10 @@ const TAG_COLORS = {
 function useAdminAuth() {
   const [key, setKey] = useState(() => localStorage.getItem('PRAXIS_ADMIN_KEY') || '');
   const [authed, setAuthed] = useState(false);
+  const [checking, setChecking] = useState(() => !!localStorage.getItem('PRAXIS_ADMIN_KEY'));
 
   const login = useCallback(async (inputKey) => {
+    setChecking(true);
     try {
       const res = await fetch(`${API_BASE}/api/admin/overview`, {
         headers: { 'X-Admin-Key': inputKey },
@@ -36,9 +38,12 @@ function useAdminAuth() {
         localStorage.setItem('PRAXIS_ADMIN_KEY', inputKey);
         setKey(inputKey);
         setAuthed(true);
+        setChecking(false);
         return true;
       }
     } catch { /* network error */ }
+    setAuthed(false);
+    setChecking(false);
     return false;
   }, []);
 
@@ -47,13 +52,18 @@ function useAdminAuth() {
     localStorage.removeItem('PRAXIS_ADMIN_KEY');
     setKey('');
     setAuthed(false);
+    setChecking(false);
   }, []);
 
   useEffect(() => {
-    if (key) login(key);
+    if (key) {
+      login(key);
+    } else {
+      setChecking(false);
+    }
   }, []); // eslint-disable-line
 
-  return { key, authed, login, logout };
+  return { key, authed, checking, login, logout };
 }
 
 function LoginGate({ onLogin }) {
@@ -75,6 +85,9 @@ function LoginGate({ onLogin }) {
           Enter your admin key to access the dashboard.
         </p>
         <form onSubmit={handleSubmit}>
+          <label htmlFor="admin-key-input" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', whiteSpace: 'nowrap', border: 0 }}>
+            Admin key
+          </label>
           <input
             id="admin-key-input"
             type="password"
@@ -209,7 +222,7 @@ function FeedbackTable({ data, adminKey, onStatusChange }) {
 }
 
 export default function AdminPanel() {
-  const { key, authed, login, logout } = useAdminAuth();
+  const { key, authed, checking, login, logout } = useAdminAuth();
   const [overview, setOverview] = useState(null);
   const [feedback, setFeedback] = useState([]);
   const [proposals, setProposals] = useState([]);
@@ -277,6 +290,20 @@ export default function AdminPanel() {
       fetchData();
     } catch { setActionError('Tidak bisa terhubung ke server.'); }
   };
+
+  if (checking) {
+    return (
+      <div style={{ maxWidth: 400, margin: '15vh auto', padding: 'var(--sp-6)' }}>
+        <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>
+          <Shield size={48} style={{ color: 'var(--accent-primary)', marginBottom: 'var(--sp-4)' }} />
+          <h2 style={{ marginBottom: 'var(--sp-2)' }}>Memverifikasi Admin Key...</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-sm)' }}>
+            Menyambungkan terminal admin PRAXIS.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!authed) return <LoginGate onLogin={login} />;
 
