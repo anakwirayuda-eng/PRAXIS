@@ -1,6 +1,6 @@
 export function getCaseRouteId(caseData) {
   if (!caseData) return '';
-  return String(caseData.case_code || caseData.hash_id || caseData._id || caseData.id || '');
+  return String(caseData.case_code || caseData.hash_id || caseData.case_id || caseData._id || caseData.id || '');
 }
 
 export function caseMatchesRouteId(caseData, routeId) {
@@ -9,6 +9,7 @@ export function caseMatchesRouteId(caseData, routeId) {
   return [
     caseData.case_code,
     caseData.hash_id,
+    caseData.case_id,
     caseData._id,
     caseData.id,
   ].some((value) => value != null && String(value) === normalized);

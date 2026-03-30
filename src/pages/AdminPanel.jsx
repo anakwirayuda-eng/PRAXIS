@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { getCaseRouteId } from '../data/caseIdentity';
 import Shield from 'lucide-react/dist/esm/icons/shield';
 import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
 import Check from 'lucide-react/dist/esm/icons/check';
@@ -139,11 +140,13 @@ function FeedbackTable({ data, adminKey, onStatusChange }) {
           </tr>
         </thead>
         <tbody>
-          {data.map(row => (
+          {data.map(row => {
+            const caseRouteId = encodeURIComponent(getCaseRouteId(row));
+            return (
             <tr key={row.id} style={{ borderBottom: '1px solid rgba(148,163,184,0.05)' }}>
               <td style={{ padding: 'var(--sp-2) var(--sp-3)', color: 'var(--text-muted)' }}>{row.id}</td>
               <td style={{ padding: 'var(--sp-2) var(--sp-3)' }}>
-                <Link to={`/case/${row.case_id}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>
+                <Link to={`/case/${caseRouteId}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>
                   {row.case_code || `#${row.case_id}`}
                 </Link>
               </td>
@@ -190,14 +193,15 @@ function FeedbackTable({ data, adminKey, onStatusChange }) {
                     </>
                   )}
                   <Link
-                    to={`/case/${row.case_id}`}
+                    to={`/case/${caseRouteId}`}
                     title="View case"
                     style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 'var(--radius-sm)', color: '#818cf8', padding: '4px 6px', display: 'flex', textDecoration: 'none' }}
                   ><Eye size={12} /></Link>
                 </div>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -340,11 +344,13 @@ export default function AdminPanel() {
                 <h3 style={{ color: 'var(--text-primary)' }}>Inboks Bersih</h3>
                 <p>Semua usulan perbaikan klinis dari mahasiswa telah dieksekusi.</p>
               </div>
-            ) : proposals.map(prop => (
+            ) : proposals.map(prop => {
+              const caseRouteId = encodeURIComponent(getCaseRouteId(prop));
+              return (
               <div key={prop.id} className="glass-card" style={{ padding: 'var(--sp-4)', borderLeft: '4px solid #a855f7' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--sp-3)' }}>
                   <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, color: '#c084fc' }}>
-                    Ubah [{prop.field}] | <Link to={`/case/${prop.case_id}`} style={{ color: '#fff' }}>Kasus #{prop.case_id}</Link>
+                    Ubah [{prop.field}] | <Link to={`/case/${caseRouteId}`} style={{ color: '#fff' }}>{prop.case_code || `Kasus #${prop.case_id}`}</Link>
                   </span>
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Mhs: {(prop.user_hash || '').substring(0, 8)}</span>
                 </div>
@@ -364,7 +370,8 @@ export default function AdminPanel() {
                   <button onClick={() => handleProposalAction(prop.id, 'approved')} className="btn" style={{ background: '#10b981', color: '#fff', padding: '6px 16px', border: 'none' }}>Terima</button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Motion.div>

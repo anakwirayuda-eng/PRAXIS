@@ -78,6 +78,7 @@ export function QuestionFeedback({ caseId, caseData }) {
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [existingFeedback, setExistingFeedback] = useState(null);
+  const [feedbackError, setFeedbackError] = useState('');
   const closeTimerRef = useRef(null);
 
   useEffect(() => {
@@ -94,6 +95,7 @@ export function QuestionFeedback({ caseId, caseData }) {
     }
     setSubmitted(false);
     setIsOpen(false);
+    setFeedbackError('');
     return () => window.clearTimeout(closeTimerRef.current);
   }, [caseId]);
 
@@ -108,6 +110,7 @@ export function QuestionFeedback({ caseId, caseData }) {
 
     // Sync to backend first — only persist locally on success
     const ok = await syncToServer(caseId, selectedTags, comment.trim());
+    setFeedbackError(ok ? '' : 'Tidak bisa mengirim ke server. Feedback disimpan lokal dulu.');
 
     const all = loadFeedback();
     all[caseId] = {
@@ -127,7 +130,10 @@ export function QuestionFeedback({ caseId, caseData }) {
   const handleClear = async () => {
     // Notify server so admin inbox stays clean
     const ok = await deleteFromServer(caseId);
-    if (!ok) return; // Prevent local wipe if server wipe failed
+    if (!ok) {
+      setFeedbackError('Gagal menghapus feedback dari server. Coba lagi nanti.');
+      return; // Prevent local wipe if server wipe failed
+    }
 
     const all = loadFeedback();
     delete all[caseId];
@@ -136,6 +142,7 @@ export function QuestionFeedback({ caseId, caseData }) {
     setSelectedTags([]);
     setComment('');
     setSubmitted(false);
+    setFeedbackError('');
   };
 
   const feedbackCount = Object.keys(loadFeedback()).length;
@@ -170,7 +177,7 @@ export function QuestionFeedback({ caseId, caseData }) {
       >
         <MessageSquare size={13} />
         {existingFeedback 
-          ? `Feedback Tersimpan (${existingFeedback.tags.length} tag)` 
+          ? `${existingFeedback.synced === false ? 'Feedback Lokal' : 'Feedback Tersimpan'} (${existingFeedback.tags.length} tag)` 
           : 'Beri Feedback Soal'}
         {feedbackCount > 0 && !existingFeedback && (
           <span style={{
@@ -231,6 +238,20 @@ export function QuestionFeedback({ caseId, caseData }) {
                   <X size={14} />
                 </button>
               </div>
+
+              {feedbackError && (
+                <div style={{
+                  marginBottom: 'var(--sp-3)',
+                  padding: 'var(--sp-2) var(--sp-3)',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'rgba(245,158,11,0.12)',
+                  border: '1px solid rgba(245,158,11,0.25)',
+                  color: '#fbbf24',
+                  fontSize: 'var(--fs-xs)',
+                }}>
+                  {feedbackError}
+                </div>
+              )}
 
               {/* Submitted State */}
               {submitted ? (
