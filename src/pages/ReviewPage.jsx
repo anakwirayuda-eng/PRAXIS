@@ -59,7 +59,7 @@ export default function ReviewPage() {
 
   const dueCards = useMemo(() => {
     recalcRetrievability();
-    return getDueCards(threshold, 50).filter((dueCard) => validIds.has(dueCard.caseId));
+    return getDueCards(threshold, 50, validIds);
   }, [validIds, threshold]);
 
   useEffect(() => {

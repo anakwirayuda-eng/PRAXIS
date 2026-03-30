@@ -63,7 +63,11 @@ describe('review and exam regression coverage', () => {
     const nowSeconds = Date.now() / 1000;
 
     vi.doMock('../data/fsrs.js', () => ({
-      getDueCards: () => [{ caseId: runtimeCaseId, retrievability: 0.45, stability: 1 }],
+      getDueCards: (_threshold, _limit, validIds) => (
+        validIds?.has(runtimeCaseId)
+          ? [{ caseId: runtimeCaseId, retrievability: 0.45, stability: 1 }]
+          : []
+      ),
       getBrainStats: () => ({
         totalReviewed: 1,
         averageRetention: 62,

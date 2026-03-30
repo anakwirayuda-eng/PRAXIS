@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getCaseRouteId } from '../data/caseIdentity';
+import { clearAdminSession, clearAdminVerification, getStoredAdminKey, persistAdminSession } from '../lib/adminSession';
 import Shield from 'lucide-react/dist/esm/icons/shield';
 import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
 import Check from 'lucide-react/dist/esm/icons/check';
@@ -24,9 +25,9 @@ const TAG_COLORS = {
 };
 
 function useAdminAuth() {
-  const [key, setKey] = useState(() => localStorage.getItem('PRAXIS_ADMIN_KEY') || '');
+  const [key, setKey] = useState(() => getStoredAdminKey());
   const [authed, setAuthed] = useState(false);
-  const [checking, setChecking] = useState(() => !!localStorage.getItem('PRAXIS_ADMIN_KEY'));
+  const [checking, setChecking] = useState(() => !!getStoredAdminKey());
 
   const login = useCallback(async (inputKey) => {
     setChecking(true);
@@ -35,13 +36,14 @@ function useAdminAuth() {
         headers: { 'X-Admin-Key': inputKey },
       });
       if (res.ok) {
-        localStorage.setItem('PRAXIS_ADMIN_KEY', inputKey);
+        persistAdminSession(inputKey);
         setKey(inputKey);
         setAuthed(true);
         setChecking(false);
         return true;
       }
     } catch { /* network error */ }
+    clearAdminVerification();
     setAuthed(false);
     setChecking(false);
     return false;
@@ -49,7 +51,7 @@ function useAdminAuth() {
 
   // Fix #4: Logout function
   const logout = useCallback(() => {
-    localStorage.removeItem('PRAXIS_ADMIN_KEY');
+    clearAdminSession();
     setKey('');
     setAuthed(false);
     setChecking(false);

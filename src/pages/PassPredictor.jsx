@@ -29,21 +29,32 @@ function isPlayablePredictorCase(caseData, examType) {
     || caseData?.meta?.examType === 'BOTH';
 }
 
-function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
+function DistributionChart({ distribution, passMarkScore, totalQuestions, isCompact = false }) {
   if (!distribution) return null;
 
-  const maxCount = Math.max(...distribution);
-  const barWidth = `${100 / totalQuestions}%`;
+  const bucketCount = isCompact ? Math.min(40, totalQuestions) : totalQuestions;
+  const bucketSize = Math.ceil(totalQuestions / bucketCount);
+  const buckets = Array.from({ length: bucketCount }, (_, bucketIndex) => {
+    const start = bucketIndex * bucketSize;
+    const end = Math.min(totalQuestions, start + bucketSize);
+    const count = distribution.slice(start, end).reduce((sum, value) => sum + value, 0);
+    return { start, end, count };
+  });
+  const maxCount = Math.max(...buckets.map((bucket) => bucket.count), 0);
+  const barWidth = `${100 / buckets.length}%`;
 
   return (
-    <div style={{ position: 'relative', height: 120, display: 'flex', alignItems: 'flex-end', gap: 0, overflow: 'visible', borderRadius: 'var(--radius-md)', padding: 'var(--sp-2)' }}>
-      {distribution.map((count, score) => {
-        const height = maxCount > 0 ? (count / maxCount) * 100 : 0;
-        const isPassing = score >= passMarkScore;
+    <div style={{ position: 'relative', height: isCompact ? 96 : 120, display: 'flex', alignItems: 'flex-end', gap: 0, overflow: 'visible', borderRadius: 'var(--radius-md)', padding: 'var(--sp-2)' }}>
+      {buckets.map((bucket) => {
+        const height = maxCount > 0 ? (bucket.count / maxCount) * 100 : 0;
+        const isPassing = bucket.end > passMarkScore;
+        const label = bucket.end - bucket.start <= 1
+          ? `Score ${bucket.start}: ${bucket.count} simulations`
+          : `Scores ${bucket.start}-${bucket.end - 1}: ${bucket.count} simulations`;
 
         return (
           <div
-            key={score}
+            key={`${bucket.start}-${bucket.end}`}
             style={{
               width: barWidth,
               minWidth: 1,
@@ -53,9 +64,9 @@ function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
                 : 'linear-gradient(180deg, var(--accent-danger), rgba(239,68,68,0.3))',
               borderRadius: '2px 2px 0 0',
               transition: 'height 0.5s ease',
-              opacity: count === 0 ? 0 : 1, // Placeholder for alignment
+              opacity: bucket.count === 0 ? 0 : 1,
             }}
-            title={`Score ${score}: ${count} simulations`}
+            title={label}
           />
         );
       })}
@@ -70,10 +81,10 @@ function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
       }}>
         <span style={{
           position: 'absolute',
-          top: -2,
+          top: isCompact ? -14 : -2,
           left: 4,
           transform: 'translateX(-50%)',
-          fontSize: 9,
+          fontSize: isCompact ? 8 : 9,
           color: 'var(--accent-warning)',
           fontWeight: 700,
           whiteSpace: 'nowrap',
@@ -88,6 +99,7 @@ function DistributionChart({ distribution, passMarkScore, totalQuestions }) {
 export default function PassPredictor() {
   const { totalAnswered } = useStore();
   const { cases: caseBank, status, isLoading } = useCaseBank();
+  const [isCompactMobile, setIsCompactMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 480 : false);
   const [running, setRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
@@ -111,6 +123,12 @@ export default function PassPredictor() {
     );
     return getBrainStats(poolIds);
   }, [caseBank, config.examType]);
+
+  useEffect(() => {
+    const handleResize = () => setIsCompactMobile(window.innerWidth <= 480);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
 
   const presets = {
@@ -538,7 +556,7 @@ export default function PassPredictor() {
               <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', marginBottom: 'var(--sp-2)' }}>
                 From {result.iterations.toLocaleString()} alternate realities based on your memory today...
               </div>
-              <div style={{ fontSize: 72, fontWeight: 900, fontFamily: 'var(--font-heading)', color: getPassColor(result.passProbability), lineHeight: 1, marginBottom: 'var(--sp-2)' }}>
+              <div style={{ fontSize: isCompactMobile ? 56 : 72, fontWeight: 900, fontFamily: 'var(--font-heading)', color: getPassColor(result.passProbability), lineHeight: 1, marginBottom: 'var(--sp-2)' }}>
                 {result.passProbability}%
               </div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, marginBottom: 'var(--sp-3)' }}>Pass Probability</div>
@@ -561,8 +579,8 @@ export default function PassPredictor() {
               <h3 style={{ fontSize: 'var(--fs-md)', marginBottom: 'var(--sp-3)', display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
                 <BarChart3 size={18} /> Score Distribution
               </h3>
-              <DistributionChart distribution={result.distribution} passMarkScore={result.passMarkScore} totalQuestions={result.totalQuestions} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--sp-3)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
+              <DistributionChart distribution={result.distribution} passMarkScore={result.passMarkScore} totalQuestions={result.totalQuestions} isCompact={isCompactMobile} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--sp-2)', flexWrap: 'wrap', marginTop: 'var(--sp-3)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
                 <span style={{ color: 'var(--accent-danger)' }}>FAIL</span>
                 <span style={{ color: 'var(--accent-warning)' }}>PASS MARK ({result.passMarkScore}/{result.totalQuestions})</span>
                 <span style={{ color: 'var(--accent-success)' }}>PASS</span>

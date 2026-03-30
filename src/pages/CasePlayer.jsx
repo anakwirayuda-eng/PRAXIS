@@ -257,9 +257,12 @@ export function CasePlayerSession({
   const [showExplanation, setShowExplanation] = useState(false);
   const [fsrsGraded, setFsrsGraded] = useState(false);
   const [eliminated, setEliminated] = useState(new Set());
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // ── Stamina Analytics: track time per question ──
   const questionStartTime = useRef(Date.now());
+  const touchEliminateTimerRef = useRef(null);
+  const suppressTouchTapRef = useRef(false);
 
   // Hack 1: Right-click to strike-through (Cognitive Offloader)
   const toggleEliminate = (e, optId) => {
@@ -270,6 +273,32 @@ export function CasePlayerSession({
       next.has(optId) ? next.delete(optId) : next.add(optId);
       return next;
     });
+  };
+
+  const clearTouchEliminateTimer = () => {
+    if (touchEliminateTimerRef.current !== null) {
+      window.clearTimeout(touchEliminateTimerRef.current);
+      touchEliminateTimerRef.current = null;
+    }
+  };
+
+  const handleTouchEliminateStart = (optId) => {
+    if (isReviewing || !isTouchDevice) return;
+    suppressTouchTapRef.current = false;
+    clearTouchEliminateTimer();
+    touchEliminateTimerRef.current = window.setTimeout(() => {
+      setEliminated((prev) => {
+        const next = new Set(prev);
+        next.has(optId) ? next.delete(optId) : next.add(optId);
+        return next;
+      });
+      suppressTouchTapRef.current = true;
+      touchEliminateTimerRef.current = null;
+    }, 450);
+  };
+
+  const handleTouchEliminateEnd = () => {
+    clearTouchEliminateTimer();
   };
 
   const cat = CATEGORIES[caseData.category] ?? {
@@ -293,6 +322,21 @@ export function CasePlayerSession({
   const browserSearch = typeof location.state?.browserSearch === 'string' ? location.state.browserSearch : '';
   const browserScrollY = typeof location.state?.browserScrollY === 'number' ? location.state.browserScrollY : null;
   const browserPage = typeof location.state?.browserPage === 'number' ? location.state.browserPage : null;
+
+  useEffect(() => {
+    const updateTouchState = () => {
+      const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches ?? false;
+      const touchPoints = navigator.maxTouchPoints > 0;
+      setIsTouchDevice(coarsePointer || touchPoints || window.innerWidth <= 768);
+    };
+
+    updateTouchState();
+    window.addEventListener('resize', updateTouchState);
+    return () => {
+      clearTouchEliminateTimer();
+      window.removeEventListener('resize', updateTouchState);
+    };
+  }, []);
 
   const returnToBrowser = () => {
     navigate(`/cases${browserSearch}`, {
@@ -450,13 +494,13 @@ export function CasePlayerSession({
     <div className={isRapidRecall ? 'flashcard-mode' : ''} style={{ maxWidth: 1400, margin: '0 auto' }}>
       <div style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        alignItems: isTouchDevice ? 'stretch' : 'center',
+        justifyContent: isTouchDevice ? 'flex-start' : 'space-between',
         marginBottom: 'var(--sp-6)',
         flexWrap: 'wrap',
         gap: 'var(--sp-3)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)', width: isTouchDevice ? '100%' : 'auto' }}>
           <button
             className="btn btn-ghost btn-icon"
             data-testid="case-player-back"
@@ -504,7 +548,14 @@ export function CasePlayerSession({
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 'var(--sp-3)',
+          width: isTouchDevice ? '100%' : 'auto',
+          justifyContent: isTouchDevice ? 'space-between' : 'flex-start',
+        }}>
           {/* Confidence badge */}
           {caseData.confidence > 0 && (
             <span style={{
@@ -710,6 +761,16 @@ export function CasePlayerSession({
 
         {!isSCT && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gridAutoRows: '1fr', gap: 'var(--sp-3)' }}>
+            {!isReviewing && isTouchDevice && (
+              <div style={{
+                fontSize: 'var(--fs-xs)',
+                color: 'var(--text-muted)',
+                marginBottom: 'var(--sp-1)',
+                textAlign: 'center',
+              }}>
+                Tap to select. Press and hold an option to eliminate it.
+              </div>
+            )}
             {displayOptions.map((opt) => {
               let optionClass = 'option-card';
               if (selectedAnswer === opt.id && !isReviewing) optionClass += ' selected';
@@ -722,8 +783,19 @@ export function CasePlayerSession({
                 <Motion.div
                   key={opt.id}
                   className={optionClass}
-                  onClick={() => !isReviewing && !isEliminated && selectAnswer(opt.id)}
+                  onClick={() => {
+                    if (suppressTouchTapRef.current) {
+                      suppressTouchTapRef.current = false;
+                      return;
+                    }
+                    if (!isReviewing && !isEliminated) {
+                      selectAnswer(opt.id);
+                    }
+                  }}
                   onContextMenu={(e) => toggleEliminate(e, opt.id)}
+                  onTouchStart={() => handleTouchEliminateStart(opt.id)}
+                  onTouchEnd={handleTouchEliminateEnd}
+                  onTouchCancel={handleTouchEliminateEnd}
                   whileHover={!isReviewing && !isEliminated ? { scale: 1.005 } : {}}
                   whileTap={!isReviewing && !isEliminated ? { scale: 0.995 } : {}}
                   style={{
@@ -735,7 +807,7 @@ export function CasePlayerSession({
                       position: 'relative',
                     } : {}),
                   }}
-                  title={!isReviewing ? 'Right-click to eliminate' : ''}
+                  title={!isReviewing ? (isTouchDevice ? 'Press and hold to eliminate' : 'Right-click to eliminate') : ''}
                 >
                   <div className="option-letter" style={isEliminated && !isReviewing ? { opacity: 0.5 } : {}}>{opt.displayLetter}</div>
                   <div style={{
@@ -869,7 +941,7 @@ export function CasePlayerSession({
           </div>
         )}
 
-        <ShortcutHints isReviewing={isReviewing} isSCT={isSCT} />
+        <ShortcutHints isReviewing={isReviewing} isSCT={isSCT} hidden={isTouchDevice} />
 
         {/* Question Feedback — chess-puzzle style */}
         {isReviewing && (

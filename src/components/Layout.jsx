@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../data/store';
+import { hasVerifiedAdminSession } from '../lib/adminSession';
 import { useRuntimeWatchdog } from '../lib/runtimeWatchdog';
 import {
   LayoutDashboard, BookOpen, BarChart3, Clock, Bookmark,
@@ -124,10 +125,7 @@ export default function Layout({ children }) {
     return () => { window.removeEventListener('pointerdown', handlePointerDown); window.removeEventListener('keydown', handleKeyDown); };
   }, [settingsOpen]);
 
-  const isAdmin = (() => {
-    try { return localStorage.getItem('PRAXIS_ADMIN_KEY') !== null; }
-    catch { return false; }
-  })();
+  const isAdmin = hasVerifiedAdminSession();
 
   const runtimeIssueBadge = runtimeIssueCount > 99 ? '99+' : String(runtimeIssueCount);
   const navItems = [

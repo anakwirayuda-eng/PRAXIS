@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigationType, Navigate,
 import ErrorBoundary from './components/ErrorBoundary';
 import GlobalWatchdog from './components/GlobalWatchdog';
 import Layout from './components/Layout';
+import { hasStoredAdminKey, hasVerifiedAdminSession } from './lib/adminSession';
 import { initSecuritySuite } from './lib/securitySuite';
 
 // Sprint 2: Boot security defenses before React tree mounts
@@ -75,15 +76,13 @@ function ScrollToTop() {
 function AdminRoute({ children }) {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(3);
-  const isAdmin = (() => {
-    try { return localStorage.getItem('PRAXIS_ADMIN_KEY') !== null; }
-    catch { return false; }
-  })();
+  const hasKey = hasStoredAdminKey();
+  const isAdmin = hasVerifiedAdminSession();
 
   useEffect(() => {
     if (!isAdmin) {
       if (countdown <= 0) {
-        navigate('/', { replace: true });
+        navigate(hasKey ? '/admin' : '/', { replace: true });
         return;
       }
       const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
@@ -95,8 +94,11 @@ function AdminRoute({ children }) {
     <div className="glass-card" role="alert" style={{ padding: 'var(--sp-8)', textAlign: 'center', maxWidth: 480, margin: '10vh auto 0' }}>
       <h2 style={{ marginBottom: 'var(--sp-2)', color: 'var(--accent-warning)' }}>🔒 Akses Terbatas</h2>
       <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-4)' }}>
-        Halaman ini hanya tersedia untuk administrator.<br />
-        Dialihkan ke Dashboard dalam <strong>{countdown} detik</strong>.
+        {hasKey
+          ? 'Sesi admin perlu diverifikasi ulang sebelum membuka halaman ini.'
+          : 'Halaman ini hanya tersedia untuk administrator.'}
+        <br />
+        Dialihkan ke <strong>{hasKey ? 'Admin Panel' : 'Dashboard'}</strong> dalam <strong>{countdown} detik</strong>.
       </p>
       <div className="loader-dots" style={{ margin: 'var(--sp-4) auto' }} />
     </div>
@@ -167,7 +169,7 @@ export default function App() {
               {/* Protected Admin Routes */}
               <Route path="/quality" element={renderRoute(<DataQuality />, true)} />
               <Route path="/watchdog" element={renderRoute(<WatchdogInbox />, true)} />
-              <Route path="/admin" element={renderRoute(<AdminPanel />, true)} />
+              <Route path="/admin" element={renderRoute(<AdminPanel />)} />
 
               <Route path="*" element={renderRoute(<NotFound />)} />
             </Routes>

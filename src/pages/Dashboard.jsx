@@ -2,7 +2,7 @@
  * MedCase Pro — Dashboard Page
  * Hero stats, quick-start actions, category progress, recent activity
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../data/store';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
@@ -49,8 +49,15 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { totalAnswered, streak, completedCases, getAccuracy, categoryScores } = useStore();
   const { cases: caseBank, totalCases, handCraftedCount, status, isLoading } = useCaseBank();
+  const [isCompactMobile, setIsCompactMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 480 : false);
   const accuracy = getAccuracy();
   const totalCasesLabel = totalCases.toLocaleString();
+
+  useEffect(() => {
+    const handleResize = () => setIsCompactMobile(window.innerWidth <= 480);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // 🚀 O(N) Category Stats — single pass replaces O(N³) inner loop
   const categoryStats = useMemo(() => {
@@ -195,7 +202,7 @@ export default function Dashboard() {
       {totalAnswered === 0 && completedCases.length === 0 && (
         <div style={{
           position: 'relative',
-          minHeight: '40vh',
+          minHeight: isCompactMobile ? 'auto' : '40vh',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -215,7 +222,7 @@ export default function Dashboard() {
 
           {/* Mission Card */}
           <div className="glass-card" style={{
-            position: 'relative', zIndex: 10, maxWidth: 420, padding: 'var(--sp-8) var(--sp-6)',
+            position: 'relative', zIndex: 10, maxWidth: 420, padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8) var(--sp-6)',
             textAlign: 'center', border: '1px solid rgba(99,102,241,0.3)',
             boxShadow: '0 0 80px rgba(99,102,241,0.1)',
           }}>
@@ -244,9 +251,9 @@ export default function Dashboard() {
           </div>
         </div>
       )}
-      <div className="glass-card" style={{ padding: 'var(--sp-8)', marginBottom: 'var(--sp-8)', overflow: 'visible' }}>
+      <div className="glass-card" style={{ padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8)', marginBottom: 'var(--sp-8)', overflow: 'visible' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-6)' }}>
-          <div style={{ flex: 1, minWidth: 280 }}>
+          <div style={{ flex: 1, minWidth: isCompactMobile ? 0 : 280 }}>
             <div className="badge badge-primary" style={{ marginBottom: 'var(--sp-3)' }}>
               <Stethoscope size={12} /> UKMPPD & USMLE
             </div>
@@ -258,17 +265,17 @@ export default function Dashboard() {
               </span>
              </h1>
              <p style={{ color: 'var(--text-secondary)', maxWidth: 420, marginBottom: 'var(--sp-6)' }}>
-               Practice with {status === 'ready' ? `${dataQuality.clean.toLocaleString()}+` : 'a fast-loading case library'} verified cases, SCT format, and intelligent analytics.
+               Practice with {status === 'ready' ? `${dataQuality.clean.toLocaleString()}+ verified cases` : 'a fast-loading case library'}, SCT drills, and intelligent analytics.
                Your path to passing UKMPPD & USMLE starts here.
              </p>
-             <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
-              <button className="btn btn-primary btn-lg" onClick={startRandomCase}>
+             <div style={{ display: 'flex', gap: isCompactMobile ? 'var(--sp-2)' : 'var(--sp-3)', flexWrap: 'wrap', width: '100%', maxWidth: 560 }}>
+              <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
                 <Shuffle size={18} /> Random Case
               </button>
-               <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')}>
+               <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
                  <BookOpen size={18} /> Browse Cases
                </button>
-               <button className="btn btn-ghost btn-lg" onClick={() => navigate('/exam')}>
+               <button className="btn btn-ghost btn-lg" onClick={() => navigate('/exam')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
                  <Clock size={18} /> Exam Mode
                </button>
              </div>

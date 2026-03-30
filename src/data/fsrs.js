@@ -166,11 +166,13 @@ export function recalcRetrievability() {
   }
 }
 
-export function getDueCards(threshold = 0.9, limit = 20) {
+export function getDueCards(threshold = 0.9, limit = 20, validIds = null) {
   recalcRetrievability();
   const due = [];
 
   for (let i = 0; i < MAX_CASES; i++) {
+    if (validIds && !validIds.has(i)) continue;
+
     const ptr = i * PARAMS_PER_CASE;
     const lastReview = brainMatrix[ptr + 4];
     if (lastReview === 0) continue;
@@ -290,4 +292,3 @@ export function applyAntidoteAmnesia(cases) {
   try { storage.setItem(AMNESIA_KEY, '1'); } catch {}
   return wiped;
 }
-

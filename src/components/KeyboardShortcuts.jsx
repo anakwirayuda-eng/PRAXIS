@@ -1,7 +1,9 @@
 /**
  * Keyboard shortcut hints component
  */
-export function ShortcutHints({ isReviewing, isSCT }) {
+export function ShortcutHints({ isReviewing, isSCT, hidden = false }) {
+  if (hidden) return null;
+
   const shortcuts = isReviewing
     ? [
         { key: 'E', label: 'Explanation' },

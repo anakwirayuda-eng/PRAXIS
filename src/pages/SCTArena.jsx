@@ -24,6 +24,14 @@ const LIKERT_LABELS = {
   '+2': 'Sangat Menguat',
 };
 
+const COMPACT_LIKERT_LABELS = {
+  '-2': 'Sangat ↓',
+  '-1': '↓ Berkurang',
+  '0': 'Tetap',
+  '+1': '↑ Menguat',
+  '+2': 'Sangat ↑',
+};
+
 // Charlin Method proportional concordance scoring
 function charlinScore(options, selectedId) {
   const maxVotes = Math.max(...options.map(o => o.sct_panel_votes || 0), 1);
@@ -50,6 +58,7 @@ function concordanceLabel(score) {
 export default function SCTArena() {
   const navigate = useNavigate();
   const { totalAnswered, completedCases } = useStore();
+  const [isCompactMobile, setIsCompactMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 480 : false);
   const [sctCases, setSctCases] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -60,12 +69,18 @@ export default function SCTArena() {
   const isUnlocked = totalAnswered >= SCT_UNLOCK_THRESHOLD;
   const progress = Math.min(100, Math.round((totalAnswered / SCT_UNLOCK_THRESHOLD) * 100));
 
-  // Fix #5: Hacker detection — cross-check totalAnswered vs completedCases
-  const isSuspicious = totalAnswered >= SCT_UNLOCK_THRESHOLD && completedCases.length < Math.floor(SCT_UNLOCK_THRESHOLD * 0.5);
+  useEffect(() => {
+    const handleResize = () => setIsCompactMobile(window.innerWidth <= 480);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Soft anomaly signal only — repeated practice can legitimately inflate answered count
+  const progressMismatch = totalAnswered >= SCT_UNLOCK_THRESHOLD && completedCases.length < Math.floor(SCT_UNLOCK_THRESHOLD * 0.5);
 
   // Load SCT cases
   useEffect(() => {
-    if (!isUnlocked || isSuspicious) { setIsLoading(false); return; }
+    if (!isUnlocked) { setIsLoading(false); return; }
 
     const loadSCT = async () => {
       try {
@@ -89,7 +104,7 @@ export default function SCTArena() {
       }
     };
     loadSCT();
-  }, [isUnlocked, isSuspicious]);
+  }, [isUnlocked]);
 
   const caseData = sctCases[currentIndex] || null;
   const options = caseData?.options ?? [];
@@ -125,33 +140,6 @@ export default function SCTArena() {
   const sessionConcordance = sessionStats.total > 0 
     ? Math.round((sessionStats.sumScore / sessionStats.total) * 100)
     : 0;
-
-  // ═══════════════════════════════════════
-  // Fix #5: HACKER EASTER EGG
-  // ═══════════════════════════════════════
-  if (isSuspicious) {
-    return (
-      <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: 640, margin: '0 auto' }}>
-        <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>
-          <AlertTriangle size={64} style={{ color: 'var(--accent-warning)', marginBottom: 'var(--sp-4)' }} />
-          <h1 style={{ fontSize: 'var(--fs-2xl)', marginBottom: 'var(--sp-2)' }}>
-            👨‍💻 Ah, a Hacker in the Ward!
-          </h1>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-4)', lineHeight: 1.7 }}>
-            Kami mendeteksi manipulasi dimensi localStorage, dr. Robot.<br/>
-            Tapi ingat, <strong>Konsulen sejati tidak pernah memotong kompas di IGD.</strong><br/>
-            Kembali ke garis depan dan selesaikan kasus Anda dengan jujur!
-          </p>
-          <div style={{ padding: 'var(--sp-3)', background: 'rgba(245,158,11,0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(245,158,11,0.15)', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
-            Claimed: {totalAnswered} answered · Verified: {completedCases.length} unique cases
-          </div>
-          <button className="btn btn-primary" style={{ width: '100%', marginTop: 'var(--sp-4)' }} onClick={() => navigate('/cases')}>
-            Kembali ke Case Browser
-          </button>
-        </div>
-      </Motion.div>
-    );
-  }
 
   // ═══════════════════════════════════════
   // LOCKED STATE
@@ -262,6 +250,31 @@ export default function SCTArena() {
   // ═══════════════════════════════════════
   return (
     <div style={{ maxWidth: 780, margin: '0 auto' }}>
+      {progressMismatch && (
+        <div
+          className="glass-card"
+          style={{
+            padding: 'var(--sp-4)',
+            marginBottom: 'var(--sp-4)',
+            border: '1px solid rgba(245,158,11,0.2)',
+            background: 'rgba(245,158,11,0.06)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--sp-3)' }}>
+            <AlertTriangle size={18} style={{ color: 'var(--accent-warning)', marginTop: 2, flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--accent-warning)', marginBottom: 'var(--sp-1)' }}>
+                Progress mismatch detected
+              </div>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: 'var(--fs-sm)', lineHeight: 1.6 }}>
+                Anda tetap bisa berlatih SCT. Statistik unlock terlihat tidak seimbang
+                (`{totalAnswered}` answered vs `{completedCases.length}` unique cases), jadi progress ini layak dicek bila terasa tidak wajar.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
@@ -312,9 +325,16 @@ export default function SCTArena() {
 
           {/* Likert Scale — Heatmap scoring, NOT binary */}
           <div className="glass-card" style={{ padding: 'var(--sp-6)', marginBottom: 'var(--sp-4)' }}>
-            <div style={{ display: 'flex', gap: 'var(--sp-1)', justifyContent: 'center', flexWrap: 'nowrap', width: '100%', marginBottom: isReviewing ? 'var(--sp-4)' : 0 }}>
+            <div style={{
+              display: 'flex',
+              gap: 'var(--sp-1)',
+              justifyContent: 'center',
+              flexWrap: isCompactMobile ? 'wrap' : 'nowrap',
+              width: '100%',
+              marginBottom: isReviewing ? 'var(--sp-4)' : 0,
+            }}>
               {options.map(opt => {
-                const label = LIKERT_LABELS[opt.id] || opt.text;
+                const label = (isCompactMobile ? COMPACT_LIKERT_LABELS[opt.id] : LIKERT_LABELS[opt.id]) || opt.text;
                 let bg = 'rgba(148,163,184,0.06)';
                 let border = '2px solid rgba(148,163,184,0.15)';
                 let color = 'var(--text-primary)';
@@ -348,12 +368,15 @@ export default function SCTArena() {
                     whileTap={!isReviewing ? { scale: 0.95 } : {}}
                     style={{
                       background: bg, border, color, flexDirection: 'column',
-                      padding: 'var(--sp-2) var(--sp-1)', flex: 1, minWidth: 0, gap: 4,
+                      padding: isCompactMobile ? 'var(--sp-3) var(--sp-2)' : 'var(--sp-2) var(--sp-1)',
+                      flex: isCompactMobile ? '1 1 calc(50% - var(--sp-1))' : 1,
+                      minWidth: isCompactMobile ? 'calc(50% - var(--sp-1))' : 0,
+                      gap: 4,
                       cursor: isReviewing ? 'default' : 'pointer', transition: 'all 0.2s ease',
                     }}
                   >
                     <span style={{ fontSize: 'var(--fs-xl)', fontWeight: 700 }}>{opt.id}</span>
-                    <span style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, maxWidth: 90, lineHeight: 1.3 }}>{label}</span>
+                    <span style={{ fontSize: 'var(--fs-xs)', opacity: 0.8, maxWidth: isCompactMobile ? 120 : 90, lineHeight: 1.3 }}>{label}</span>
                   </Motion.button>
                 );
               })}
