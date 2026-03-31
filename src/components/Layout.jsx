@@ -230,7 +230,7 @@ export default function Layout({ children }) {
             {/* OMNI-COMMAND SEED — Ghost Trigger (Ctrl+K) */}
             {!isMobile && (
               <button
-                className="btn btn-ghost"
+                className="btn btn-ghost header-search-trigger"
                 style={{
                   background: 'rgba(15, 23, 42, 0.4)', border: '1px solid rgba(148, 163, 184, 0.1)',
                   width: '260px', justifyContent: 'flex-start', color: 'var(--text-muted)'

@@ -275,14 +275,14 @@ export default function Dashboard() {
                  Practice with {status === 'ready' ? `${dataQuality.clean.toLocaleString()}+ verified cases` : 'a fast-loading case library'}, SCT drills, and intelligent analytics.
                  Your path to passing UKMPPD & USMLE starts here.
                </p>
-               <div style={{ display: 'flex', gap: isCompactMobile ? 'var(--sp-2)' : 'var(--sp-3)', flexWrap: 'wrap', width: '100%', maxWidth: 560 }}>
-                <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
+               <div style={{ display: 'flex', flexDirection: isCompactMobile ? 'column' : 'row', gap: isCompactMobile ? 'var(--sp-2)' : 'var(--sp-3)', flexWrap: 'wrap', width: '100%', maxWidth: 560 }}>
+                <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ flex: `1 1 ${isCompactMobile ? '100%' : '170px'}`, justifyContent: 'center' }}>
                   <Shuffle size={18} /> Random Case
                 </button>
-                 <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
+                 <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')} style={{ flex: `1 1 ${isCompactMobile ? '100%' : '170px'}`, justifyContent: 'center' }}>
                    <BookOpen size={18} /> Browse Cases
                  </button>
-                 <button className="btn btn-ghost btn-lg" onClick={() => navigate('/exam')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
+                 <button className="btn btn-ghost btn-lg" onClick={() => navigate('/exam')} style={{ flex: `1 1 ${isCompactMobile ? '100%' : '170px'}`, justifyContent: 'center' }}>
                    <Clock size={18} /> Exam Mode
                  </button>
                </div>
@@ -534,9 +534,9 @@ export default function Dashboard() {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: isCompactMobile ? 'column' : 'row', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
               <button
-                className="btn btn-lg"
+                className="btn btn-lg w-full"
                 onClick={openSctPractice}
                 style={{
                   background: 'linear-gradient(135deg, #a855f7, #6366f1)',
@@ -544,14 +544,15 @@ export default function Dashboard() {
                   border: 'none',
                   fontWeight: 600,
                   boxShadow: '0 4px 20px rgba(168,85,247,0.3)',
+                  flex: isCompactMobile ? '1 1 100%' : '0 1 auto'
                 }}
               >
                 <Play size={16} /> Mulai Latihan SCT
               </button>
               <button
-                className="btn btn-ghost btn-lg"
+                className="btn btn-ghost btn-lg w-full"
                 onClick={() => navigate('/cases?type=SCT')}
-                style={{ borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc' }}
+                style={{ borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc', flex: isCompactMobile ? '1 1 100%' : '0 1 auto' }}
               >
                 <BookOpen size={16} /> Lihat Semua SCT
               </button>

@@ -20,7 +20,7 @@ if (!existsSync(DIST_FILE)) {
 }
 
 // ~2.5KB per case → 7000 cases ≈ 17.5MB per chunk (safe under CF 25MiB limit)
-const CHUNK_SIZE = 7000;
+const CHUNK_SIZE = 5000;
 
 console.log('[Horcrux] Reading compiled_cases.json...');
 const data = JSON.parse(readFileSync(DIST_FILE, 'utf8'));

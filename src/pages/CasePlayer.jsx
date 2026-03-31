@@ -507,7 +507,7 @@ export function CasePlayerSession({
 
   return (
     <div className={isRapidRecall ? 'flashcard-mode' : ''} style={{ maxWidth: 1400, margin: '0 auto' }}>
-      <div style={{
+      <div className="case-player-topbar" style={{
         display: 'flex',
         alignItems: isTouchDevice ? 'stretch' : 'center',
         justifyContent: isTouchDevice ? 'flex-start' : 'space-between',
@@ -515,7 +515,7 @@ export function CasePlayerSession({
         flexWrap: 'wrap',
         gap: 'var(--sp-3)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)', width: isTouchDevice ? '100%' : 'auto' }}>
+        <div className="case-player-meta-row" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--sp-3)', width: isTouchDevice ? '100%' : 'auto' }}>
           <button
             className="btn btn-ghost btn-icon"
             data-testid="case-player-back"
@@ -546,7 +546,7 @@ export function CasePlayerSession({
             </span>
           )}
           <span
-            className="badge"
+            className="badge case-player-code-badge"
             title={`Case Code: ${caseData.case_code || 'N/A'} • Internal _id: ${caseData._id} • Position ${(caseBank.findIndex(c => c._id === caseData._id) + 1)} of ${caseBank.length}`}
             style={{
               background: 'rgba(148,163,184,0.08)',
@@ -563,12 +563,12 @@ export function CasePlayerSession({
           >
             {caseData.case_code || `#${caseData._id}`}
           </span>
-          <span style={{ color: 'var(--accent-warning)', letterSpacing: '2px', fontSize: '0.85rem' }}>
+          <span className="case-player-difficulty" style={{ color: 'var(--accent-warning)', letterSpacing: '2px', fontSize: '0.85rem' }}>
             {'★'.repeat(difficulty)}{'☆'.repeat(3 - difficulty)}
           </span>
         </div>
 
-        <div style={{
+        <div className="case-player-controls-row" style={{
           display: 'flex',
           alignItems: 'center',
           flexWrap: 'wrap',
@@ -578,7 +578,7 @@ export function CasePlayerSession({
         }}>
           {/* Confidence badge */}
           {caseData.confidence > 0 && (
-            <span style={{
+            <span className="case-player-confidence" style={{
               fontSize: 'var(--fs-xs)', padding: '2px 8px', borderRadius: 'var(--radius-full)',
               background: caseData.confidence >= 4 ? 'rgba(16,185,129,0.1)' : caseData.confidence >= 3 ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
               color: caseData.confidence >= 4 ? '#34d399' : caseData.confidence >= 3 ? '#fbbf24' : '#f87171',

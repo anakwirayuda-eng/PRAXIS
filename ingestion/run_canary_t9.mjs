@@ -22,11 +22,21 @@ const getNumericArg = (name, fallback) => {
   const found = args.find((arg) => arg.startsWith(`--${name}=`));
   return found ? Number(found.split('=')[1]) : fallback;
 };
+const getStringArg = (name, fallback = '') => {
+  const found = args.find((arg) => arg.startsWith(`--${name}=`));
+  return found ? found.split('=').slice(1).join('=') : fallback;
+};
+const parseIdList = (raw) =>
+  String(raw || '')
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isFinite(value) && value > 0);
 
 const MAX_TARGETS = getNumericArg('max', 25);
 const START_AFTER_ID = getNumericArg('after', 0);
 const BATCH_SIZE = getNumericArg('batch-size', 5);
 const DELAY_MS = getNumericArg('delay-ms', 2000);
+const SKIP_IDS = new Set(parseIdList(getStringArg('skip-ids', process.env.OPENCLAW_SKIP_IDS || '')));
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 if (!OPENAI_API_KEY) {
@@ -138,6 +148,9 @@ console.log(`   MAX_TARGETS: ${MAX_TARGETS}`);
 console.log(`   START_AFTER_ID: ${START_AFTER_ID}`);
 console.log(`   BATCH_SIZE: ${BATCH_SIZE}`);
 console.log(`   DELAY_MS: ${DELAY_MS}`);
+if (SKIP_IDS.size > 0) {
+  console.log(`   SKIP_IDS: ${Array.from(SKIP_IDS).join(', ')}`);
+}
 console.log('   Quarantine: EXCLUDED');
 
 const storage = await openCaseStorage();
@@ -150,8 +163,9 @@ function canarySelectorFn(item) {
   const isNotQuarantined = !item.meta?.status?.startsWith('QUARANTINED');
   const isPending = item.meta?._openclaw_t9_v2 !== true;
   const isAfterCursor = item._id > START_AFTER_ID;
+  const isNotSkipped = !SKIP_IDS.has(item._id);
 
-  if (isMedMcqa && isNotQuarantined && isPending && isAfterCursor) {
+  if (isMedMcqa && isNotQuarantined && isPending && isAfterCursor && isNotSkipped) {
     selectedCount++;
     return true;
   }

@@ -277,7 +277,7 @@ export default function ExamMode() {
             })}
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--sp-3)', justifyContent: 'center' }}>
+          <div className="exam-results-actions" style={{ display: 'flex', gap: 'var(--sp-3)', justifyContent: 'center' }}>
             <button className="btn btn-ghost btn-lg" onClick={resetExam}>
               <RotateCcw size={16} /> New Exam
             </button>
@@ -323,8 +323,8 @@ export default function ExamMode() {
 
     return (
       <div className={isFlashcardSprint ? 'flashcard-mode' : ''} style={{ maxWidth: 900, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+        <div className="exam-runbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
+          <div className="exam-runbar-meta" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
             <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>Q{examIdx + 1}/{examQueue.length}</span>
             <span className="badge" style={{ background: `${category.color}15`, color: category.color }}>{category.label}</span>
             {isFlashcardSprint && (
@@ -333,7 +333,7 @@ export default function ExamMode() {
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
+          <div className="exam-runbar-controls" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
             <TimerRing value={timeLeft} max={config.timeLimit * 60} />
             <button className="btn btn-ghost" onClick={resetExam} style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
               End
@@ -388,7 +388,7 @@ export default function ExamMode() {
             })}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-3)', marginTop: 'var(--sp-5)' }}>
+          <div className="exam-action-row" style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-3)', marginTop: 'var(--sp-5)' }}>
             {!isReviewing && (
               <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={selectedAnswer === null}>
                 Submit Answer
