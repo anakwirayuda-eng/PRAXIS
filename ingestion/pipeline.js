@@ -115,6 +115,9 @@ function stageCompileAndValidate() {
   console.log('\n📦 Running parse-all.js...');
   execSync('node ingestion/parsers/parse-all.js', { stdio: 'inherit', cwd: PROJECT_ROOT });
 
+  console.log('\n🧭 Running normalize-categories.mjs...');
+  execSync('node ingestion/normalize-categories.mjs --target output', { stdio: 'inherit', cwd: PROJECT_ROOT });
+
   console.log('\n🔍 Running validate-v3.js (Enterprise Edition)...');
   execSync('node ingestion/validators/validate-v3.js', { stdio: 'inherit', cwd: PROJECT_ROOT });
 

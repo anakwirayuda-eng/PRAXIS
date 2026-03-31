@@ -150,6 +150,7 @@ export default function CaseBrowser() {
     : reviewModeRaw;
   const hideUnreviewed = reviewMode === 'hide';
   const showOnlyReviewed = reviewMode === 'reviewed';
+  const canFilterReviewed = reviewedCaseCount > 0;
 
   // Genius Hack 3: O(1) feeling search using pre-computed _searchKey
   const filteredCases = useMemo(() => {
@@ -243,7 +244,16 @@ export default function CaseBrowser() {
   };
 
   const clearQuickFilters = () => {
-    setSearchParams(new URLSearchParams());
+    setSearchParams(updateQueryParams(searchParams, {
+      bookmarks: null,
+      filter: null,
+      mode: null,
+      images: null,
+      hideCompleted: null,
+      hideTruncated: null,
+      hideUnreviewed: null,
+      showOnlyReviewed: null,
+    }));
   };
 
   useEffect(() => {
@@ -264,7 +274,7 @@ export default function CaseBrowser() {
     return () => window.cancelAnimationFrame(frame);
   }, [location.key, location.state]);
 
-  const hasQuickFilters = showBookmarksOnly
+  const hasAppliedFilters = showBookmarksOnly
     || hideCompleted
     || showImagesOnly
     || !hideTruncated
@@ -296,8 +306,8 @@ export default function CaseBrowser() {
 
   useEffect(() => {
     if (!isMobile) return;
-    setFiltersExpanded(hasQuickFilters);
-  }, [hasQuickFilters, isMobile]);
+    setFiltersExpanded(hasAppliedFilters);
+  }, [hasAppliedFilters, isMobile]);
 
   const openCase = (caseData, caseNumber) => {
     const suffix = Number.isInteger(caseNumber) ? `?n=${caseNumber}` : '';
@@ -361,7 +371,7 @@ export default function CaseBrowser() {
 
       <div className="glass-card" style={{ padding: 'var(--sp-4)', marginBottom: 'var(--sp-6)' }}>
         <div className="filter-bar-row" style={{ display: 'flex', gap: 'var(--sp-3)', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
+          <div style={{ flex: 1, minWidth: isMobile ? '100%' : 200, position: 'relative' }}>
             <label htmlFor="case-search" style={srOnlyStyle}>Search cases</label>
             <Search aria-hidden="true" size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
@@ -402,7 +412,13 @@ export default function CaseBrowser() {
           {(!isMobile || filtersExpanded) && (
             <>
               <label htmlFor="case-category-filter" style={srOnlyStyle}>Filter by category</label>
-              <select id="case-category-filter" className="input" style={{ width: 'auto', minWidth: 160 }} value={selectedCategory} onChange={(event) => setFilter('category', event.target.value)}>
+              <select
+                id="case-category-filter"
+                className="input"
+                style={isMobile ? { width: '100%', minWidth: 0 } : { width: 'auto', minWidth: 160 }}
+                value={selectedCategory}
+                onChange={(event) => setFilter('category', event.target.value)}
+              >
                 <option value="all">All Categories</option>
                 {Object.entries(CATEGORIES).map(([key, cat]) => (
                   <option key={key} value={key}>{cat.label}</option>
@@ -410,7 +426,13 @@ export default function CaseBrowser() {
               </select>
 
               <label htmlFor="case-difficulty-filter" style={srOnlyStyle}>Filter by difficulty</label>
-              <select id="case-difficulty-filter" className="input" style={{ width: 'auto', minWidth: 120 }} value={selectedDifficulty} onChange={(event) => setFilter('difficulty', event.target.value)}>
+              <select
+                id="case-difficulty-filter"
+                className="input"
+                style={isMobile ? { width: '100%', minWidth: 0 } : { width: 'auto', minWidth: 120 }}
+                value={selectedDifficulty}
+                onChange={(event) => setFilter('difficulty', event.target.value)}
+              >
                 <option value="all">All Levels</option>
                 <option value="1">★ Easy</option>
                 <option value="2">★★ Medium</option>
@@ -418,7 +440,13 @@ export default function CaseBrowser() {
               </select>
 
               <label htmlFor="case-type-filter" style={srOnlyStyle}>Filter by question type</label>
-              <select id="case-type-filter" className="input" style={{ width: 'auto', minWidth: 100 }} value={selectedType} onChange={(event) => setFilter('type', event.target.value)}>
+              <select
+                id="case-type-filter"
+                className="input"
+                style={isMobile ? { width: '100%', minWidth: 0 } : { width: 'auto', minWidth: 100 }}
+                value={selectedType}
+                onChange={(event) => setFilter('type', event.target.value)}
+              >
                 <option value="all">All Types</option>
                 <option value="MCQ">MCQ</option>
                 <option value="SCT">SCT</option>
@@ -426,7 +454,13 @@ export default function CaseBrowser() {
               </select>
 
               <label htmlFor="case-exam-filter" style={srOnlyStyle}>Filter by exam type</label>
-              <select id="case-exam-filter" className="input" style={{ width: 'auto', minWidth: 120 }} value={selectedExam} onChange={(event) => setFilter('exam', event.target.value)}>
+              <select
+                id="case-exam-filter"
+                className="input"
+                style={isMobile ? { width: '100%', minWidth: 0 } : { width: 'auto', minWidth: 120 }}
+                value={selectedExam}
+                onChange={(event) => setFilter('exam', event.target.value)}
+              >
                 <option value="all">All Exams</option>
                 <option value="UKMPPD">🇮🇩 UKMPPD</option>
                 <option value="USMLE">🇺🇸 USMLE</option>
@@ -499,27 +533,25 @@ export default function CaseBrowser() {
                   <CheckCircle size={14} /> Hide Unreviewed
                 </button>
 
-                <button
-                  type="button"
-                  aria-pressed={showOnlyReviewed}
-                  disabled={reviewedCaseCount === 0}
-                  className={`btn ${showOnlyReviewed ? '' : 'btn-ghost'}`}
-                  onClick={() => setReviewMode(reviewMode === 'reviewed' ? 'hide' : 'reviewed')}
-                  title={reviewedCaseCount === 0 ? 'Reviewed metadata belum tersedia di library ini.' : undefined}
-                  style={showOnlyReviewed
-                    ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
-                    : reviewedCaseCount === 0
-                      ? { opacity: 0.5, cursor: 'not-allowed' }
+                {canFilterReviewed && (
+                  <button
+                    type="button"
+                    aria-pressed={showOnlyReviewed}
+                    className={`btn ${showOnlyReviewed ? '' : 'btn-ghost'}`}
+                    onClick={() => setReviewMode(reviewMode === 'reviewed' ? 'hide' : 'reviewed')}
+                    style={showOnlyReviewed
+                      ? { background: 'rgba(34,197,94,0.15)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.3)' }
                       : {}}
-                >
-                  <CheckCircle size={14} /> Show Only Reviewed
-                </button>
+                  >
+                    <CheckCircle size={14} /> Show Only Reviewed
+                  </button>
+                )}
               </div>
             </>
           )}
         </div>
 
-        {(showBookmarksOnly || hasQuickFilters) && (
+        {hasAppliedFilters && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap', marginTop: 'var(--sp-3)' }}>
             {showBookmarksOnly && (
               <span className="badge badge-warning">
@@ -541,13 +573,13 @@ export default function CaseBrowser() {
                 <CheckCircle size={12} /> Including unreviewed
               </span>
             )}
-            {reviewMode === 'reviewed' && (
+            {canFilterReviewed && reviewMode === 'reviewed' && (
               <span className="badge badge-success">
                 <CheckCircle size={12} /> Reviewed only
               </span>
             )}
             <button className="btn btn-ghost" type="button" onClick={clearQuickFilters}>
-              Clear Quick Filters
+              Clear Quick Toggles
             </button>
           </div>
         )}
@@ -608,6 +640,11 @@ export default function CaseBrowser() {
                     <span className={`badge badge-${caseData.category.replace('-', '')}`} style={{ background: `${cat.color}15`, color: cat.color }}>
                       {cat.label}
                     </span>
+                    {caseData.meta?.category_review_needed && (
+                      <span className="badge badge-warning" title="This case specialty label is under review.">
+                        Category under review
+                      </span>
+                    )}
                     <span className={`badge ${caseData.q_type === 'SCT' ? 'badge-warning' : caseData.q_type === 'CLINICAL_DISCUSSION' ? 'badge-success' : 'badge-info'}`}>
                       {caseData.q_type === 'CLINICAL_DISCUSSION' ? 'Clinical' : caseData.q_type}
                     </span>

@@ -313,6 +313,57 @@ describe('CaseBrowser quality-aware navigation', () => {
     expect(screen.getAllByTestId('case-card')).toHaveLength(125);
   });
 
+  it('clears only quick toggles while preserving search and dropdown filters', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 401, title: 'Renal case', category: 'surgery', tags: ['renal'] }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases?q=renal&category=surgery&hideCompleted=1&images=1'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /clear quick toggles/i }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/search cases/i)).toHaveValue('renal');
+    });
+    expect(screen.getByLabelText(/filter by category/i)).toHaveValue('surgery');
+    expect(screen.getByRole('button', { name: /has image/i })).toHaveClass('btn-ghost');
+    expect(screen.getByRole('button', { name: /hide completed/i })).toHaveClass('btn-ghost');
+  });
+
+  it('hides the reviewed-only toggle when no reviewed metadata exists', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 402, title: 'Visible case' }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.queryByRole('button', { name: /show only reviewed/i })).not.toBeInTheDocument();
+  });
+
   it('focuses the search input when navigation requests browser search intent', async () => {
     mockSnapshot = {
       ...mockSnapshot,

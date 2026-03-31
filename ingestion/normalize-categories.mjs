@@ -1,228 +1,153 @@
 /**
- * Category Normalization — map 80+ fragmented names to SKDI standard categories
+ * Category Resolution Audit + Apply
+ *
+ * Usage:
+ *   node ingestion/normalize-categories.mjs
+ *   node ingestion/normalize-categories.mjs --target output
+ *   node ingestion/normalize-categories.mjs --target public
+ *   node ingestion/normalize-categories.mjs --target both
  */
-import { readFileSync, writeFileSync, renameSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { applyResolvedCategory, resolveCaseCategory } from '../src/data/categoryResolution.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH = join(__dirname, '..', 'public', 'data', 'compiled_cases.json');
+const PROJECT_ROOT = join(__dirname, '..');
+const OUTPUT_FILE = join(__dirname, 'output', 'compiled_cases.json');
+const PUBLIC_FILE = join(PROJECT_ROOT, 'public', 'data', 'compiled_cases.json');
+const REPORT_DIR = join(__dirname, 'output');
 
-// Map ALL variants → standard SKDI category name
-const CATEGORY_MAP = {
-  // Ilmu Penyakit Dalam
-  'Ilmu Penyakit Dalam': 'Ilmu Penyakit Dalam',
-  'Penyakit Dalam': 'Ilmu Penyakit Dalam',
-  'INTERNAL MEDICINE': 'Ilmu Penyakit Dalam',
-  'Internal Medicine': 'Ilmu Penyakit Dalam',
-  'GASTROENTEROLOGY': 'Ilmu Penyakit Dalam',
-  'DIGESTIVE SYSTEM': 'Ilmu Penyakit Dalam',
-  'DIGESTIVE TRACT': 'Ilmu Penyakit Dalam',
-  'ENDOCRINOLOGY': 'Ilmu Penyakit Dalam',
-  'HEMATOLOGY': 'Ilmu Penyakit Dalam',
-  'NEPHROLOGY': 'Ilmu Penyakit Dalam',
-  'RHEUMATOLOGY': 'Ilmu Penyakit Dalam',
-  'INFECTOLOGY': 'Ilmu Penyakit Dalam',
-  'ALLERGOLOGY': 'Ilmu Penyakit Dalam',
-  'CARDIOLOGY AND CARDIOVASCULAR SURGERY': 'Ilmu Penyakit Dalam',
-  'PNEUMOLOGY': 'Ilmu Penyakit Dalam',
-  'PULMONOLOGY': 'Ilmu Penyakit Dalam',
-  'PULMONOLOGY AND THORACIC SURGERY': 'Ilmu Penyakit Dalam',
-  'PNEUMOLOGY AND THORACIC SURGERY': 'Ilmu Penyakit Dalam',
-  'INFECTIOUS DISEASES AND MICROBIOLOGY': 'Ilmu Penyakit Dalam',
-  'INFECTIOUS': 'Ilmu Penyakit Dalam',
-  'MEDICAL ONCOLOGY': 'Ilmu Penyakit Dalam',
-  'ONCOLOGY': 'Ilmu Penyakit Dalam',
-  'ONCOLOGY (ECTOPIC)': 'Ilmu Penyakit Dalam',
-  'GERIATRICS': 'Ilmu Penyakit Dalam',
+function parseTargetArg(argv) {
+  const targetIndex = argv.findIndex((arg) => arg === '--target');
+  if (targetIndex === -1) return 'both';
+  return argv[targetIndex + 1] || 'both';
+}
 
-  // Bedah
-  'Bedah': 'Bedah',
-  'SURGERY': 'Bedah',
-  'GENERAL SURGERY': 'Bedah',
-  'TRAUMATOLOGY AND ORTHOPEDICS': 'Bedah',
-  'ORTHOPEDIC SURGERY AND TRAUMATOLOGY': 'Bedah',
-  'UROLOGY': 'Bedah',
-  'Bedah Saraf': 'Bedah',
-  'NEUROSURGERY': 'Bedah',
-  'PLASTIC SURGERY': 'Bedah',
+function writeJsonAtomic(filePath, value) {
+  const tmp = `${filePath}.tmp`;
+  writeFileSync(tmp, JSON.stringify(value, null, 2), 'utf8');
+  renameSync(tmp, filePath);
+}
 
-  // Obstetri & Ginekologi
-  'Obstetri & Ginekologi': 'Obstetri & Ginekologi',
-  'OB/GYN': 'Obstetri & Ginekologi',
-  'OBSTETRICS AND GYNECOLOGY': 'Obstetri & Ginekologi',
-  'GYNECOLOGY': 'Obstetri & Ginekologi',
+function normalizeDataset(filePath) {
+  const raw = JSON.parse(readFileSync(filePath, 'utf8'));
+  const countsByRaw = {};
+  const countsByResolved = {};
+  const countsByFinal = {};
+  const countsByConfidence = { high: 0, medium: 0, low: 0 };
+  const mismatchPairs = {};
+  const reviewQueue = [];
 
-  // Anak
-  'Ilmu Kesehatan Anak': 'Ilmu Kesehatan Anak',
-  'Anak': 'Ilmu Kesehatan Anak',
-  'PEDIATRICS': 'Ilmu Kesehatan Anak',
+  let autoFixed = 0;
+  let reviewQueued = 0;
+  let unclassified = 0;
 
-  // Neurologi
-  'Neurologi': 'Neurologi',
-  'Saraf': 'Neurologi',
-  'NEUROLOGY': 'Neurologi',
-  'NEUROLOGY AND NEUROSURGERY': 'Neurologi',
-  'NEUROLOGY AND THORACIC SURGERY': 'Neurologi',
+  const normalized = raw.map((caseData) => {
+    const resolution = resolveCaseCategory(caseData);
+    const updated = applyResolvedCategory(caseData);
 
-  // Psikiatri
-  'Psikiatri': 'Psikiatri',
-  'PSYCHIATRY': 'Psikiatri',
+    const rawLabel = resolution.raw_normalized_category || resolution.raw_category || '<missing>';
+    const resolvedLabel = resolution.resolved_category || '<missing>';
+    const finalLabel = updated.category || '<missing>';
 
-  // Kulit & Kelamin
-  'Kulit & Kelamin': 'Kulit & Kelamin',
-  'Kulit': 'Kulit & Kelamin',
-  'DERMATOLOGY': 'Kulit & Kelamin',
-  'DERMATOLOGY AND PLASTIC SURGERY': 'Kulit & Kelamin',
-  'DERMATOLOGY, VENEREOLOGY AND PLASTIC SURGERY': 'Kulit & Kelamin',
+    countsByRaw[rawLabel] = (countsByRaw[rawLabel] || 0) + 1;
+    countsByResolved[resolvedLabel] = (countsByResolved[resolvedLabel] || 0) + 1;
+    countsByFinal[finalLabel] = (countsByFinal[finalLabel] || 0) + 1;
+    countsByConfidence[resolution.confidence] = (countsByConfidence[resolution.confidence] || 0) + 1;
 
-  // Mata
-  'Mata': 'Mata',
-  'OPHTHALMOLOGY': 'Mata',
-  'OPHTHALMOLOGY (ECTOPIC)': 'Mata',
+    if (resolution.raw_normalized_category && resolution.raw_normalized_category !== resolvedLabel) {
+      const pairKey = `${resolution.raw_normalized_category} -> ${resolvedLabel}`;
+      mismatchPairs[pairKey] = (mismatchPairs[pairKey] || 0) + 1;
+    }
 
-  // THT
-  'THT': 'THT',
-  'OTORHINOLARYNGOLOGY': 'THT',
-  'OTORHINOLARYNGOLOGY AND MAXILLOFACIAL SURGERY': 'THT',
-  'OTOLARYNGOLOGY AND MAXILLOFACIAL SURGERY': 'THT',
-  'ENT': 'THT',
+    if (resolution.confidence === 'high' && updated.category !== resolution.raw_normalized_category) {
+      autoFixed += 1;
+    }
 
-  // IKM
-  'Ilmu Kesehatan Masyarakat': 'Ilmu Kesehatan Masyarakat',
-  'PUBLIC HEALTH': 'Ilmu Kesehatan Masyarakat',
-  'PREVENTIVE MEDICINE': 'Ilmu Kesehatan Masyarakat',
-  'PREVENTIVE MEDICINE AND EPIDEMIOLOGY': 'Ilmu Kesehatan Masyarakat',
-  'EPIDEMIOLOGY': 'Ilmu Kesehatan Masyarakat',
-  'EPIDEMIOLOGY AND PREVENTIVE MEDICINE': 'Ilmu Kesehatan Masyarakat',
-  'PRIMARY CARE': 'Ilmu Kesehatan Masyarakat',
-  'PRIMARY CARE AND SOCIAL NETWORKS': 'Ilmu Kesehatan Masyarakat',
-  'BIOSTATISTICS': 'Ilmu Kesehatan Masyarakat',
-  'STATISTICS': 'Ilmu Kesehatan Masyarakat',
+    if (updated.meta?.category_review_needed) {
+      reviewQueued += 1;
+      reviewQueue.push({
+        _id: updated._id,
+        case_code: updated.case_code || null,
+        title: updated.title || updated.topic || updated.subject_name || '',
+        raw_category: resolution.raw_category,
+        raw_normalized_category: resolution.raw_normalized_category,
+        resolved_category: resolution.resolved_category,
+        final_category: updated.category,
+        confidence: resolution.confidence,
+        prefix: resolution.prefix,
+        winning_signals: resolution.winning_signals,
+      });
+    }
 
-  // Farmakologi
-  'Farmakologi': 'Farmakologi',
-  'PHARMACOLOGY': 'Farmakologi',
+    if (updated.category === 'Unclassified') {
+      unclassified += 1;
+    }
 
-  // Forensik
-  'Forensik': 'Forensik',
-  'Medikolegal': 'Forensik',
-  'LEGAL MEDICINE': 'Forensik',
-  'FORENSIC MEDICINE': 'Forensik',
+    return updated;
+  });
 
-  // Radiologi
-  'Radiologi': 'Radiologi',
-  'RADIOLOGY': 'Radiologi',
+  writeJsonAtomic(filePath, normalized);
 
-  // Patologi Klinik
-  'Patologi Klinik': 'Patologi Klinik',
-  'CLINICAL PATHOLOGY': 'Patologi Klinik',
+  return {
+    normalized,
+    audit: {
+      file: filePath,
+      total_cases: normalized.length,
+      auto_fixed_high_confidence: autoFixed,
+      review_queued: reviewQueued,
+      unclassified,
+      counts_by_confidence: countsByConfidence,
+      counts_by_raw_category: countsByRaw,
+      counts_by_resolved_category: countsByResolved,
+      counts_by_final_category: countsByFinal,
+      top_mismatch_pairs: Object.entries(mismatchPairs)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 25)
+        .map(([pair, count]) => ({ pair, count })),
+    },
+    reviewQueue,
+  };
+}
 
-  // Patologi Anatomi
-  'Patologi Anatomi': 'Patologi Anatomi',
-  'Patologi': 'Patologi Anatomi',
-  'PATHOLOGICAL ANATOMY': 'Patologi Anatomi',
-  'ANATOMIC PATHOLOGY': 'Patologi Anatomi',
+function resolveTargets(targetArg) {
+  const requested = targetArg === 'output'
+    ? [OUTPUT_FILE]
+    : targetArg === 'public'
+      ? [PUBLIC_FILE]
+      : [OUTPUT_FILE, PUBLIC_FILE];
 
-  // Anestesi & Emergency
-  'Anestesi': 'Anestesi & Emergency Medicine',
-  'Emergency Medicine': 'Anestesi & Emergency Medicine',
-  'ANESTHESIOLOGY': 'Anestesi & Emergency Medicine',
-  'ANESTHESIOLOGY AND CRITICAL CARE': 'Anestesi & Emergency Medicine',
-  'ANESTHESIOLOGY, CRITICAL CARE AND EMERGENCIES': 'Anestesi & Emergency Medicine',
-  'ANESTHESIOLOGY, CRITICAL CARE AND EMERGENCY MEDICINE': 'Anestesi & Emergency Medicine',
-  'CRITICAL CARE': 'Anestesi & Emergency Medicine',
-  'CRITICAL CARE AND EMERGENCY': 'Anestesi & Emergency Medicine',
-  'CRITICAL CARE AND EMERGENCIES': 'Anestesi & Emergency Medicine',
-  'CRITICAL AND EMERGENCY CARE': 'Anestesi & Emergency Medicine',
-  'CRITICAL, PALLIATIVE AND EMERGENCY CARE': 'Anestesi & Emergency Medicine',
-  'PALLIATIVE CARE': 'Anestesi & Emergency Medicine',
+  return requested.filter((filePath, index, arr) => arr.indexOf(filePath) === index);
+}
 
-  // Mikrobiologi
-  'Mikrobiologi': 'Mikrobiologi',
-  'MICROBIOLOGY': 'Mikrobiologi',
+function main() {
+  const target = parseTargetArg(process.argv.slice(2));
+  const targets = resolveTargets(target).filter((filePath) => existsSync(filePath));
 
-  // Biokimia / Fisiologi / Anatomi
-  'Biokimia': 'Biokimia',
-  'BIOCHEMISTRY': 'Biokimia',
-  'Fisiologi': 'Fisiologi',
-  'PHYSIOLOGY': 'Fisiologi',
-  'Anatomi': 'Anatomi',
-  'ANATOMY': 'Anatomi',
-  'Histologi': 'Histologi',
-
-  // Other
-  'GENETICS': 'Biokimia',
-  'GENETICS AND IMMUNOLOGY': 'Biokimia',
-  'Rehabilitasi Medik': 'Rehabilitasi Medik',
-
-  // ── Remaining Indonesian variants ──
-  'Pediatri': 'Ilmu Kesehatan Anak',
-  'IKM & Kesmas': 'Ilmu Kesehatan Masyarakat',
-  'IKM': 'Ilmu Kesehatan Masyarakat',
-  'Evidence-Based Medicine': 'Ilmu Kesehatan Masyarakat',
-  'Kedokteran Gigi': 'Kedokteran Gigi',
-  'Hematologi & Infeksi': 'Ilmu Penyakit Dalam',
-  'Anestesi & Emergency': 'Anestesi & Emergency Medicine',
-  'Anatomi & Fisiologi': 'Anatomi',
-  'Dermatovenereologi': 'Kulit & Kelamin',
-  'Endokrinologi': 'Ilmu Penyakit Dalam',
-  'Kardiologi': 'Ilmu Penyakit Dalam',
-  'Pulmonologi': 'Ilmu Penyakit Dalam',
-  'Gastroenterohepatologi': 'Ilmu Penyakit Dalam',
-  'Nefrologi': 'Ilmu Penyakit Dalam',
-  'Forensik & Medikolegal': 'Forensik',
-  'THT-KL': 'THT',
-  'Onkologi': 'Ilmu Penyakit Dalam',
-
-  // ── Remaining international variants ──
-  'GYNECOLOGY AND OBSTETRICS': 'Obstetri & Ginekologi',
-  'TRAUMATOLOGY': 'Bedah',
-  'INFECTIOUS DISEASES': 'Ilmu Penyakit Dalam',
-  'CARDIOLOGY AND VASCULAR SURGERY': 'Ilmu Penyakit Dalam',
-  'CARDIOLOGY': 'Ilmu Penyakit Dalam',
-  'DIGESTIVE': 'Ilmu Penyakit Dalam',
-};
-
-console.log('🔧 Category Normalization');
-console.log('━'.repeat(60));
-
-const db = JSON.parse(readFileSync(DB_PATH, 'utf8'));
-let normalized = 0;
-let unmapped = {};
-
-for (const c of db) {
-  const old = c.category;
-  const mapped = CATEGORY_MAP[old];
-  if (mapped && mapped !== old) {
-    c.meta = c.meta || {};
-    c.meta._original_category = old;
-    c.category = mapped;
-    normalized++;
-  } else if (!mapped && old) {
-    unmapped[old] = (unmapped[old] || 0) + 1;
+  if (targets.length === 0) {
+    console.error('No compiled case dataset found for category normalization.');
+    process.exit(1);
   }
+
+  if (!existsSync(REPORT_DIR)) mkdirSync(REPORT_DIR, { recursive: true });
+
+  const results = targets.map((filePath) => normalizeDataset(filePath));
+  const primary = results[0];
+
+  writeJsonAtomic(join(REPORT_DIR, 'category_resolution_audit.json'), primary.audit);
+  writeJsonAtomic(join(REPORT_DIR, 'category_review_queue.json'), primary.reviewQueue);
+
+  console.log('🔧 Category Resolution');
+  console.log('━'.repeat(60));
+  console.log(`Targets: ${targets.join(', ')}`);
+  console.log(`Total cases: ${primary.audit.total_cases.toLocaleString()}`);
+  console.log(`High-confidence auto-fixes: ${primary.audit.auto_fixed_high_confidence.toLocaleString()}`);
+  console.log(`Queued for review: ${primary.audit.review_queued.toLocaleString()}`);
+  console.log(`Unclassified: ${primary.audit.unclassified.toLocaleString()}`);
+  console.log(`Confidence: high=${primary.audit.counts_by_confidence.high}, medium=${primary.audit.counts_by_confidence.medium}, low=${primary.audit.counts_by_confidence.low}`);
+  console.log(`Audit: ${join(REPORT_DIR, 'category_resolution_audit.json')}`);
+  console.log(`Review queue: ${join(REPORT_DIR, 'category_review_queue.json')}`);
 }
 
-console.log(`✅ Normalized: ${normalized.toLocaleString()} cases`);
-if (Object.keys(unmapped).length > 0) {
-  console.log(`⚠️  Unmapped categories:`);
-  for (const [cat, count] of Object.entries(unmapped).sort((a,b) => b[1]-a[1]).slice(0, 10)) {
-    console.log(`   ${cat}: ${count}`);
-  }
-}
-
-// Recount
-const cats = {};
-for (const c of db) {
-  cats[c.category] = (cats[c.category] || 0) + 1;
-}
-console.log('\n📊 After normalization:');
-for (const [cat, count] of Object.entries(cats).sort((a,b) => b[1]-a[1])) {
-  console.log(`   ${cat.padEnd(35)} ${count.toLocaleString()}`);
-}
-
-const tmp = `${DB_PATH}.tmp`;
-writeFileSync(tmp, JSON.stringify(db, null, 2), 'utf8');
-renameSync(tmp, DB_PATH);
-console.log('\n💾 Saved.');
+main();

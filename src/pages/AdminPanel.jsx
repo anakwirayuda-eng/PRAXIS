@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion as Motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { getCaseRouteId } from '../data/caseIdentity';
-import { clearAdminSession, clearAdminVerification, getStoredAdminKey, persistAdminSession } from '../lib/adminSession';
+import { clearAdminSession, getStoredAdminKey, persistAdminSession } from '../lib/adminSession';
 import Shield from 'lucide-react/dist/esm/icons/shield';
 import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
 import Check from 'lucide-react/dist/esm/icons/check';
@@ -43,7 +43,8 @@ function useAdminAuth() {
         return true;
       }
     } catch { /* network error */ }
-    clearAdminVerification();
+    clearAdminSession();
+    setKey('');
     setAuthed(false);
     setChecking(false);
     return false;
@@ -134,12 +135,79 @@ function OverviewCards({ overview }) {
   );
 }
 
-function FeedbackTable({ data, adminKey, onStatusChange }) {
+function FeedbackTable({ data, onStatusChange, isCompact }) {
   if (!data || data.length === 0) {
     return (
       <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center', color: 'var(--text-muted)' }}>
         <AlertTriangle size={32} style={{ marginBottom: 'var(--sp-2)', opacity: 0.5 }} />
         <p>No feedback reports yet. Users will appear here when they flag questions.</p>
+      </div>
+    );
+  }
+
+  if (isCompact) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+        {data.map((row) => {
+          const caseRouteId = encodeURIComponent(getCaseRouteId(row));
+          return (
+            <div key={row.id} className="glass-card" style={{ padding: 'var(--sp-4)' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--sp-3)', marginBottom: 'var(--sp-3)' }}>
+                <div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>Report #{row.id}</div>
+                  <Link to={`/case/${caseRouteId}`} style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                    {row.case_code || `#${row.case_id}`}
+                  </Link>
+                </div>
+                <span style={{
+                  fontSize: 10, padding: '2px 8px', borderRadius: 'var(--radius-full)',
+                  background: row.status === 'open' ? 'rgba(245,158,11,0.15)' : row.status === 'resolved' ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)',
+                  color: row.status === 'open' ? '#fbbf24' : row.status === 'resolved' ? '#34d399' : '#94a3b8',
+                  fontWeight: 600, textTransform: 'uppercase',
+                }}>{row.status}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 'var(--sp-3)' }}>
+                {(Array.isArray(row.tags) ? row.tags : []).map((t) => (
+                  <span key={t} style={{
+                    fontSize: 10, padding: '2px 8px', borderRadius: 'var(--radius-full)',
+                    background: (TAG_COLORS[t] || '#64748b') + '20',
+                    color: TAG_COLORS[t] || '#94a3b8',
+                    fontWeight: 600,
+                  }}>{t}</span>
+                ))}
+              </div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--sp-3)' }}>
+                {row.comment || '—'}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)' }}>
+                  {new Date(row.created_at).toLocaleDateString()}
+                </span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {row.status === 'open' && (
+                    <>
+                      <button
+                        onClick={() => onStatusChange(row.id, 'resolved')}
+                        title="Resolve"
+                        style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 'var(--radius-sm)', color: '#34d399', cursor: 'pointer', padding: '6px 8px', display: 'flex' }}
+                      ><Check size={12} /></button>
+                      <button
+                        onClick={() => onStatusChange(row.id, 'dismissed')}
+                        title="Dismiss"
+                        style={{ background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.2)', borderRadius: 'var(--radius-sm)', color: '#94a3b8', cursor: 'pointer', padding: '6px 8px', display: 'flex' }}
+                      ><X size={12} /></button>
+                    </>
+                  )}
+                  <Link
+                    to={`/case/${caseRouteId}`}
+                    title="View case"
+                    style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 'var(--radius-sm)', color: '#818cf8', padding: '6px 8px', display: 'flex', textDecoration: 'none' }}
+                  ><Eye size={12} /></Link>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -231,6 +299,13 @@ export default function AdminPanel() {
   const [feedbackCounts, setFeedbackCounts] = useState(null);
   const [tab, setTab] = useState('feedback');
   const [actionError, setActionError] = useState('');
+  const [isCompact, setIsCompact] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 720 : false);
+
+  useEffect(() => {
+    const handleResize = () => setIsCompact(window.innerWidth <= 720);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!key) return;
@@ -362,11 +437,14 @@ export default function AdminPanel() {
                 <span style={{ color: '#94a3b8' }}>Dismissed: <strong>{feedbackCounts.dismissed}</strong></span>
               </div>
             )}
-            <FeedbackTable data={feedback} adminKey={key} onStatusChange={handleStatusChange} />
-          </>
-        )}
+             <FeedbackTable data={feedback} onStatusChange={handleStatusChange} isCompact={isCompact} />
+           </>
+         )}
         {tab === 'proposals' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+            <div className="glass-card" style={{ padding: 'var(--sp-3) var(--sp-4)', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+              Proposal approval marks a curator decision. Case-library updates are still applied in a separate remediation pipeline.
+            </div>
             {proposals.length === 0 ? (
               <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center', color: 'var(--text-muted)' }}>
                 <Check size={32} style={{ marginBottom: 'var(--sp-2)', opacity: 0.5, color: '#10b981', margin: '0 auto' }} />
@@ -383,7 +461,7 @@ export default function AdminPanel() {
                   </span>
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Mhs: {(prop.user_hash || '').substring(0, 8)}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
                   <div style={{ background: 'rgba(239,68,68,0.05)', padding: 'var(--sp-3)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239,68,68,0.1)' }}>
                     <div style={{ fontSize: 'var(--fs-xs)', color: '#f87171', marginBottom: 4 }}>SEBELUM</div>
                     <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>{typeof prop.old_value === 'string' ? prop.old_value : JSON.stringify(prop.old_value)}</div>

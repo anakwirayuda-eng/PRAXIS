@@ -112,22 +112,41 @@ export function QuestionFeedback({ caseId, caseData }) {
 
   const retryUnsyncedFeedback = useCallback(async () => {
     const all = loadFeedback();
-    const pending = all[caseId];
-    if (!pending || pending.synced !== false) return false;
+    const pendingEntries = Object.entries(all).filter(([, entry]) => entry?.synced === false);
+    if (pendingEntries.length === 0) return false;
 
-    const ok = await syncToServer(caseId, pending.tags || [], pending.comment || '');
-    if (!ok) return false;
+    let syncedAny = false;
+    let syncedCurrentCaseEntry = null;
 
-    const syncedEntry = {
-      ...pending,
-      synced: true,
-      syncedAt: Date.now(),
-    };
-    persistFeedbackState(syncedEntry);
-    setExistingFeedback(syncedEntry);
-    setFeedbackError('');
+    for (const [pendingCaseId, pending] of pendingEntries) {
+      const normalizedCaseId = Number.isFinite(Number(pendingCaseId))
+        ? Number(pendingCaseId)
+        : pendingCaseId;
+      const ok = await syncToServer(normalizedCaseId, pending.tags || [], pending.comment || '');
+      if (!ok) continue;
+
+      const syncedEntry = {
+        ...pending,
+        synced: true,
+        syncedAt: Date.now(),
+      };
+      all[pendingCaseId] = syncedEntry;
+      syncedAny = true;
+
+      if (String(pendingCaseId) === String(caseId)) {
+        syncedCurrentCaseEntry = syncedEntry;
+      }
+    }
+
+    if (!syncedAny) return false;
+
+    saveFeedback(all);
+    if (syncedCurrentCaseEntry) {
+      setExistingFeedback(syncedCurrentCaseEntry);
+      setFeedbackError('');
+    }
     return true;
-  }, [caseId, persistFeedbackState]);
+  }, [caseId]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;

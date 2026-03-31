@@ -52,6 +52,7 @@ export default function Dashboard() {
   const [isCompactMobile, setIsCompactMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 480 : false);
   const accuracy = getAccuracy();
   const totalCasesLabel = totalCases.toLocaleString();
+  const isColdStart = totalAnswered === 0 && completedCases.length === 0;
 
   useEffect(() => {
     const handleResize = () => setIsCompactMobile(window.innerWidth <= 480);
@@ -199,7 +200,7 @@ export default function Dashboard() {
       })()}
 
       {/* Cold Start Onboarding — shown when user has zero activity */}
-      {totalAnswered === 0 && completedCases.length === 0 && (
+      {isColdStart && (
         <div style={{
           position: 'relative',
           minHeight: isCompactMobile ? 'auto' : '40vh',
@@ -242,67 +243,74 @@ export default function Dashboard() {
               Sistem <strong style={{ color: 'var(--accent-primary)' }}>Spaced Repetition</strong> belum memiliki data baseline klinis Anda.
               Selesaikan 10 kasus pertama agar kami dapat meracik jadwal belajar optimal.
             </p>
-            <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ width: '100%' }}>
-              <Play size={18} /> Mulai Diagnostic Test
-            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
+              <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ width: '100%' }}>
+                <Play size={18} /> Mulai Diagnostic Test
+              </button>
+              <button className="btn btn-ghost btn-lg" onClick={() => navigate('/cases')} style={{ width: '100%' }}>
+                <BookOpen size={18} /> Jelajahi Library Dulu
+              </button>
+            </div>
             <p style={{ marginTop: 'var(--sp-3)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
               {status === 'ready' ? `${totalCasesLabel} kasus tersedia` : 'Memuat bank soal...'}
             </p>
           </div>
         </div>
       )}
-      <div className="glass-card" style={{ padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8)', marginBottom: 'var(--sp-8)', overflow: 'visible' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-6)' }}>
-          <div style={{ flex: 1, minWidth: isCompactMobile ? 0 : 280 }}>
-            <div className="badge badge-primary" style={{ marginBottom: 'var(--sp-3)' }}>
-              <Stethoscope size={12} /> UKMPPD & USMLE
-            </div>
-            <h1 style={{ fontSize: 'var(--fs-4xl)', fontFamily: 'var(--font-heading)', marginBottom: 'var(--sp-3)', lineHeight: 1.1 }}>
-              Master Clinical
-              <br />
-              <span style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                Reasoning
-              </span>
-             </h1>
-             <p style={{ color: 'var(--text-secondary)', maxWidth: 420, marginBottom: 'var(--sp-6)' }}>
-               Practice with {status === 'ready' ? `${dataQuality.clean.toLocaleString()}+ verified cases` : 'a fast-loading case library'}, SCT drills, and intelligent analytics.
-               Your path to passing UKMPPD & USMLE starts here.
-             </p>
-             <div style={{ display: 'flex', gap: isCompactMobile ? 'var(--sp-2)' : 'var(--sp-3)', flexWrap: 'wrap', width: '100%', maxWidth: 560 }}>
-              <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
-                <Shuffle size={18} /> Random Case
-              </button>
-               <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
-                 <BookOpen size={18} /> Browse Cases
-               </button>
-               <button className="btn btn-ghost btn-lg" onClick={() => navigate('/exam')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
-                 <Clock size={18} /> Exam Mode
-               </button>
-             </div>
-             {status !== 'ready' && (
-               <p style={{ marginTop: 'var(--sp-4)', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
-                 {isLoading
-                   ? `Loading the full case library in the background. ${totalCasesLabel} starter cases are ready now.`
-                   : `Showing ${totalCasesLabel} starter cases. The compiled library is unavailable right now.`}
+      {!isColdStart && (
+        <div className="glass-card" style={{ padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8)', marginBottom: 'var(--sp-8)', overflow: 'visible' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-6)' }}>
+            <div style={{ flex: 1, minWidth: isCompactMobile ? 0 : 280 }}>
+              <div className="badge badge-primary" style={{ marginBottom: 'var(--sp-3)' }}>
+                <Stethoscope size={12} /> UKMPPD & USMLE
+              </div>
+              <h1 style={{ fontSize: 'var(--fs-4xl)', fontFamily: 'var(--font-heading)', marginBottom: 'var(--sp-3)', lineHeight: 1.1 }}>
+                Master Clinical
+                <br />
+                <span style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Reasoning
+                </span>
+               </h1>
+               <p style={{ color: 'var(--text-secondary)', maxWidth: 420, marginBottom: 'var(--sp-6)' }}>
+                 Practice with {status === 'ready' ? `${dataQuality.clean.toLocaleString()}+ verified cases` : 'a fast-loading case library'}, SCT drills, and intelligent analytics.
+                 Your path to passing UKMPPD & USMLE starts here.
                </p>
-             )}
-           </div>
-          <div style={{ position: 'relative' }}>
-            <ProgressRing value={accuracy} size={160} stroke={10} />
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <span style={{ fontSize: 'var(--fs-3xl)', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>{accuracy}%</span>
-              <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Accuracy</span>
+               <div style={{ display: 'flex', gap: isCompactMobile ? 'var(--sp-2)' : 'var(--sp-3)', flexWrap: 'wrap', width: '100%', maxWidth: 560 }}>
+                <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
+                  <Shuffle size={18} /> Random Case
+                </button>
+                 <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
+                   <BookOpen size={18} /> Browse Cases
+                 </button>
+                 <button className="btn btn-ghost btn-lg" onClick={() => navigate('/exam')} style={{ flex: `1 1 ${isCompactMobile ? 140 : 170}px`, justifyContent: 'center' }}>
+                   <Clock size={18} /> Exam Mode
+                 </button>
+               </div>
+               {status !== 'ready' && (
+                 <p style={{ marginTop: 'var(--sp-4)', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+                   {isLoading
+                     ? `Loading the full case library in the background. ${totalCasesLabel} starter cases are ready now.`
+                     : `Showing ${totalCasesLabel} starter cases. The compiled library is unavailable right now.`}
+                 </p>
+               )}
+             </div>
+            <div style={{ position: 'relative' }}>
+              <ProgressRing value={accuracy} size={160} stroke={10} />
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: 'var(--fs-3xl)', fontWeight: 800, fontFamily: 'var(--font-heading)' }}>{accuracy}%</span>
+                <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Accuracy</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="grid grid-4 stagger" style={{ marginBottom: 'var(--sp-8)' }}>
         {stats.map((stat) => (

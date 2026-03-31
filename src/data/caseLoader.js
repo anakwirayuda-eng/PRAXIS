@@ -10,7 +10,7 @@ import { deobfuscateCase, isObfuscated } from '../lib/aegisDecoder';
 // Fix #1: Version-busted path preserves offline-first (no-cache killed offline mode)
 const APP_VER = import.meta.env.VITE_APP_VERSION || '1.0.0';
 const CASE_LIBRARY_PATH = `${import.meta.env.BASE_URL}data/compiled_cases.json?v=${APP_VER}`;
-const FALLBACK_CATEGORY = 'internal-medicine';
+const FALLBACK_CATEGORY = 'Unclassified';
 const DEFAULT_META = {
   source: 'manual',
   examType: 'BOTH',
@@ -51,7 +51,11 @@ function normalizeCase(rawCase, fallbackId) {
     || rawCase?.topic
     || rawCase?.subject_name
     || (rawCase?.case_code ? `Case ${rawCase.case_code}` : `${rawCase?.category || 'Clinical'} Review`);
-  const category = CATEGORIES[rawCase?.category] ? rawCase.category : FALLBACK_CATEGORY;
+  const category = CATEGORIES[rawCase?.category]
+    ? rawCase.category
+    : (CATEGORIES[meta?.category_resolution?.resolved_category]
+        ? meta.category_resolution.resolved_category
+        : FALLBACK_CATEGORY);
   const qType = rawCase?.q_type === 'SCT' ? 'SCT' : (rawCase?.q_type === 'CLINICAL_DISCUSSION' ? 'CLINICAL_DISCUSSION' : 'MCQ');
 
   // Resolve narrative: support rawCase.question, rawCase.vignette (string), or vignette.narrative (object)
@@ -109,6 +113,34 @@ function normalizeCase(rawCase, fallbackId) {
       needs_review: meta.needs_review === true,
       truncated: meta.truncated === true,
       reviewed: meta.reviewed === true,  // Positive flag — producer TBD; filter depends on this
+      category_review_needed: meta.category_review_needed === true,
+      category_resolution: meta.category_resolution && typeof meta.category_resolution === 'object'
+        ? {
+            raw_category: meta.category_resolution.raw_category ?? rawCase?.category ?? null,
+            raw_normalized_category: meta.category_resolution.raw_normalized_category ?? null,
+            resolved_category: meta.category_resolution.resolved_category ?? category,
+            confidence: meta.category_resolution.confidence ?? 'low',
+            category_conflict: meta.category_resolution.category_conflict === true,
+            winning_signals: Array.isArray(meta.category_resolution.winning_signals)
+              ? meta.category_resolution.winning_signals
+              : [],
+            runner_up_category: meta.category_resolution.runner_up_category ?? null,
+            runner_up_score: Number.isFinite(meta.category_resolution.runner_up_score)
+              ? meta.category_resolution.runner_up_score
+              : 0,
+            prefix: meta.category_resolution.prefix ?? null,
+          }
+        : {
+            raw_category: rawCase?.category ?? null,
+            raw_normalized_category: CATEGORIES[rawCase?.category] ? rawCase.category : null,
+            resolved_category: category,
+            confidence: CATEGORIES[rawCase?.category] ? 'high' : 'low',
+            category_conflict: false,
+            winning_signals: [],
+            runner_up_category: null,
+            runner_up_score: 0,
+            prefix: null,
+          },
       tags,
       provenance: Array.isArray(meta.provenance) ? meta.provenance : DEFAULT_META.provenance,
     },
@@ -139,6 +171,16 @@ let loadStatus = 'idle';
 let loadError = null;
 let loadPromise = null;
 const listeners = new Set();
+
+function resetCompiledRuntimeState() {
+  compiledCount = 0;
+  compiledOffset = 0;
+  allCases = [...normalizedHandCrafted];
+  caseMap.clear();
+  normalizedHandCrafted.forEach((caseData) => {
+    caseMap.set(caseData._id, caseData);
+  });
+}
 
 function buildSnapshot() {
   return {
@@ -226,6 +268,7 @@ export async function ensureCaseBankLoaded() {
     return loadPromise;
   }
 
+  resetCompiledRuntimeState();
   loadStatus = 'loading';
   loadError = null;
   publishSnapshot();
@@ -262,7 +305,10 @@ export async function ensureCaseBankLoaded() {
           loaded = true;
         }
       }
-    } catch { /* manifest not found = not chunked, try single file */ }
+    } catch {
+      resetCompiledRuntimeState();
+      /* manifest not found or chunk stream failed = fallback to single file */
+    }
 
     // Fallback: single compiled_cases.json (local dev)
     if (!loaded) {
@@ -339,6 +385,7 @@ export async function retryCaseBankLoad() {
     return loadPromise;
   }
 
+  resetCompiledRuntimeState();
   loadStatus = 'idle';
   loadError = null;
   publishSnapshot();

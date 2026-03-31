@@ -34,6 +34,7 @@ const QUARANTINE_CODE_COLORS = {
 export default function DataQuality() {
   // Fix #1: Multi-panel Set — admin can open multiple panels simultaneously
   const [openSections, setOpenSections] = useState(new Set(['cats', 'sources']));
+  const [isCompact, setIsCompact] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 720 : false);
   const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
   const isReady = status === 'ready';
   // Fix #2: Removed `.slice()` RAM clone — caseBank is already the live array
@@ -61,6 +62,11 @@ export default function DataQuality() {
   };
 
   useEffect(() => { fetchQuarantine(); }, []);
+  useEffect(() => {
+    const handleResize = () => setIsCompact(window.innerWidth <= 720);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const quarantineStats = useMemo(() => {
     const byCode = {};
@@ -196,7 +202,7 @@ export default function DataQuality() {
             const category = CATEGORIES[categoryKey];
             return (
               <div key={categoryKey} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ width: 160, fontSize: '0.85rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                <span style={{ width: isCompact ? 110 : 160, fontSize: '0.85rem', color: 'var(--text-secondary, #94a3b8)' }}>
                   {category?.label || categoryKey}
                 </span>
                 <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 4, height: 24, overflow: 'hidden' }}>
@@ -210,8 +216,8 @@ export default function DataQuality() {
                     }}
                   />
                 </div>
-                <span style={{ width: 80, textAlign: 'right', fontSize: '0.85rem', fontWeight: 600 }}>{count.toLocaleString()}</span>
-                <span style={{ width: 50, textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary, #94a3b8)' }}>{pct}%</span>
+                <span style={{ width: isCompact ? 56 : 80, textAlign: 'right', fontSize: '0.85rem', fontWeight: 600 }}>{count.toLocaleString()}</span>
+                <span style={{ width: isCompact ? 42 : 50, textAlign: 'right', fontSize: '0.8rem', color: 'var(--text-secondary, #94a3b8)' }}>{pct}%</span>
               </div>
             );
           })}
@@ -224,36 +230,65 @@ export default function DataQuality() {
         isOpen={openSections.has('sources')}
         onToggle={() => toggle('sources')}
       >
-        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -4px', padding: '0 4px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                <th style={thStyle}>Source</th>
-                <th style={thStyle}>Count</th>
-                <th style={thStyle}>Avg Confidence</th>
-                <th style={thStyle}>With Explanation</th>
-                <th style={thStyle}>Quality</th>
-              </tr>
-            </thead>
-            <tbody>
-              {srcEntries.map(([source, sourceStats]) => (
-                <tr key={source} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <td style={tdStyle}>{source}</td>
-                  <td style={tdStyle}>{sourceStats.total.toLocaleString()}</td>
-                  <td style={tdStyle}>
+        {isCompact ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {srcEntries.map(([source, sourceStats]) => (
+              <div key={source} style={{ padding: '0.9rem', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  <strong style={{ fontSize: '0.9rem' }}>{source}</strong>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{sourceStats.total.toLocaleString()} cases</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '0.6rem', marginBottom: '0.75rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #94a3b8)', marginBottom: 2 }}>Avg Confidence</div>
                     <ConfidenceBadge score={Number.parseFloat(sourceStats.avgConfidence)} />
-                  </td>
-                  <td style={tdStyle}>
-                    {sourceStats.withExpl.toLocaleString()} ({sourceStats.total > 0 ? ((sourceStats.withExpl / sourceStats.total) * 100).toFixed(0) : 0}%)
-                  </td>
-                  <td style={tdStyle}>
-                    <QualityBar value={Number.parseFloat(sourceStats.avgConfidence)} max={5} />
-                  </td>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #94a3b8)', marginBottom: 2 }}>Explanation Coverage</div>
+                    <span style={{ fontWeight: 600 }}>
+                      {sourceStats.withExpl.toLocaleString()} ({sourceStats.total > 0 ? ((sourceStats.withExpl / sourceStats.total) * 100).toFixed(0) : 0}%)
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary, #94a3b8)', marginBottom: 6 }}>Quality</div>
+                  <QualityBar value={Number.parseFloat(sourceStats.avgConfidence)} max={5} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -4px', padding: '0 4px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <th style={thStyle}>Source</th>
+                  <th style={thStyle}>Count</th>
+                  <th style={thStyle}>Avg Confidence</th>
+                  <th style={thStyle}>With Explanation</th>
+                  <th style={thStyle}>Quality</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {srcEntries.map(([source, sourceStats]) => (
+                  <tr key={source} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={tdStyle}>{source}</td>
+                    <td style={tdStyle}>{sourceStats.total.toLocaleString()}</td>
+                    <td style={tdStyle}>
+                      <ConfidenceBadge score={Number.parseFloat(sourceStats.avgConfidence)} />
+                    </td>
+                    <td style={tdStyle}>
+                      {sourceStats.withExpl.toLocaleString()} ({sourceStats.total > 0 ? ((sourceStats.withExpl / sourceStats.total) * 100).toFixed(0) : 0}%)
+                    </td>
+                    <td style={tdStyle}>
+                      <QualityBar value={Number.parseFloat(sourceStats.avgConfidence)} max={5} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </CollapsibleSection>
 
       <CollapsibleSection
@@ -319,7 +354,7 @@ export default function DataQuality() {
                 return (
                   <div key={code} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{
-                      width: 200, fontSize: '0.8rem', fontFamily: 'var(--font-mono, monospace)',
+                      width: isCompact ? 104 : 200, fontSize: '0.8rem', fontFamily: 'var(--font-mono, monospace)',
                       color: barColor, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>
                       {code}
@@ -333,8 +368,8 @@ export default function DataQuality() {
                         transition: 'width 0.5s ease',
                       }} />
                     </div>
-                    <span style={{ width: 60, textAlign: 'right', fontSize: '0.8rem', fontWeight: 600 }}>{count.toLocaleString()}</span>
-                    <span style={{ width: 50, textAlign: 'right', fontSize: '0.75rem', color: 'var(--text-secondary, #94a3b8)' }}>{pct}%</span>
+                    <span style={{ width: isCompact ? 48 : 60, textAlign: 'right', fontSize: '0.8rem', fontWeight: 600 }}>{count.toLocaleString()}</span>
+                    <span style={{ width: isCompact ? 42 : 50, textAlign: 'right', fontSize: '0.75rem', color: 'var(--text-secondary, #94a3b8)' }}>{pct}%</span>
                   </div>
                 );
               })}
@@ -344,7 +379,27 @@ export default function DataQuality() {
             <h4 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text-secondary, #94a3b8)' }}>
               Sample Quarantined Cases (20 of {quarantineStats.total.toLocaleString()})
             </h4>
-            <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -4px', padding: '0 4px' }}>
+            {isCompact ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {(quarantine.items || []).filter(Boolean).slice(0, 20).map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} style={{ padding: '0.9rem', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <strong style={{ fontSize: '0.9rem' }}>#{item.id}</strong>
+                      <span style={{ fontFamily: 'var(--font-mono, monospace)', color: QUARANTINE_CODE_COLORS[item.code] || '#94a3b8', fontWeight: 600, fontSize: '0.75rem' }}>
+                        {item.code}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+                      {item.reason}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary, #94a3b8)' }}>
+                      Source: {item.source || '—'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -4px', padding: '0 4px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', minWidth: 600 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -369,7 +424,8 @@ export default function DataQuality() {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            )}
           </>
         )}
       </CollapsibleSection>

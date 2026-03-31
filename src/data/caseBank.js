@@ -25,6 +25,7 @@ export const CATEGORIES = {
   'Mikrobiologi': { label: 'Mikrobiologi', labelEn: 'Microbiology', color: '#0ea5e9', icon: 'Bug' },
   'Patologi Anatomi': { label: 'Patologi Anatomi', labelEn: 'Pathology', color: '#d946ef', icon: 'Microscope' },
   'Rehabilitasi Medik': { label: 'Rehabilitasi Medik', labelEn: 'Rehab Medicine', color: '#78716c', icon: 'Activity' },
+  'Unclassified': { label: 'Unclassified', labelEn: 'Unclassified', color: '#94a3b8', icon: 'HelpCircle' },
 };
 
 export const EXAM_TYPES = {

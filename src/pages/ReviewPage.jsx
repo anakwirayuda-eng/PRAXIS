@@ -36,6 +36,7 @@ export default function ReviewPage() {
   const navigate = useNavigate();
   const { totalAnswered } = useStore();
   const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
+  const isLibraryReady = status === 'ready';
   const [threshold, setThreshold] = useState(0.9);
   const [nowSeconds, setNowSeconds] = useState(() => Date.now() / 1000);
   const loadedCases = useMemo(() => caseBank.slice(0, totalCases), [caseBank, totalCases]);
@@ -62,6 +63,14 @@ export default function ReviewPage() {
     return getDueCards(threshold, 50, validIds);
   }, [validIds, threshold]);
 
+  const reviewPlaylist = useMemo(
+    () => dueCards
+      .map((due) => casesById.get(due.caseId))
+      .filter(Boolean)
+      .map(getCaseRouteId),
+    [casesById, dueCards],
+  );
+
   useEffect(() => {
     const interval = window.setInterval(() => {
       setNowSeconds(Date.now() / 1000);
@@ -70,10 +79,22 @@ export default function ReviewPage() {
     return () => window.clearInterval(interval);
   }, []);
 
+  const openReviewCase = (caseId) => {
+    const targetCase = casesById.get(caseId);
+    if (!targetCase) return;
+
+    navigate(`/case/${encodeURIComponent(getCaseRouteId(targetCase))}`, {
+      state: {
+        playlist: reviewPlaylist,
+        returnTo: '/review',
+        reviewSession: true,
+      },
+    });
+  };
+
   const startReviewSession = () => {
     if (dueCards.length > 0) {
-      const firstCase = casesById.get(dueCards[0].caseId);
-      if (firstCase) navigate(`/case/${encodeURIComponent(getCaseRouteId(firstCase))}`);
+      openReviewCase(dueCards[0].caseId);
     }
   };
 
@@ -148,7 +169,7 @@ export default function ReviewPage() {
 
             return (
               <Motion.div key={due.caseId} className="glass-card glass-card-interactive"
-                onClick={() => navigate(`/case/${encodeURIComponent(getCaseRouteId(c))}`)}
+                onClick={() => openReviewCase(due.caseId)}
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
                 style={{ padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
@@ -191,9 +212,21 @@ export default function ReviewPage() {
         </div>
       ) : totalAnswered > 0 ? (
         <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>
-          <CheckCircle size={48} style={{ color: 'var(--accent-success)', marginBottom: 'var(--sp-4)' }} />
-          <h3 style={{ marginBottom: 'var(--sp-2)', color: 'var(--accent-success)' }}>All caught up!</h3>
-          <p style={{ color: 'var(--text-muted)' }}>No cards due for review. Your memory retention is above {Math.round(threshold * 100)}% for all reviewed cases.</p>
+          {isLibraryReady ? (
+            <>
+              <CheckCircle size={48} style={{ color: 'var(--accent-success)', marginBottom: 'var(--sp-4)' }} />
+              <h3 style={{ marginBottom: 'var(--sp-2)', color: 'var(--accent-success)' }}>All caught up!</h3>
+              <p style={{ color: 'var(--text-muted)' }}>No cards due for review. Your memory retention is above {Math.round(threshold * 100)}% for all reviewed cases.</p>
+            </>
+          ) : (
+            <>
+              <AlertTriangle size={48} style={{ color: 'var(--accent-warning)', marginBottom: 'var(--sp-4)' }} />
+              <h3 style={{ marginBottom: 'var(--sp-2)', color: 'var(--accent-warning)' }}>Review queue still loading</h3>
+              <p style={{ color: 'var(--text-muted)' }}>
+                The full case library is still loading, so additional due cards may appear once hydration finishes.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center' }}>

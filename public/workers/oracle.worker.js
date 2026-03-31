@@ -89,15 +89,15 @@ self.onmessage = function(e) {
   
   // Find percentiles
   let cumulative = 0;
-  let p5 = 0, p25 = 0, p50 = 0, p75 = 0, p95 = 0;
+  let p5 = null, p25 = null, p50 = null, p75 = null, p95 = null;
   for (let i = 0; i <= examQuestionCount; i++) {
     cumulative += scoreDistribution[i];
     const pct = cumulative / iterations;
-    if (p5 === 0 && pct >= 0.05) p5 = i;
-    if (p25 === 0 && pct >= 0.25) p25 = i;
-    if (p50 === 0 && pct >= 0.50) p50 = i;
-    if (p75 === 0 && pct >= 0.75) p75 = i;
-    if (p95 === 0 && pct >= 0.95) p95 = i;
+    if (p5 === null && pct >= 0.05) p5 = i;
+    if (p25 === null && pct >= 0.25) p25 = i;
+    if (p50 === null && pct >= 0.50) p50 = i;
+    if (p75 === null && pct >= 0.75) p75 = i;
+    if (p95 === null && pct >= 0.95) p95 = i;
   }
 
   // Expected score
@@ -113,7 +113,13 @@ self.onmessage = function(e) {
     passProbability,
     expectedScore,
     expectedPct,
-    percentiles: { p5, p25, p50, p75, p95 },
+    percentiles: {
+      p5: p5 ?? 0,
+      p25: p25 ?? 0,
+      p50: p50 ?? 0,
+      p75: p75 ?? 0,
+      p95: p95 ?? 0,
+    },
     distribution: scoreDistribution,
     passMarkScore,
     iterations,

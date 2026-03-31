@@ -322,6 +322,7 @@ export function CasePlayerSession({
   const browserSearch = typeof location.state?.browserSearch === 'string' ? location.state.browserSearch : '';
   const browserScrollY = typeof location.state?.browserScrollY === 'number' ? location.state.browserScrollY : null;
   const browserPage = typeof location.state?.browserPage === 'number' ? location.state.browserPage : null;
+  const returnTo = location.state?.returnTo === '/review' ? '/review' : null;
 
   useEffect(() => {
     const updateTouchState = () => {
@@ -338,7 +339,12 @@ export function CasePlayerSession({
     };
   }, []);
 
-  const returnToBrowser = () => {
+  const returnToOrigin = () => {
+    if (returnTo === '/review') {
+      navigate('/review');
+      return;
+    }
+
     navigate(`/cases${browserSearch}`, {
       replace: false,
       state: browserScrollY === null && browserPage === null
@@ -442,10 +448,19 @@ export function CasePlayerSession({
           navigate(`/case/${encodeURIComponent(nextId)}`, { state: { ...location.state } });
           return;
         }
-        returnToBrowser();
+        returnToOrigin();
+        return;
+      }
+      if (returnTo === '/review') {
+        returnToOrigin();
         return;
       }
       // currentIdx === -1: case was beyond the 2000-cap — fall through to caseBank
+    }
+
+    if (returnTo === '/review') {
+      returnToOrigin();
+      return;
     }
 
     // Fallback: Raw linear search in caseBank (also used when playlist doesn't contain current case)
@@ -457,7 +472,7 @@ export function CasePlayerSession({
         return;
       }
     }
-    returnToBrowser();
+    returnToOrigin();
   };
 
   const handleFSRSGrade = (grade) => {
@@ -474,7 +489,7 @@ export function CasePlayerSession({
     },
     onSubmit: handleSubmit,
     onNext: handleNextCase,
-    onBack: returnToBrowser,
+    onBack: returnToOrigin,
     onBookmark: () => toggleBookmark(caseData._id),
     onFlag: () => flagQuestion(caseData._id, 'review'),
     onToggleExplanation: () => setShowExplanation((current) => !current),
@@ -505,13 +520,18 @@ export function CasePlayerSession({
             className="btn btn-ghost btn-icon"
             data-testid="case-player-back"
             aria-label="Back to Case Browser"
-            onClick={returnToBrowser}
+            onClick={returnToOrigin}
           >
             <Home size={16} />
           </button>
           <span className="badge" style={{ background: `${cat.color}15`, color: cat.color }}>
             {cat.label}
           </span>
+          {caseData.meta?.category_review_needed && (
+            <span className="badge badge-warning" title="This case specialty label is under review.">
+              Category under review
+            </span>
+          )}
           <span className={`badge ${isSCT ? 'badge-warning' : caseData.q_type === 'CLINICAL_DISCUSSION' ? 'badge-success' : 'badge-info'}`}>
             {caseData.q_type === 'CLINICAL_DISCUSSION' ? 'Clinical' : caseData.q_type}
           </span>
@@ -1219,6 +1239,7 @@ export default function CasePlayer() {
   const browserSearch = typeof location.state?.browserSearch === 'string' ? location.state.browserSearch : '';
   const browserScrollY = typeof location.state?.browserScrollY === 'number' ? location.state.browserScrollY : null;
   const browserPage = typeof location.state?.browserPage === 'number' ? location.state.browserPage : null;
+  const returnTo = location.state?.returnTo === '/review' ? '/review' : null;
   const {
     machineState,
     selectedAnswer,
@@ -1247,16 +1268,18 @@ export default function CasePlayer() {
         </p>
         <button
           className="btn btn-primary"
-          onClick={() => navigate(`/cases${browserSearch}`, {
-            state: browserScrollY === null && browserPage === null
-              ? undefined
-              : {
-                  ...(browserScrollY === null ? {} : { restoreScrollY: browserScrollY }),
-                  ...(browserPage === null ? {} : { restorePage: browserPage }),
-                },
-          })}
+          onClick={() => navigate(returnTo || `/cases${browserSearch}`, returnTo
+            ? undefined
+            : {
+                state: browserScrollY === null && browserPage === null
+                  ? undefined
+                  : {
+                      ...(browserScrollY === null ? {} : { restoreScrollY: browserScrollY }),
+                      ...(browserPage === null ? {} : { restorePage: browserPage }),
+                    },
+              })}
         >
-          <BookOpen size={16} /> Browse Cases
+          <BookOpen size={16} /> {returnTo ? 'Back to Review' : 'Browse Cases'}
         </button>
       </div>
     );

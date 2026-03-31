@@ -1,6 +1,16 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 function createDeferred() {
   let resolve;
@@ -48,6 +58,7 @@ describe('review and exam regression coverage', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.doUnmock('../data/fsrs.js');
+    mockNavigate.mockReset();
   });
 
   it('review page waits for the matching runtime case before exposing due cards', async () => {
@@ -97,6 +108,48 @@ describe('review and exam regression coverage', () => {
       expect(screen.getByRole('button', { name: /Start Review \(1 cards\)/i })).toBeEnabled();
     });
     expect(screen.getByText('Runtime Due Case')).toBeInTheDocument();
+  });
+
+  it('starts review sessions with a due-card playlist and a return path to /review', async () => {
+    const nowSeconds = Date.now() / 1000;
+
+    vi.doMock('../data/fsrs.js', () => ({
+      getDueCards: () => ([
+        { caseId: 0, retrievability: 0.42, stability: 1 },
+        { caseId: 1, retrievability: 0.51, stability: 1 },
+      ]),
+      getBrainStats: () => ({
+        totalReviewed: 2,
+        averageRetention: 58,
+        totalLapses: 0,
+        memoryStrength: 'Moderate',
+      }),
+      getCaseState: () => ({ lastReview: nowSeconds - 3600, lapses: 0 }),
+      recalcRetrievability: vi.fn(),
+    }));
+
+    const { MemoryRouter } = await import('react-router-dom');
+    const { caseBank: starterCases } = await import('../data/caseBank.js');
+    const { getCaseRouteId } = await import('../data/caseIdentity.js');
+    const { default: ReviewPage } = await import('../pages/ReviewPage.jsx');
+    const firstRouteId = getCaseRouteId(starterCases[0]);
+    const secondRouteId = getCaseRouteId(starterCases[1]);
+
+    render(
+      <MemoryRouter>
+        <ReviewPage />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Start Review \(2 cards\)/i }));
+
+    expect(mockNavigate).toHaveBeenCalledWith(`/case/${firstRouteId}`, {
+      state: {
+        playlist: [firstRouteId, secondRouteId],
+        returnTo: '/review',
+        reviewSession: true,
+      },
+    });
   });
 
   it('keeps exam quick-start presets disabled until the full pool is ready', async () => {

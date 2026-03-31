@@ -57,11 +57,23 @@ describe('caseLoader runtime contracts', () => {
     expect(normalized).toMatchInlineSnapshot(`
       {
         "_id": 12,
-        "_searchKey": "unknown-category review what finding is most concerning?  internal-medicine ",
-        "category": "internal-medicine",
+        "_searchKey": "unknown-category review what finding is most concerning?  unclassified ",
+        "category": "Unclassified",
         "confidence": 0,
         "hash_id": "case_12",
         "meta": {
+          "category_resolution": {
+            "category_conflict": false,
+            "confidence": "low",
+            "prefix": null,
+            "raw_category": "unknown-category",
+            "raw_normalized_category": null,
+            "resolved_category": "Unclassified",
+            "runner_up_category": null,
+            "runner_up_score": 0,
+            "winning_signals": [],
+          },
+          "category_review_needed": false,
           "difficulty": 1,
           "examType": "BOTH",
           "needs_review": false,

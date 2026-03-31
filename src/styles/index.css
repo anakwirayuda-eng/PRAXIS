@@ -1540,8 +1540,26 @@ body:has(.flashcard-mode) .page-content {
 
 .case-action-bar .btn {
   flex: 1;
+  min-width: 0;
   justify-content: center;
+  padding-inline: var(--sp-4);
 }
+
+.case-action-bar .btn svg {
+  flex-shrink: 0;
+}
+}
+
+@media (max-width: 420px) {
+  .case-action-bar {
+    gap: var(--sp-2);
+    padding-inline: var(--sp-3);
+  }
+
+  .case-action-bar .btn {
+    padding-inline: var(--sp-3);
+    font-size: var(--fs-sm);
+  }
 }
 
 .show-on-mobile {

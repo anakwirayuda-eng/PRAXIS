@@ -156,7 +156,10 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
                 <Check size={48} style={{ color: '#10b981', marginBottom: 'var(--sp-3)' }} />
                 <div style={{ fontSize: 'var(--fs-md)', fontWeight: 700, color: '#10b981' }}>Terima Kasih! 🩺</div>
                 <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', marginTop: 'var(--sp-2)' }}>
-                  Usulan Anda akan ditinjau oleh tim medis PRAXIS.
+                  Usulan Anda masuk ke antrean review tim medis PRAXIS.
+                </div>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: 'var(--sp-1)' }}>
+                  Perubahan tidak muncul langsung di app sampai pipeline kurasi berikutnya dijalankan.
                 </div>
               </Motion.div>
             ) : (
@@ -242,6 +245,7 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
 
                 <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 'var(--sp-3)', textAlign: 'center' }}>
                   Usulan akan ditinjau oleh <strong>Tim Medis PRAXIS</strong> sebelum diterapkan.
+                  <br />Persetujuan proposal tidak otomatis mengubah soal aktif saat ini.
                   <br />Harap sertakan referensi (buku/jurnal) agar proses review lebih cepat.
                 </p>
               </>
