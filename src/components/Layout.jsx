@@ -3,6 +3,7 @@
  * Engineered for Zero-Fatigue & Flow State
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../data/store';
@@ -41,7 +42,9 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const settingsRef = useRef(null);
+  const settingsButtonRef = useRef(null);
+  const settingsPopoverRef = useRef(null);
+  const [settingsPopoverStyle, setSettingsPopoverStyle] = useState(null);
   const { count: runtimeIssueCount } = useRuntimeWatchdog();
 
   const {
@@ -130,14 +133,57 @@ export default function Layout({ children }) {
   // Click outside settings
   useEffect(() => {
     if (!settingsOpen) return;
-    const handlePointerDown = (e) => { if (!settingsRef.current?.contains(e.target)) setSettingsOpen(false); };
+    const handlePointerDown = (e) => {
+      const clickedButton = settingsButtonRef.current?.contains(e.target);
+      const clickedPopover = settingsPopoverRef.current?.contains(e.target);
+      if (!clickedButton && !clickedPopover) setSettingsOpen(false);
+    };
     const handleKeyDown = (e) => { if (e.key === 'Escape') setSettingsOpen(false); };
     window.addEventListener('pointerdown', handlePointerDown);
     window.addEventListener('keydown', handleKeyDown);
     return () => { window.removeEventListener('pointerdown', handlePointerDown); window.removeEventListener('keydown', handleKeyDown); };
   }, [settingsOpen]);
 
+  useEffect(() => {
+    if (!settingsOpen) return undefined;
+
+    const updatePopoverPosition = () => {
+      const button = settingsButtonRef.current;
+      if (!button) return;
+
+      const rect = button.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const rightGap = Math.max(12, viewportWidth - rect.right);
+      const top = rect.bottom + 10;
+
+      setSettingsPopoverStyle({
+        position: 'fixed',
+        top: `${top}px`,
+        right: `${rightGap}px`,
+        left: 'auto',
+        minWidth: isMobile ? '200px' : '220px',
+        maxWidth: 'calc(100vw - 24px)',
+        zIndex: 400,
+      });
+    };
+
+    updatePopoverPosition();
+    window.addEventListener('resize', updatePopoverPosition);
+    window.addEventListener('scroll', updatePopoverPosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePopoverPosition);
+      window.removeEventListener('scroll', updatePopoverPosition, true);
+    };
+  }, [isMobile, settingsOpen]);
+
   const isAdmin = hasVerifiedAdminSession();
+  const openHeaderSearch = () => {
+    if (location.pathname === '/cases') {
+      window.dispatchEvent(new Event('praxis:focus-case-search'));
+      return;
+    }
+    navigate('/cases', { state: { focusSearch: true } });
+  };
 
   const runtimeIssueBadge = runtimeIssueCount > 99 ? '99+' : String(runtimeIssueCount);
   const navItems = [
@@ -247,7 +293,7 @@ export default function Layout({ children }) {
                   width: '260px',
                   justifyContent: 'flex-start',
                 }}
-                onClick={() => navigate('/cases', { state: { focusSearch: true } })}
+                onClick={openHeaderSearch}
                 title="Open Case Browser search"
               >
                 <Search size={14} style={{ opacity: 0.5 }} />
@@ -283,12 +329,19 @@ export default function Layout({ children }) {
               <span className="nav-link-badge">{bookmarks.length}</span>
             </button>
 
-            <div className="header-controls" ref={settingsRef}>
-              <button className={`btn btn-icon ${settingsOpen ? 'btn-primary' : 'btn-ghost'}`} onClick={() => setSettingsOpen(!settingsOpen)} aria-label="Settings">
+            <div className="header-controls">
+              <button
+                ref={settingsButtonRef}
+                className={`btn btn-icon ${settingsOpen ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setSettingsOpen(!settingsOpen)}
+                aria-label="Settings"
+                aria-expanded={settingsOpen}
+                aria-haspopup="menu"
+              >
                 <Settings size={16} />
               </button>
 
-              {settingsOpen && (
+              {false && settingsOpen && (
                 <div className="glass-card header-popover">
                   <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
                     <Clock size={16} /> <span>{timerEnabled ? 'Hide HUD Timer' : 'Show HUD Timer'}</span>
@@ -315,6 +368,35 @@ export default function Layout({ children }) {
             </div>
           </div>
         </header>
+
+        {settingsOpen && typeof document !== 'undefined' && createPortal(
+          <div
+            ref={settingsPopoverRef}
+            className="glass-card header-popover"
+            style={settingsPopoverStyle ?? undefined}
+          >
+            <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
+              <Clock size={16} /> <span>{timerEnabled ? 'Hide HUD Timer' : 'Show HUD Timer'}</span>
+            </button>
+            <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); navigate('/review'); }}>
+              <RotateCcw size={16} /> <span>Open FSRS Review</span>
+            </button>
+
+            <div style={{ width: '100%', height: '1px', background: 'rgba(148, 163, 184, 0.1)', margin: '4px 0' }} />
+
+            <button
+              className="btn btn-ghost"
+              style={{
+                justifyContent: 'flex-start', width: '100%',
+                ...(isPrometric ? { background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' } : {})
+              }}
+              onClick={() => { setSettingsOpen(false); changeThemeSmoothly(isPrometric ? 0 : 2); }}
+            >
+              <span aria-hidden="true">🏥</span> <span>{isPrometric ? 'Exit CBT Mode' : 'Exam Day Simulator'}</span>
+            </button>
+          </div>,
+          document.body
+        )}
 
         <AnimatePresence mode="wait">
           <Motion.div

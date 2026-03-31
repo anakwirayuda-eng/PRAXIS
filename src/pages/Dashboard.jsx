@@ -222,12 +222,12 @@ export default function Dashboard() {
           </div>
 
           {/* Mission Card */}
-          <div className="glass-card" style={{
+          <div className="glass-card dashboard-coldstart-card" style={{
             position: 'relative', zIndex: 10, maxWidth: 420, padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8) var(--sp-6)',
             textAlign: 'center', border: '1px solid rgba(99,102,241,0.3)',
             boxShadow: '0 0 80px rgba(99,102,241,0.1)',
           }}>
-            <div style={{
+            <div className="dashboard-coldstart-icon" style={{
               width: 72, height: 72, borderRadius: 'var(--radius-full)',
               background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -258,7 +258,7 @@ export default function Dashboard() {
         </div>
       )}
       {!isColdStart && (
-        <div className="glass-card" style={{ padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8)', marginBottom: 'var(--sp-8)', overflow: 'visible' }}>
+        <div className="glass-card dashboard-hero-card" style={{ padding: isCompactMobile ? 'var(--sp-6) var(--sp-4)' : 'var(--sp-8)', marginBottom: 'var(--sp-8)', overflow: 'visible' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-6)' }}>
             <div style={{ flex: 1, minWidth: isCompactMobile ? 0 : 280 }}>
               <div className="badge badge-primary" style={{ marginBottom: 'var(--sp-3)' }}>
@@ -267,7 +267,7 @@ export default function Dashboard() {
               <h1 style={{ fontSize: 'var(--fs-4xl)', fontFamily: 'var(--font-heading)', marginBottom: 'var(--sp-3)', lineHeight: 1.1 }}>
                 Master Clinical
                 <br />
-                <span style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                <span className="dashboard-hero-accent" style={{ background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   Reasoning
                 </span>
                </h1>
@@ -352,7 +352,7 @@ export default function Dashboard() {
       </div>
 
       <div
-        className="glass-card"
+        className="glass-card dashboard-library-health"
         style={{
           padding: 'var(--sp-6)',
           marginBottom: 'var(--sp-8)',
@@ -378,6 +378,7 @@ export default function Dashboard() {
               { label: 'Truncated', value: dataQuality.truncated, accent: '#38bdf8', icon: '📝' },
             ].map((item) => (
               <div
+                className="dashboard-library-health-tile"
                 key={item.label}
                 style={{
                   minWidth: 170,
@@ -454,7 +455,7 @@ export default function Dashboard() {
       </div>
 
       {/* 🧠 SCT COMMAND CENTER — Prominent hero section for the new UKMPPD format */}
-      <div className="glass-card" style={{
+      <div className="glass-card dashboard-sct-card" style={{
         padding: 'var(--sp-6)',
         marginBottom: 'var(--sp-6)',
         background: 'linear-gradient(135deg, rgba(168,85,247,0.08) 0%, rgba(99,102,241,0.06) 50%, rgba(56,189,248,0.05) 100%)',
@@ -463,7 +464,7 @@ export default function Dashboard() {
         overflow: 'hidden',
       }}>
         {/* Decorative glow */}
-        <div style={{
+        <div className="dashboard-sct-glow" style={{
           position: 'absolute', top: -60, right: -60,
           width: 200, height: 200, borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%)',
@@ -473,7 +474,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-5)' }}>
           <div style={{ flex: 1, minWidth: 280 }}>
             {/* Badge */}
-            <div style={{
+            <div className="dashboard-sct-badge" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
               padding: '4px 12px', borderRadius: 'var(--radius-full)',
               background: 'rgba(168,85,247,0.15)',
@@ -517,7 +518,7 @@ export default function Dashboard() {
             {/* Quick Stats Row */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--sp-4)', marginBottom: 'var(--sp-4)' }}>
               <div>
-                <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: '#c084fc' }}>
+                <div className="dashboard-sct-stat-value" style={{ fontSize: 'var(--fs-2xl)', fontWeight: 800, color: '#c084fc' }}>
                   {sctStats.total.toLocaleString()}
                 </div>
                 <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Playable SCT</div>
@@ -536,7 +537,7 @@ export default function Dashboard() {
             {/* Action Buttons */}
             <div style={{ display: 'flex', flexDirection: isCompactMobile ? 'column' : 'row', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
               <button
-                className="btn btn-lg w-full"
+                className="btn btn-lg w-full dashboard-sct-primary-btn"
                 onClick={openSctPractice}
                 style={{
                   background: 'linear-gradient(135deg, #a855f7, #6366f1)',
@@ -550,7 +551,7 @@ export default function Dashboard() {
                 <Play size={16} /> Mulai Latihan SCT
               </button>
               <button
-                className="btn btn-ghost btn-lg w-full"
+                className="btn btn-ghost btn-lg w-full dashboard-sct-secondary-btn"
                 onClick={() => navigate('/cases?type=SCT')}
                 style={{ borderColor: 'rgba(168,85,247,0.3)', color: '#c084fc', flex: isCompactMobile ? '1 1 100%' : '0 1 auto' }}
               >
@@ -560,7 +561,7 @@ export default function Dashboard() {
           </div>
 
             {/* SCT readiness ring — SCT progress is not persisted */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div className="dashboard-sct-ring" style={{ position: 'relative', flexShrink: 0 }}>
               <ProgressRing
                 value={sctStats.total > 0 ? 100 : 0}
               size={130}
@@ -572,7 +573,7 @@ export default function Dashboard() {
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               }}>
-              <span style={{ fontSize: 'var(--fs-xl)', fontWeight: 800, color: '#c084fc' }}>
+              <span className="dashboard-sct-ring-value" style={{ fontSize: 'var(--fs-xl)', fontWeight: 800, color: '#c084fc' }}>
                 {sctStats.total > 0 ? 'LIVE' : 'LOCK'}
               </span>
               <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>SCT READY</span>

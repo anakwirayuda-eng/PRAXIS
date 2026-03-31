@@ -34,8 +34,8 @@ function TimerRing({ value, max, size = 52, stroke = 4 }) {
   const color = isUrgent ? 'var(--accent-danger)' : 'var(--accent-primary)';
   
   return (
-    <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.4)', borderRadius: '50%', boxShadow: isUrgent ? '0 0 16px rgba(239,68,68,0.2)' : 'none', transition: 'box-shadow 0.3s' }}>
-      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
+    <div className="exam-timer-ring" style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.4)', borderRadius: '50%', boxShadow: isUrgent ? '0 0 16px rgba(239,68,68,0.2)' : 'none', transition: 'box-shadow 0.3s' }}>
+      <svg className="exam-timer-ring-svg" width={size} height={size} style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(148,163,184,0.15)" strokeWidth={stroke} />
         <circle
           cx={size / 2}
@@ -50,7 +50,7 @@ function TimerRing({ value, max, size = 52, stroke = 4 }) {
           style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.3s ease' }}
         />
       </svg>
-      <div style={{ position: 'relative', zIndex: 2, fontSize: 11, fontWeight: 700, color: isUrgent ? 'var(--accent-danger)' : 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }} aria-label={`${Math.floor(value / 60)} minutes and ${value % 60} seconds remaining`}>
+      <div className="exam-timer-ring-display" style={{ position: 'relative', zIndex: 2, fontSize: 11, fontWeight: 700, color: isUrgent ? 'var(--accent-danger)' : 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }} aria-label={`${Math.floor(value / 60)} minutes and ${value % 60} seconds remaining`}>
         {Math.floor(value / 60)}:{String(value % 60).padStart(2, '0')}
       </div>
     </div>
@@ -79,6 +79,7 @@ export default function ExamMode() {
     submitAnswer,
     nextCase,
     resetSession,
+    timerEnabled,
   } = useStore();
 
   const [config, setConfig] = useState({
@@ -334,7 +335,7 @@ export default function ExamMode() {
             )}
           </div>
           <div className="exam-runbar-controls" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
-            <TimerRing value={timeLeft} max={config.timeLimit * 60} />
+            {timerEnabled && <TimerRing value={timeLeft} max={config.timeLimit * 60} />}
             <button className="btn btn-ghost" onClick={resetExam} style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
               End
             </button>

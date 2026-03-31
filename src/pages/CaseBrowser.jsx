@@ -266,12 +266,33 @@ export default function CaseBrowser() {
   }, [location.key, location.state]);
 
   useEffect(() => {
-    if (!location.state?.focusSearch) return undefined;
+    const focusSearchField = () => {
+      const input = searchInputRef.current;
+      if (!input) return;
+      input.focus();
+      input.select();
+      if (typeof input.scrollIntoView === 'function') {
+        input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      }
+    };
+
+    const handleHeaderSearchFocus = () => {
+      window.requestAnimationFrame(focusSearchField);
+    };
+
+    window.addEventListener('praxis:focus-case-search', handleHeaderSearchFocus);
+
+    if (!location.state?.focusSearch) {
+      return () => window.removeEventListener('praxis:focus-case-search', handleHeaderSearchFocus);
+    }
+
     const frame = window.requestAnimationFrame(() => {
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
+      focusSearchField();
     });
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('praxis:focus-case-search', handleHeaderSearchFocus);
+    };
   }, [location.key, location.state]);
 
   const hasAppliedFilters = showBookmarksOnly
@@ -350,16 +371,12 @@ export default function CaseBrowser() {
           <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases • Shuffled daily • Unseen first</p>
         </div>
         <button
-          className="btn"
+          className="btn btn-primary browser-random-btn"
           aria-label="Start random case"
           onClick={goRandomCase}
           disabled={filteredCases.length === 0}
           title={filteredCases.length === 0 ? 'Tidak ada case yang cocok dengan filter saat ini.' : undefined}
           style={{
-            background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
-            border: 'none',
-            color: '#ffffff',
-            textShadow: '0 1px 1px rgba(0, 0, 0, 0.35)',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',

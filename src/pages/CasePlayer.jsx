@@ -253,6 +253,7 @@ export function CasePlayerSession({
   flagQuestion,
 }) {
   const location = useLocation();
+  const timerEnabled = useStore((state) => state.timerEnabled);
   const [timer, setTimer] = useState(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const [fsrsGraded, setFsrsGraded] = useState(false);
@@ -587,10 +588,12 @@ export function CasePlayerSession({
               {caseData.confidence >= 4 ? '✓ Verified' : caseData.confidence >= 3 ? '~ Review' : '⚠ Low'}
             </span>
           )}
-          <div className="timer">
-            <Clock size={14} />
-            <span>{formatTime(timer)}</span>
-          </div>
+          {timerEnabled && (
+            <div className="timer">
+              <Clock size={14} />
+              <span>{formatTime(timer)}</span>
+            </div>
+          )}
           <button
             className="btn btn-ghost btn-icon"
             onClick={() => toggleBookmark(caseData._id)}
@@ -990,9 +993,11 @@ export function CasePlayerSession({
               <h3 style={{ color: isCorrect ? 'var(--accent-success)' : 'var(--accent-danger)' }}>
                 {isCorrect ? 'Correct!' : 'Incorrect'}
               </h3>
-              <span style={{ marginLeft: 'auto', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
-                Time: {formatTime(timer)}
-              </span>
+              {timerEnabled && (
+                <span style={{ marginLeft: 'auto', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
+                  Time: {formatTime(timer)}
+                </span>
+              )}
             </div>
 
             {!isCorrect && (

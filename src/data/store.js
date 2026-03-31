@@ -37,6 +37,17 @@ const readNumber = (key, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const readBoolean = (key, fallback = false) => {
+  const storage = getStorage();
+  if (!storage) return fallback;
+
+  const raw = storage.getItem(key);
+  if (raw === null) return fallback;
+  if (raw === 'true') return true;
+  if (raw === 'false') return false;
+  return fallback;
+};
+
 const writeStorage = (key, value) => {
   const storage = getStorage();
   if (!storage) return;
@@ -85,7 +96,7 @@ export const useStore = create((set, get) => ({
   categoryScores: readJSON('mc_catScores', {}, isObject),
 
   // Settings
-  timerEnabled: true,
+  timerEnabled: readBoolean('mc_timerEnabled', true),
   sidebarOpen: getInitialSidebarState(),
 
   // DFA Dispatch
@@ -242,7 +253,11 @@ export const useStore = create((set, get) => ({
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen: Boolean(sidebarOpen) }),
-  toggleTimer: () => set((state) => ({ timerEnabled: !state.timerEnabled })),
+  toggleTimer: () => set((state) => {
+    const nextValue = !state.timerEnabled;
+    writeStorage('mc_timerEnabled', nextValue);
+    return { timerEnabled: nextValue };
+  }),
 
   getAccuracy: () => {
     const { totalAnswered, totalCorrect } = get();

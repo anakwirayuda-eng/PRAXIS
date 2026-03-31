@@ -327,6 +327,16 @@ h1, h2, h3, h4, h5, h6 {
 .btn:active {
   transform: scale(0.96);
 }
+.browser-random-btn svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+  color: currentColor;
+}
+.browser-random-btn span[aria-hidden="true"] {
+  display: none;
+}
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
@@ -494,7 +504,7 @@ h1, h2, h3, h4, h5, h6 {
   border-right: var(--border-subtle);
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 120;
   transform: translateX(0);
   transition:
     width var(--duration-slow) var(--ease-out),
@@ -635,8 +645,8 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
-  z-index: 50;
-  contain: layout paint;
+  z-index: 120;
+  
 }
 
 @supports (backdrop-filter: blur(16px)) {
@@ -644,9 +654,9 @@ h1, h2, h3, h4, h5, h6 {
     background: rgba(10, 14, 23, 0.65);
     -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
-    -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
-    padding-bottom: calc(var(--sp-2) + 8px);
+    
+    
+    padding-bottom: 0;
   }
 }
 
@@ -1056,9 +1066,13 @@ h1, h2, h3, h4, h5, h6 {
     height: calc(56px + var(--safe-top));
   }
   .header-popover {
-    right: 0;
+    position: fixed;
+    top: calc(56px + var(--safe-top) - 6px);
+    right: 12px;
     left: auto;
     min-width: 200px;
+    max-width: calc(100vw - 24px);
+    z-index: 300;
   }
 
   /* Option cards: bigger touch targets */
@@ -1891,6 +1905,62 @@ body:has(.flashcard-mode) .page-content {
   box-shadow: 0 1px 0 rgba(255,255,255,0.35) inset, 0 4px 12px rgba(107, 95, 63, 0.22);
   filter: none;
 }
+:root[data-theme="textbook-sepia"] .dashboard-coldstart-card,
+:root[data-theme="textbook-sepia"] .dashboard-hero-card,
+:root[data-theme="textbook-sepia"] .dashboard-library-health,
+:root[data-theme="textbook-sepia"] .dashboard-sct-card {
+  background: #f7f0df !important;
+  border: 1px solid rgba(107, 95, 63, 0.18) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset, 0 8px 20px rgba(60, 50, 40, 0.06) !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-coldstart-icon {
+  background: linear-gradient(135deg, #6b5f3f, #8a7552) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-hero-accent {
+  background: none !important;
+  -webkit-text-fill-color: #6b5f3f !important;
+  color: #6b5f3f !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-library-health-tile {
+  background: rgba(107, 95, 63, 0.06) !important;
+  border: 1px solid rgba(107, 95, 63, 0.14) !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-sct-glow {
+  opacity: 0.45;
+}
+:root[data-theme="textbook-sepia"] .dashboard-sct-badge {
+  background: rgba(107, 95, 63, 0.1) !important;
+  color: #6b5f3f !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-sct-stat-value,
+:root[data-theme="textbook-sepia"] .dashboard-sct-ring-value {
+  color: #6b5f3f !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-sct-primary-btn {
+  background: linear-gradient(135deg, #6b5f3f, #8a7552) !important;
+  color: #fffdf7 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="textbook-sepia"] .dashboard-sct-secondary-btn {
+  background: rgba(107, 95, 63, 0.04) !important;
+  color: #6b5f3f !important;
+  border-color: rgba(107, 95, 63, 0.24) !important;
+}
+:root[data-theme="textbook-sepia"] .filter-bar-row .btn[aria-pressed="true"] {
+  background: rgba(107, 95, 63, 0.08) !important;
+  color: #6b5f3f !important;
+  border: 1px solid rgba(107, 95, 63, 0.24) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="textbook-sepia"] .exam-timer-ring {
+  background: rgba(107, 95, 63, 0.08) !important;
+  border: 1px solid rgba(107, 95, 63, 0.18);
+  box-shadow: none !important;
+}
+:root[data-theme="textbook-sepia"] .exam-timer-ring-display {
+  color: #6b5f3f !important;
+}
 :root[data-theme="textbook-sepia"] .btn-ghost,
 :root[data-theme="textbook-sepia"] .header .btn-ghost {
   background: rgba(255, 255, 255, 0.72);
@@ -2088,6 +2158,98 @@ body:has(.flashcard-mode) .page-content {
   color: #003399 !important;
   border: 1px solid #ffffff !important;
   box-shadow: none !important;
+}
+:root[data-theme="prometric"] .browser-random-btn,
+:root[data-theme="prometric"] .dashboard-sct-primary-btn {
+  background: #003399 !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+  border: 2px outset #ffffff !important;
+  border-right-color: #001a66 !important;
+  border-bottom-color: #001a66 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .browser-random-btn:hover,
+:root[data-theme="prometric"] .dashboard-sct-primary-btn:hover {
+  background: #003399 !important;
+  color: #ffffff !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .dashboard-coldstart-card,
+:root[data-theme="prometric"] .dashboard-hero-card,
+:root[data-theme="prometric"] .dashboard-library-health,
+:root[data-theme="prometric"] .dashboard-sct-card {
+  background: #ece9d8 !important;
+  border: 1px solid #808080 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .dashboard-coldstart-icon {
+  background: #003399 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .dashboard-hero-accent {
+  background: none !important;
+  -webkit-text-fill-color: #003399 !important;
+  color: #003399 !important;
+}
+:root[data-theme="prometric"] .dashboard-library-health-tile {
+  background: #ffffff !important;
+  border: 1px solid #808080 !important;
+  border-radius: 0 !important;
+}
+:root[data-theme="prometric"] .dashboard-sct-glow {
+  display: none !important;
+}
+:root[data-theme="prometric"] .dashboard-sct-badge {
+  background: #ece9d8 !important;
+  color: #003399 !important;
+  border: 1px solid #808080 !important;
+  border-radius: 0 !important;
+}
+:root[data-theme="prometric"] .dashboard-sct-stat-value,
+:root[data-theme="prometric"] .dashboard-sct-ring-value {
+  color: #003399 !important;
+}
+:root[data-theme="prometric"] .dashboard-sct-secondary-btn {
+  background: #ece9d8 !important;
+  color: #003399 !important;
+  border: 1px solid #808080 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .dashboard-sct-secondary-btn:hover {
+  background: #f5f5f5 !important;
+  color: #003399 !important;
+}
+:root[data-theme="prometric"] .filter-bar-row .btn[aria-pressed="true"] {
+  background: #dbe7ff !important;
+  color: #003399 !important;
+  border: 1px solid #003399 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .exam-timer-ring {
+  background: #000000 !important;
+  border: 2px inset #808080 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  width: auto !important;
+  min-width: 92px;
+  height: auto !important;
+  padding: 4px 10px;
+}
+:root[data-theme="prometric"] .exam-timer-ring-svg {
+  display: none !important;
+}
+:root[data-theme="prometric"] .exam-timer-ring-display {
+  color: #00ff00 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 1.05rem !important;
+  letter-spacing: 1px;
 }
 :root[data-theme="prometric"] .badge,
 :root[data-theme="prometric"] .rapid-recall-badge {
