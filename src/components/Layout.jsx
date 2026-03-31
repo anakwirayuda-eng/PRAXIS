@@ -10,7 +10,7 @@ import { hasVerifiedAdminSession } from '../lib/adminSession';
 import { useRuntimeWatchdog } from '../lib/runtimeWatchdog';
 import {
   LayoutDashboard, BookOpen, BarChart3, Clock, Bookmark,
-  Settings, Menu, Zap, Trophy, RotateCcw, Dices, Shield, Bug, Eye, Search, Command, Brain
+  Settings, Menu, Zap, Trophy, RotateCcw, Dices, Shield, Bug, Eye, Search, Command, Brain, Moon, Monitor
 } from 'lucide-react';
 
 const THEMES = [
@@ -18,6 +18,12 @@ const THEMES = [
   { id: 'textbook-sepia', label: '📜 Textbook Sepia', desc: 'Zero-Fatigue' },
   { id: 'prometric', label: '🏢 Prometric', desc: 'CBT Authentic' },
 ];
+
+const THEME_ICONS = {
+  'surgical-slate': Moon,
+  'textbook-sepia': BookOpen,
+  prometric: Monitor,
+};
 
 const baseNavItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -45,12 +51,17 @@ export default function Layout({ children }) {
 
   const accuracy = getAccuracy();
 
-  // Reactive Mobile Detection (update on resize, not just mount)
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+  // Reactive Mobile Detection (via matchMedia, not noisy resize events)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+  });
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    const handleChange = (event) => setIsMobile(event.matches);
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   // ═══════════════════════════════════════════
@@ -65,6 +76,7 @@ export default function Layout({ children }) {
   });
 
   const isPrometric = THEMES[themeIndex].id === 'prometric';
+  const CurrentThemeIcon = THEME_ICONS[THEMES[themeIndex].id] ?? Eye;
 
   const applyThemeToDOM = useCallback((idx) => {
     const theme = THEMES[idx];
@@ -176,7 +188,7 @@ export default function Layout({ children }) {
           {!isPrometric && (
             <>
               <span className="sidebar-section-label" style={{ marginTop: 'var(--sp-4)' }}>Quick Stats</span>
-              <div className="glass-card" style={{ padding: 'var(--sp-4)', margin: 'var(--sp-2) 0', background: 'rgba(99,102,241,0.04)', border: '1px solid rgba(99,102,241,0.08)' }}>
+              <div className="glass-card" style={{ padding: 'var(--sp-4)', margin: 'var(--sp-2) 0', background: 'var(--accent-primary-glow)', border: '1px solid var(--border-glass)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
                   <Zap size={14} style={{ color: 'var(--accent-warning)', marginRight: 8 }} />
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Streak</span>
@@ -232,8 +244,8 @@ export default function Layout({ children }) {
               <button
                 className="btn btn-ghost header-search-trigger"
                 style={{
-                  background: 'rgba(15, 23, 42, 0.4)', border: '1px solid rgba(148, 163, 184, 0.1)',
-                  width: '260px', justifyContent: 'flex-start', color: 'var(--text-muted)'
+                  width: '260px',
+                  justifyContent: 'flex-start',
                 }}
                 onClick={() => navigate('/cases', { state: { focusSearch: true } })}
                 title="Open Case Browser search"
@@ -257,12 +269,12 @@ export default function Layout({ children }) {
 
             <button
               className="btn btn-ghost"
-              style={{ gap: 'var(--sp-2)', minWidth: 'auto', color: isPrometric ? 'var(--accent-primary)' : 'inherit' }}
+              style={{ gap: 'var(--sp-2)', minWidth: 'auto' }}
               onClick={cycleTheme}
               title={`Theme: ${THEMES[themeIndex].label} (Alt+T)`}
               aria-label="Cycle theme"
             >
-              <Eye size={16} />
+              <CurrentThemeIcon size={16} />
               {!isMobile && <span style={{ fontSize: 'var(--fs-xs)' }}>{THEMES[themeIndex].desc}</span>}
             </button>
 

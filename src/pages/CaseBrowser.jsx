@@ -358,6 +358,8 @@ export default function CaseBrowser() {
           style={{
             background: 'linear-gradient(135deg, var(--accent-secondary), var(--accent-primary))',
             border: 'none',
+            color: '#ffffff',
+            textShadow: '0 1px 1px rgba(0, 0, 0, 0.35)',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',

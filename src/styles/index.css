@@ -7,6 +7,7 @@
 
 /* ── Design Tokens ── */
 :root {
+  color-scheme: dark;
   /* Colors — Dark Premium Palette */
   /* OLED Smear fix: Slate-900 keeps pixels alive, Slate-300 kills halation */
   --bg-base: #0f172a;
@@ -16,7 +17,7 @@
   --bg-glass: rgba(15, 23, 42, 0.55);
   --bg-sidebar: rgba(15, 23, 42, 0.92);
   
-  --text-primary: #f8fafc;
+  --text-primary: #e2e8f0;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
   --text-inverse: #0f172a;
@@ -1796,6 +1797,7 @@ body:has(.flashcard-mode) .page-content {
 
 /* ── THEME 2: Textbook Sepia (Zero-Fatigue Light Mode) ── */
 :root[data-theme="textbook-sepia"] {
+  color-scheme: light;
   --bg-base: #fdfbf7;
   --bg-elevated: #f7f4ee;
   --bg-card: rgba(255, 255, 255, 0.85);
@@ -1803,14 +1805,14 @@ body:has(.flashcard-mode) .page-content {
   --bg-glass: rgba(255, 255, 255, 0.7);
   --bg-sidebar: rgba(247, 244, 238, 0.95);
 
-  --text-primary: #1e293b;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
+  --text-primary: #3c3228;
+  --text-secondary: #5e5142;
+  --text-muted: #8c7e6c;
   --text-inverse: #f8fafc;
 
-  --accent-primary: #4f46e5;
-  --accent-primary-glow: rgba(79, 70, 229, 0.15);
-  --accent-secondary: #7c3aed;
+  --accent-primary: #6b5f3f;
+  --accent-primary-glow: rgba(107, 95, 63, 0.15);
+  --accent-secondary: #8a7552;
   --accent-success: #059669;
   --accent-success-glow: rgba(5, 150, 105, 0.12);
   --accent-warning: #d97706;
@@ -1821,8 +1823,8 @@ body:has(.flashcard-mode) .page-content {
   --border-subtle: 1px solid rgba(0, 0, 0, 0.06);
   --border-glass: 1px solid rgba(0, 0, 0, 0.08);
 
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 2px rgba(60, 50, 40, 0.05);
+  --shadow-md: 0 4px 12px rgba(60, 50, 40, 0.08);
   --shadow-lg: 0 12px 32px rgba(0,0,0,0.08);
   --shadow-xl: 0 20px 48px rgba(0,0,0,0.1);
   --shadow-glow: none;
@@ -1876,8 +1878,8 @@ body:has(.flashcard-mode) .page-content {
 }
 :root[data-theme="textbook-sepia"] .input:focus,
 :root[data-theme="textbook-sepia"] .input:focus-visible {
-  border-color: rgba(79, 70, 229, 0.28);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+  border-color: rgba(107, 95, 63, 0.28);
+  box-shadow: 0 0 0 3px rgba(107, 95, 63, 0.08);
 }
 :root[data-theme="textbook-sepia"] .btn-primary {
   background: linear-gradient(135deg, #6b5f3f, #8a7552);
@@ -1912,11 +1914,14 @@ body:has(.flashcard-mode) .page-content {
   box-shadow: 0 10px 30px rgba(30, 41, 59, 0.08);
 }
 :root[data-theme="textbook-sepia"] ::selection {
-  background: rgba(79, 70, 229, 0.15);
+  background: rgba(107, 95, 63, 0.15);
   color: var(--text-primary);
 }
 :root[data-theme="textbook-sepia"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(107, 95, 63, 0.25);
+}
+:root[data-theme="textbook-sepia"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 95, 63, 0.4);
 }
 :root[data-theme="textbook-sepia"] .stat-value {
   background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
@@ -1927,6 +1932,7 @@ body:has(.flashcard-mode) .page-content {
 
 /* ── THEME 3: Prometric Brutalism (CBT Authentic) ── */
 :root[data-theme="prometric"] {
+  color-scheme: light;
   --bg-base: #d4d0c8;
   --bg-elevated: #ece9d8;
   --bg-card: #ffffff;
@@ -1949,8 +1955,8 @@ body:has(.flashcard-mode) .page-content {
   --accent-danger-glow: rgba(204, 0, 0, 0.1);
   --accent-info: #006699;
 
-  --font-body: Arial, Helvetica, sans-serif;
-  --font-heading: Arial, Helvetica, sans-serif;
+  --font-body: Tahoma, Verdana, Arial, sans-serif;
+  --font-heading: Tahoma, Verdana, Arial, sans-serif;
 
   --border-subtle: 1px solid #999999;
   --border-glass: 2px solid #808080;
@@ -2002,6 +2008,14 @@ body:has(.flashcard-mode) .page-content {
   background: #003399;
   color: white;
   border-bottom: 2px solid #001a66;
+  -webkit-mask-image: none;
+  mask-image: none;
+  padding-bottom: 0;
+  box-shadow: none;
+}
+:root[data-theme="prometric"] .header,
+:root[data-theme="prometric"] .header * {
+  color: #ffffff;
 }
 :root[data-theme="prometric"] .sidebar {
   -webkit-backdrop-filter: none;
@@ -2051,27 +2065,173 @@ body:has(.flashcard-mode) .page-content {
   background: #f5f5f5;
   color: #000000;
 }
-:root[data-theme="prometric"] .header-search-trigger {
+:root[data-theme="prometric"] .header .btn-ghost {
+  background: transparent !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .header .btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  border: 1px dotted #ffffff !important;
+}
+:root[data-theme="prometric"] .header .btn-primary {
+  background: #ffffff !important;
+  color: #003399 !important;
+  border: 1px solid #ffffff !important;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .header .btn-primary:hover {
   background: #ece9d8 !important;
-  border: 1px solid #808080 !important;
-  color: #333333 !important;
-  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #ffffff;
+  color: #003399 !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .badge,
+:root[data-theme="prometric"] .rapid-recall-badge {
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-theme="prometric"] .badge-info,
+:root[data-theme="prometric"] .badge-primary,
+:root[data-theme="prometric"] .badge-success,
+:root[data-theme="prometric"] .badge-warning,
+:root[data-theme="prometric"] .badge-danger {
+  background: #ece9d8;
+  border: 1px solid #808080;
+}
+:root[data-theme="prometric"] .badge-info {
+  color: #003399;
+}
+:root[data-theme="prometric"] .badge-primary {
+  color: #003399;
+}
+:root[data-theme="prometric"] .badge-success {
+  color: #006600;
+}
+:root[data-theme="prometric"] .badge-warning {
+  color: #cc6600;
+}
+:root[data-theme="prometric"] .badge-danger {
+  color: #cc0000;
+}
+:root[data-theme="prometric"] .nav-link:hover {
+  background: #f5f5f5;
+  color: #000000;
+}
+:root[data-theme="prometric"] .nav-link.active {
+  background: #dbe7ff;
+  color: #003399;
+}
+:root[data-theme="prometric"] .nav-link.active::before {
+  background: #003399;
+}
+:root[data-theme="prometric"] .nav-link-badge {
+  background: #003399;
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-theme="prometric"] .header .nav-link-badge {
+  background: #ffffff;
+  color: #003399;
+  border: 1px solid #003399;
+  border-radius: 0;
+  box-shadow: none;
+}
+:root[data-theme="prometric"] .progress-bar {
+  background: #c0c0c0;
+  border-radius: 0;
+}
+:root[data-theme="prometric"] .progress-bar-fill {
+  background: #003399;
+  border-radius: 0;
+}
+:root[data-theme="prometric"] .rapid-recall-badge {
+  background: #ece9d8;
+  border: 1px solid #808080;
+  color: #003399;
+}
+:root[data-theme="prometric"] .header .header-search-trigger {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px inset #dfdfdf !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .header .header-search-trigger,
+:root[data-theme="prometric"] .header .header-search-trigger span,
+:root[data-theme="prometric"] .header .header-search-trigger svg,
+:root[data-theme="prometric"] .header .header-search-trigger div {
+  color: #000000 !important;
+  opacity: 1 !important;
 }
 :root[data-theme="prometric"] .header-popover {
   background: #ece9d8;
-  border: 2px solid #808080;
+  border: 2px outset #ffffff;
+  border-right-color: #808080;
+  border-bottom-color: #808080;
   border-radius: 0;
   box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
 }
 :root[data-theme="prometric"] .header-popover .btn-ghost {
   width: 100%;
+  color: #000000 !important;
+  text-align: left !important;
+  border-radius: 0 !important;
+}
+:root[data-theme="prometric"] .header-popover .btn-ghost:hover {
+  background: #000080 !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
 }
 :root[data-theme="prometric"] .btn-primary {
   background: #003399;
   border-radius: 0;
   box-shadow: inset -1px -1px 0 #001a66, inset 1px 1px 0 #4d80cc;
 }
+:root[data-theme="prometric"] .btn-primary:hover {
+  background: #003399;
+  box-shadow: inset -1px -1px 0 #001a66, inset 1px 1px 0 #4d80cc;
+  filter: none;
+}
 :root[data-theme="prometric"] .stat-value {
   background: none;
   -webkit-text-fill-color: var(--text-primary);
+}
+:root[data-theme="prometric"] .fsrs-buttons .btn {
+  background: #ece9d8 !important;
+  color: #000000 !important;
+  border: 2px outset #ffffff !important;
+  border-right-color: #808080 !important;
+  border-bottom-color: #808080 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+:root[data-theme="prometric"] .fsrs-buttons .btn:active {
+  border-style: inset !important;
+  padding-top: calc(var(--sp-3) + 1px) !important;
+  padding-bottom: calc(var(--sp-3) - 1px) !important;
+}
+:root[data-theme="textbook-sepia"] .fsrs-buttons .btn {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-primary) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="textbook-sepia"] .fsrs-buttons .btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Theme view transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  mix-blend-mode: normal;
+}
+
+:root[data-theme="prometric"]::view-transition-old(root),
+:root[data-theme="prometric"]::view-transition-new(root) {
+  animation: none !important;
 }
