@@ -44,6 +44,7 @@ export default function Layout({ children }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsButtonRef = useRef(null);
   const settingsPopoverRef = useRef(null);
+  const lastNonPrometricThemeRef = useRef(0);
   const [settingsPopoverStyle, setSettingsPopoverStyle] = useState(null);
   const { count: runtimeIssueCount } = useRuntimeWatchdog();
 
@@ -80,6 +81,12 @@ export default function Layout({ children }) {
 
   const isPrometric = THEMES[themeIndex].id === 'prometric';
   const CurrentThemeIcon = THEME_ICONS[THEMES[themeIndex].id] ?? Eye;
+
+  useEffect(() => {
+    if (!isPrometric) {
+      lastNonPrometricThemeRef.current = themeIndex;
+    }
+  }, [isPrometric, themeIndex]);
 
   const applyThemeToDOM = useCallback((idx) => {
     const theme = THEMES[idx];
@@ -359,7 +366,7 @@ export default function Layout({ children }) {
                       justifyContent: 'flex-start', width: '100%',
                       ...(isPrometric ? { background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' } : {})
                     }}
-                    onClick={() => { setSettingsOpen(false); changeThemeSmoothly(isPrometric ? 0 : 2); }}
+                    onClick={() => { setSettingsOpen(false); changeThemeSmoothly(isPrometric ? lastNonPrometricThemeRef.current : 2); }}
                   >
                     🏥 <span>{isPrometric ? 'Exit CBT Mode' : 'Exam Day Simulator'}</span>
                   </button>
@@ -374,23 +381,26 @@ export default function Layout({ children }) {
             ref={settingsPopoverRef}
             className="glass-card header-popover"
             style={settingsPopoverStyle ?? undefined}
+            role="menu"
+            aria-label="Page settings"
           >
-            <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
+            <button role="menuitem" className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
               <Clock size={16} /> <span>{timerEnabled ? 'Hide HUD Timer' : 'Show HUD Timer'}</span>
             </button>
-            <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); navigate('/review'); }}>
+            <button role="menuitem" className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); navigate('/review'); }}>
               <RotateCcw size={16} /> <span>Open FSRS Review</span>
             </button>
 
             <div style={{ width: '100%', height: '1px', background: 'rgba(148, 163, 184, 0.1)', margin: '4px 0' }} />
 
             <button
+              role="menuitem"
               className="btn btn-ghost"
               style={{
                 justifyContent: 'flex-start', width: '100%',
                 ...(isPrometric ? { background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' } : {})
               }}
-              onClick={() => { setSettingsOpen(false); changeThemeSmoothly(isPrometric ? 0 : 2); }}
+              onClick={() => { setSettingsOpen(false); changeThemeSmoothly(isPrometric ? lastNonPrometricThemeRef.current : 2); }}
             >
               <span aria-hidden="true">🏥</span> <span>{isPrometric ? 'Exit CBT Mode' : 'Exam Day Simulator'}</span>
             </button>
@@ -400,7 +410,7 @@ export default function Layout({ children }) {
 
         <AnimatePresence mode="wait">
           <Motion.div
-            key={location.pathname + location.search}
+            key={location.pathname}
             initial={{ opacity: 0, y: isPrometric ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: isPrometric ? 0 : -8 }}

@@ -32,7 +32,7 @@ function TimerRing({ value, max, size = 52, stroke = 4 }) {
   const offset = circumference - (value / max) * circumference;
   const isUrgent = value <= 60;
   const color = isUrgent ? 'var(--accent-danger)' : 'var(--accent-primary)';
-  
+
   return (
     <div className="exam-timer-ring" style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15,23,42,0.4)', borderRadius: '50%', boxShadow: isUrgent ? '0 0 16px rgba(239,68,68,0.2)' : 'none', transition: 'box-shadow 0.3s' }}>
       <svg className="exam-timer-ring-svg" width={size} height={size} style={{ transform: 'rotate(-90deg)', position: 'absolute', top: 0, left: 0 }}>
@@ -347,7 +347,6 @@ export default function ExamMode() {
         </div>
 
         <div className="glass-card" style={{ padding: 'var(--sp-6)', marginBottom: 'var(--sp-6)' }}>
-          <h2 style={{ fontSize: 'var(--fs-xl)', marginBottom: 'var(--sp-3)' }}>{currentCase.title}</h2>
           {!isFlashcardSprint && (demographics.age || demographics.sex) && (
             <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--accent-primary)', marginBottom: 'var(--sp-3)', display: 'inline-block' }}>
               {demographics.age && `${demographics.age}y`}

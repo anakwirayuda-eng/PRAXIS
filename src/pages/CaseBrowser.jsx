@@ -74,6 +74,12 @@ function updateQueryParams(searchParams, updates) {
   return next;
 }
 
+function getBrowserResetKey(searchParams) {
+  const next = new URLSearchParams(searchParams);
+  next.delete('q');
+  return next.toString();
+}
+
 export function buildCasePlaylist(cases, currentIndex, maxSize = 2000) {
   const safeCases = Array.isArray(cases) ? cases : [];
   const cappedSize = Math.max(1, maxSize);
@@ -116,12 +122,26 @@ export default function CaseBrowser() {
   const observerTarget = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Genius Hack 3: Deferred search — no re-filter on every keystroke
+  // Genius Hack 3: Deferred search + Debounced URL Sync
   const deferredSearch = useDeferredValue(search.toLowerCase());
 
+  // Only absorb external URL query string changes (e.g. going back/forward)
   useEffect(() => {
-    setSearch(searchQuery);
+    if (searchQuery !== search) {
+      setSearch(searchQuery);
+    }
   }, [searchQuery]);
+
+  // Debounce typed local search state into the URL so fast keystrokes aren't skipped
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      const activeQuery = searchParams.get('q') || '';
+      if (activeQuery !== search) {
+        setSearchParams(updateQueryParams(searchParams, { q: search }), { replace: true });
+      }
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search, searchParams, setSearchParams]);
 
   const selectedCategory = searchParams.get('category') || 'all';
   const selectedDifficulty = searchParams.get('difficulty') || 'all';
@@ -197,14 +217,23 @@ export default function CaseBrowser() {
   // Genius Hack 2: IntersectionObserver infinite scroll
   // Reset page only when the browsing query actually changes.
   // Streaming more cases into the library should not collapse a deep scroll session.
-  const prevBrowserQueryRef = useRef(location.search);
+  const browserResetKey = useMemo(() => getBrowserResetKey(searchParams), [searchParams]);
+  const prevBrowserResetKeyRef = useRef(browserResetKey);
+  const prevSearchQueryRef = useRef(searchQuery);
   useEffect(() => {
-    if (prevBrowserQueryRef.current !== location.search) {
+    if (prevBrowserResetKeyRef.current !== browserResetKey) {
       setPage(1);
-      prevBrowserQueryRef.current = location.search;
+      prevBrowserResetKeyRef.current = browserResetKey;
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }
-  }, [location.search]);
+  }, [browserResetKey]);
+
+  useEffect(() => {
+    if (prevSearchQueryRef.current !== searchQuery) {
+      setPage(1);
+      prevSearchQueryRef.current = searchQuery;
+    }
+  }, [searchQuery]);
 
   const paginatedCases = useMemo(
     () => filteredCases.slice(0, page * PAGE_SIZE),
@@ -231,8 +260,7 @@ export default function CaseBrowser() {
   };
 
   const setSearchQuery = (value) => {
-    setSearch(value);
-    setSearchParams(updateQueryParams(searchParams, { q: value }), { replace: true });
+    setSearch(value); // URL will sync autonomously via the debounce effect
   };
 
   const setReviewMode = (nextMode) => {

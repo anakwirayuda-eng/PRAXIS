@@ -168,11 +168,11 @@ export default function ReviewPage() {
             const state = getCaseState(due.caseId);
 
             return (
-              <Motion.div key={due.caseId} className="glass-card glass-card-interactive"
+              <Motion.button key={due.caseId} type="button" className="glass-card glass-card-interactive"
                 onClick={() => openReviewCase(due.caseId)}
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
-                style={{ padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
+                style={{ padding: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', flexWrap: 'wrap', width: '100%', textAlign: 'left', background: 'transparent', border: 'var(--border-glass)', cursor: 'pointer' }}>
                 
                 {/* Priority badge */}
                 <div style={{
@@ -206,7 +206,7 @@ export default function ReviewPage() {
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 2 }}>Retention</div>
                   <RetentionBar value={due.retrievability} />
                 </div>
-              </Motion.div>
+              </Motion.button>
             );
           })}
         </div>
