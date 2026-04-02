@@ -1,5 +1,86 @@
 const UNCLASSIFIED_CATEGORY = 'Unclassified';
 
+const DEFAULT_SOURCE_PROFILE = {
+  raw: 4,
+  subject: 3,
+  tags: 3,
+  topic: 3,
+  organ: 3,
+  prefix: 2,
+  keyword: 1,
+  narrative: 2,
+  options: 1,
+};
+
+const SOURCE_RESOLUTION_PROFILES = {
+  medmcqa: {
+    raw: 4,
+    prefix: 2,
+  },
+  medqa: {
+    raw: 1,
+    prefix: 0,
+    organ: 3,
+    topic: 3,
+    narrative: 2,
+  },
+  headqa: {
+    raw: 1,
+    prefix: 0,
+    organ: 3,
+    topic: 2,
+    narrative: 1,
+  },
+  pedmedqa: {
+    raw: 0,
+    prefix: 0,
+    organ: 4,
+    topic: 4,
+    narrative: 2,
+  },
+  'polish ldek en': {
+    raw: 1,
+    prefix: 0,
+    organ: 1,
+    topic: 1,
+    narrative: 2,
+    options: 2,
+  },
+  'tw medqa': {
+    raw: 1,
+    prefix: 0,
+    organ: 2,
+    topic: 2,
+    narrative: 2,
+  },
+  'fk leaked ukmppd': {
+    raw: 2,
+    prefix: 1,
+    organ: 2,
+    topic: 3,
+    narrative: 2,
+  },
+  'ukmppd pdf': {
+    raw: 2,
+    prefix: 0,
+    narrative: 2,
+  },
+  pubmedqa: {
+    raw: 2,
+    prefix: 0,
+    narrative: 2,
+  },
+};
+
+const BROAD_RAW_CATEGORIES = new Set([
+  'Ilmu Penyakit Dalam',
+  'Bedah',
+]);
+
+const ALWAYS_DEMOTE_RAW_SOURCES = new Set([
+  'pedmedqa',
+]);
+
 const CATEGORY_ALIASES = {
   'Ilmu Penyakit Dalam': [
     'Ilmu Penyakit Dalam',
@@ -211,23 +292,26 @@ const CATEGORY_KEYWORDS = {
   'Ilmu Penyakit Dalam': [
     'internal medicine', 'cardiology', 'gastroenterology', 'endocrinology', 'nephrology',
     'rheumatology', 'hematology', 'pulmonology', 'infectious disease', 'hepatology',
-    'geriatric', 'afib', 'copd', 'ckd',
+    'geriatric', 'afib', 'copd', 'ckd', 'cardiovascular', 'gastrointestinal',
+    'endocrine', 'respiratory', 'renal', 'infectious', 'hemodialysis',
   ],
   Bedah: [
     'surgery', 'surgical', 'appendectomy', 'appendicitis', 'orthopedic', 'orthopaedic',
     'fracture', 'laparotomy', 'urology', 'neurosurgery', 'hernia', 'trauma',
+    'musculoskeletal', 'postoperative', 'arthroscopy', 'arthroplasty',
   ],
   'Obstetri & Ginekologi': [
     'obstetric', 'obstetrics', 'gynecology', 'gynaecology', 'preeclampsia',
-    'antenatal', 'postpartum', 'labor', 'delivery', 'placenta',
+    'antenatal', 'postpartum', 'labor', 'delivery', 'placenta', 'menstrual',
+    'amenorrhea', 'ectopic pregnancy', 'gynecology', 'obstetrics',
   ],
   'Ilmu Kesehatan Anak': [
     'pediatric', 'pediatrics', 'paediatric', 'neonate', 'newborn', 'infant',
-    'child', 'breast milk', 'immunization',
+    'child', 'breast milk', 'immunization', 'adolescent', 'adolescence',
   ],
   Neurologi: [
     'neurology', 'stroke', 'seizure', 'epilepsy', 'neuropathy', 'parkinson',
-    'migraine', 'cranial nerve',
+    'migraine', 'cranial nerve', 'neurological',
   ],
   Psikiatri: [
     'psychiatry', 'psychiatric', 'depression', 'schizophrenia', 'bipolar',
@@ -239,7 +323,8 @@ const CATEGORY_KEYWORDS = {
   ],
   'Ilmu Kesehatan Masyarakat': [
     'public health', 'epidemiology', 'biostatistics', 'screening', 'outbreak',
-    'prevention', 'surveillance', 'community medicine', 'psm',
+    'prevention', 'surveillance', 'community medicine', 'psm', 'public_health',
+    'community participation', 'health promotion',
   ],
   Radiologi: [
     'radiology', 'ct scan', 'mri', 'x ray', 'x-ray', 'ultrasonography',
@@ -251,11 +336,11 @@ const CATEGORY_KEYWORDS = {
   ],
   THT: [
     'ent', 'otorhinolaryngology', 'otolaryngology', 'sinus', 'larynx', 'ear',
-    'nasal', 'throat',
+    'nasal', 'throat', 'otitis', 'tympanic', 'hearing', 'ENT',
   ],
   'Kulit & Kelamin': [
     'dermatology', 'skin', 'venereology', 'dermatitis', 'psoriasis', 'urticaria',
-    'pemphigus', 'std', 'sti',
+    'pemphigus', 'std', 'sti', 'dermatological',
   ],
   Forensik: [
     'forensic', 'medicolegal', 'autopsy', 'toxicology', 'putrefaction',
@@ -272,7 +357,10 @@ const CATEGORY_KEYWORDS = {
   'Kedokteran Gigi': [
     'dental', 'dentistry', 'tooth', 'teeth', 'gingiva', 'gingival', 'periodont',
     'orthodont', 'endodont', 'prosthodont', 'cej', 'tmj', 'plaque', 'enamel',
-    'dentin', 'pulp', 'malocclusion', 'steiner',
+    'dentin', 'pulp', 'malocclusion', 'steiner', 'maxilla', 'maxillary',
+    'mandible', 'mandibular', 'molar', 'incisor', 'canine', 'premolar',
+    'occlusal', 'root canal', 'rubber dam', 'caries', 'alveolar', 'pulpitis',
+    'periodontal pocket', 'oral cavity', 'orthodontic band',
   ],
   Biokimia: [
     'biochemistry', 'enzyme', 'metabolism', 'amino acid', 'dna', 'rna',
@@ -280,7 +368,7 @@ const CATEGORY_KEYWORDS = {
   ],
   Mikrobiologi: [
     'microbiology', 'bacteriology', 'virology', 'fungus', 'parasite', 'gram stain',
-    'culture media',
+    'culture media', 'rhinovirus', 'interferon', 'viral replication',
   ],
   'Patologi Anatomi': [
     'pathology', 'histopathology', 'biopsy', 'neoplasia', 'microscopy',
@@ -324,6 +412,21 @@ export function normalizeCategoryExact(value) {
   return EXACT_ALIAS_INDEX.get(normalizeText(value)) || null;
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function keywordMatches(normalizedText, normalizedKeyword) {
+  if (!normalizedText || !normalizedKeyword) return false;
+
+  if (normalizedKeyword.includes(' ') || normalizedKeyword.length <= 4) {
+    const pattern = new RegExp(`(?:^| )${escapeRegExp(normalizedKeyword)}(?:$| )`);
+    return pattern.test(normalizedText);
+  }
+
+  return normalizedText.includes(normalizedKeyword);
+}
+
 function addSignal(scoreMap, signalMap, category, weight, source, match) {
   if (!category || category === UNCLASSIFIED_CATEGORY) return;
   scoreMap.set(category, (scoreMap.get(category) || 0) + weight);
@@ -339,14 +442,14 @@ function collectKeywordSignals(text, source, weight, scoreMap, signalMap) {
   if (!normalized) return;
 
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    const match = keywords.find((keyword) => normalized.includes(normalizeText(keyword)));
+    const match = keywords.find((keyword) => keywordMatches(normalized, normalizeText(keyword)));
     if (match) {
       addSignal(scoreMap, signalMap, category, weight, source, match);
     }
   }
 }
 
-function collectTagSignals(tags, scoreMap, signalMap) {
+function collectTagSignals(tags, scoreMap, signalMap, weight = 3, source = 'tags') {
   if (!Array.isArray(tags)) return;
   const normalizedTags = tags
     .map((tag) => normalizeText(tag))
@@ -356,49 +459,101 @@ function collectTagSignals(tags, scoreMap, signalMap) {
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     const match = keywords.find((keyword) => {
       const normalizedKeyword = normalizeText(keyword);
-      return normalizedTags.some((tag) => tag.includes(normalizedKeyword) || normalizedKeyword.includes(tag));
+      return normalizedTags.some((tag) => keywordMatches(tag, normalizedKeyword) || keywordMatches(normalizedKeyword, tag));
     });
     if (match) {
-      addSignal(scoreMap, signalMap, category, 3, 'tags', match);
+      addSignal(scoreMap, signalMap, category, weight, source, match);
     }
   }
 }
 
 function extractCaseCodePrefix(caseCode) {
-  const match = /^MMC-([A-Z]+)-/.exec(String(caseCode || '').trim());
-  return match ? match[1] : null;
+  const normalized = String(caseCode || '').trim().toUpperCase();
+  const sourceAwareMatch = /^[A-Z0-9]+-([A-Z]+)-/.exec(normalized);
+  if (sourceAwareMatch) return sourceAwareMatch[1];
+
+  const legacyMatch = /^MMC-([A-Z]+)-/.exec(normalized);
+  return legacyMatch ? legacyMatch[1] : null;
+}
+
+function getSourceProfile(source) {
+  const key = normalizeText(source);
+  return {
+    ...DEFAULT_SOURCE_PROFILE,
+    ...(SOURCE_RESOLUTION_PROFILES[key] || {}),
+  };
+}
+
+function getRawWeight(source, rawCategory, profile) {
+  if (!rawCategory) return 0;
+  const sourceKey = normalizeText(source);
+  if (ALWAYS_DEMOTE_RAW_SOURCES.has(sourceKey)) {
+    return profile.raw;
+  }
+  return BROAD_RAW_CATEGORIES.has(rawCategory) ? profile.raw : DEFAULT_SOURCE_PROFILE.raw;
+}
+
+function getNarrative(caseData) {
+  return caseData?.vignette?.narrative
+    || caseData?.question
+    || caseData?.meta?.narrative
+    || '';
+}
+
+function getOptionCorpus(caseData) {
+  const options = Array.isArray(caseData?.options) ? caseData.options : [];
+  return options
+    .map((option) => option?.text ?? option?.option_text ?? '')
+    .filter(Boolean)
+    .join(' ');
 }
 
 export function resolveCaseCategory(caseData) {
-  const rawCategory = caseData?.category ?? null;
+  const existingResolution = caseData?.meta?.category_resolution && typeof caseData.meta.category_resolution === 'object'
+    ? caseData.meta.category_resolution
+    : null;
+  const rawCategory = existingResolution?.raw_category ?? caseData?.category ?? null;
   const rawNormalized = normalizeCategoryExact(rawCategory);
+  const source = caseData?.source || caseData?.meta?.source || null;
+  const profile = getSourceProfile(source);
   const scoreMap = new Map();
   const signalMap = new Map();
 
-  if (rawNormalized) {
-    addSignal(scoreMap, signalMap, rawNormalized, 4, 'raw', rawCategory);
+  const rawWeight = getRawWeight(source, rawNormalized, profile);
+  if (rawNormalized && rawWeight > 0) {
+    addSignal(scoreMap, signalMap, rawNormalized, rawWeight, 'raw', rawCategory);
   }
 
-  const subject = caseData?.subject_name || caseData?.meta?.subject || caseData?.meta?.subject_name || null;
+  const subject = caseData?.subject_name || caseData?.subject || caseData?.meta?.subject || caseData?.meta?.subject_name || null;
   const normalizedSubject = normalizeCategoryExact(subject);
   if (normalizedSubject) {
-    addSignal(scoreMap, signalMap, normalizedSubject, 3, 'subject', subject);
+    addSignal(scoreMap, signalMap, normalizedSubject, profile.subject, 'subject', subject);
   } else {
-    collectKeywordSignals(subject, 'subject', 3, scoreMap, signalMap);
+    collectKeywordSignals(subject, 'subject', profile.subject, scoreMap, signalMap);
   }
 
-  collectTagSignals(caseData?.meta?.tags, scoreMap, signalMap);
+  collectTagSignals(caseData?.meta?.tags, scoreMap, signalMap, profile.tags, 'tags');
+  collectTagSignals(caseData?.meta?.topic_keywords, scoreMap, signalMap, profile.topic, 'topic_keywords');
+  if (caseData?.meta?.organ_system) {
+    collectTagSignals([caseData.meta.organ_system], scoreMap, signalMap, profile.organ, 'organ_system');
+  }
 
   const prefix = extractCaseCodePrefix(caseData?.case_code);
   const prefixCategory = prefix ? CASE_CODE_PREFIX_MAP[prefix] : null;
-  if (prefixCategory && prefixCategory !== rawNormalized) {
-    addSignal(scoreMap, signalMap, prefixCategory, 2, 'prefix', prefix);
+  if (prefixCategory && prefixCategory !== rawNormalized && profile.prefix > 0) {
+    addSignal(scoreMap, signalMap, prefixCategory, profile.prefix, 'prefix', prefix);
   }
 
-  const titlePromptCorpus = [caseData?.title, caseData?.prompt, caseData?.topic, caseData?.subject_name]
+  const titlePromptCorpus = [caseData?.title, caseData?.prompt, caseData?.topic, caseData?.subject_name, caseData?.subject]
     .filter(Boolean)
     .join(' ');
-  collectKeywordSignals(titlePromptCorpus, 'keyword', 1, scoreMap, signalMap);
+  collectKeywordSignals(titlePromptCorpus, 'keyword', profile.keyword, scoreMap, signalMap);
+
+  const narrativeCorpus = getNarrative(caseData);
+  collectKeywordSignals(narrativeCorpus, 'narrative', profile.narrative, scoreMap, signalMap);
+
+  const optionCorpus = getOptionCorpus(caseData);
+  collectKeywordSignals(optionCorpus, 'options', profile.options, scoreMap, signalMap);
 
   for (const [category, signals] of signalMap.entries()) {
     const contentSources = new Set(
@@ -443,7 +598,12 @@ export function resolveCaseCategory(caseData) {
 
 export function applyResolvedCategory(caseData) {
   const resolution = resolveCaseCategory(caseData);
-  const validRaw = resolution.raw_normalized_category;
+  const existingResolution = caseData?.meta?.category_resolution && typeof caseData.meta.category_resolution === 'object'
+    ? caseData.meta.category_resolution
+    : null;
+  const preservedRawCategory = existingResolution?.raw_category ?? resolution.raw_category;
+  const preservedRawNormalized = existingResolution?.raw_normalized_category ?? resolution.raw_normalized_category;
+  const validRaw = preservedRawNormalized;
   let finalCategory = validRaw || UNCLASSIFIED_CATEGORY;
 
   if (resolution.confidence === 'high') {
@@ -462,8 +622,8 @@ export function applyResolvedCategory(caseData) {
       ...(caseData?.meta || {}),
       category_review_needed: reviewNeeded,
       category_resolution: {
-        raw_category: resolution.raw_category,
-        raw_normalized_category: resolution.raw_normalized_category,
+        raw_category: preservedRawCategory,
+        raw_normalized_category: preservedRawNormalized,
         resolved_category: resolution.resolved_category,
         confidence: resolution.confidence,
         category_conflict: resolution.category_conflict,
