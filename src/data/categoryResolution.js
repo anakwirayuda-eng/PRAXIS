@@ -380,6 +380,54 @@ const CATEGORY_KEYWORDS = {
   ],
 };
 
+const POLISH_LDEK_DENTAL_PROMOTION_MATCHES = new Set([
+  'dental',
+  'dentistry',
+  'tooth',
+  'teeth',
+  'enamel',
+  'dentin',
+  'dentine',
+  'pulp',
+  'gingiva',
+  'gingival',
+  'periodont',
+  'periodontal',
+  'orthodont',
+  'endodont',
+  'prosthodont',
+  'occlusal',
+  'caries',
+  'root canal',
+  'molar',
+  'premolar',
+  'incisor',
+  'canine',
+  'fluorosis',
+  'dentition',
+  'deciduous',
+  'papilla',
+  'alveolar',
+  'buccal',
+  'cephalometric',
+  'rubber dam',
+  'oral cavity',
+  'pulpitis',
+  'pellicle',
+  'whitening',
+  'apical',
+  'malocclusion',
+  'orthognathic',
+  'denture',
+  'mucocele',
+  'maxilla',
+  'maxillary',
+  'mandible',
+  'mandibular',
+  'odontogenic',
+  'articulator',
+].map((term) => normalizeText(term)));
+
 const HIGH_CONFIDENCE_THRESHOLD = 5;
 const HIGH_CONFIDENCE_LEAD = 2;
 const MEDIUM_CONFIDENCE_THRESHOLD = 3;
@@ -508,6 +556,38 @@ function getOptionCorpus(caseData) {
     .join(' ');
 }
 
+function hasPromotionSignal(signals, allowedMatches) {
+  if (!Array.isArray(signals) || signals.length === 0) return false;
+  return signals.some((signal) => allowedMatches.has(normalizeText(signal?.match)));
+}
+
+function getCategoryPromotion(caseData, resolution) {
+  const sourceKey = normalizeText(caseData?.source || caseData?.meta?.source || '');
+  if (sourceKey !== 'polish ldek en') return null;
+  if (resolution.resolved_category !== 'Kedokteran Gigi') return null;
+  if (resolution.confidence !== 'low') return null;
+  if (!hasPromotionSignal(resolution.winning_signals, POLISH_LDEK_DENTAL_PROMOTION_MATCHES)) return null;
+
+  const hasConsensus = Array.isArray(resolution.winning_signals)
+    && resolution.winning_signals.some((signal) => signal?.source === 'content-consensus');
+
+  if (resolution.runner_up_score <= 2) {
+    return {
+      rule: 'polish_ldek_dental_runner2',
+      confidence: 'high',
+    };
+  }
+
+  if (resolution.runner_up_score <= 4 && hasConsensus) {
+    return {
+      rule: 'polish_ldek_dental_consensus4',
+      confidence: 'high',
+    };
+  }
+
+  return null;
+}
+
 export function resolveCaseCategory(caseData) {
   const existingResolution = caseData?.meta?.category_resolution && typeof caseData.meta.category_resolution === 'object'
     ? caseData.meta.category_resolution
@@ -598,6 +678,8 @@ export function resolveCaseCategory(caseData) {
 
 export function applyResolvedCategory(caseData) {
   const resolution = resolveCaseCategory(caseData);
+  const promotion = getCategoryPromotion(caseData, resolution);
+  const effectiveConfidence = promotion?.confidence || resolution.confidence;
   const existingResolution = caseData?.meta?.category_resolution && typeof caseData.meta.category_resolution === 'object'
     ? caseData.meta.category_resolution
     : null;
@@ -606,13 +688,13 @@ export function applyResolvedCategory(caseData) {
   const validRaw = preservedRawNormalized;
   let finalCategory = validRaw || UNCLASSIFIED_CATEGORY;
 
-  if (resolution.confidence === 'high') {
+  if (effectiveConfidence === 'high') {
     finalCategory = resolution.resolved_category || finalCategory;
   } else if (!validRaw) {
     finalCategory = UNCLASSIFIED_CATEGORY;
   }
 
-  const reviewNeeded = resolution.confidence !== 'high'
+  const reviewNeeded = effectiveConfidence !== 'high'
     && (resolution.category_conflict || finalCategory === UNCLASSIFIED_CATEGORY);
 
   return {
@@ -625,12 +707,14 @@ export function applyResolvedCategory(caseData) {
         raw_category: preservedRawCategory,
         raw_normalized_category: preservedRawNormalized,
         resolved_category: resolution.resolved_category,
-        confidence: resolution.confidence,
+        confidence: effectiveConfidence,
+        base_confidence: resolution.confidence,
         category_conflict: resolution.category_conflict,
         winning_signals: resolution.winning_signals,
         runner_up_category: resolution.runner_up_category,
         runner_up_score: resolution.runner_up_score,
         prefix: resolution.prefix,
+        promotion_rule: promotion?.rule || null,
       },
     },
   };

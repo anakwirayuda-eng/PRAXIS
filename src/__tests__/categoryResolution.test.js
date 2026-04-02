@@ -89,4 +89,45 @@ describe('categoryResolution', () => {
     expect(updated.category).toBe('Kedokteran Gigi');
     expect(updated.meta.category_review_needed).toBe(false);
   });
+
+  it('promotes low-confidence polish-ldek-en dental items when runner-up noise is minimal', () => {
+    const updated = applyResolvedCategory({
+      source: 'polish-ldek-en',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'PLK-IPD-MCQ-00006',
+      title: 'The Preventive Resin Restoration (PRR) type I method is based on:',
+      prompt: 'Choose the single best answer.',
+      options: [
+        { option_text: 'etching the enamel and sealing pits and fissures.' },
+        { option_text: 'systemic antibiotic prophylaxis.' },
+        { option_text: 'intravenous hydration only.' },
+      ],
+      meta: { tags: ['LDEK'] },
+    });
+
+    expect(updated.category).toBe('Kedokteran Gigi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('polish_ldek_dental_runner2');
+  });
+
+  it('promotes consensus-backed polish-ldek-en dental cases even when raw metadata is wildly wrong', () => {
+    const updated = applyResolvedCategory({
+      source: 'polish-ldek-en',
+      category: 'Mata',
+      case_code: 'PLK-MTA-MCQ-00014',
+      title: 'To detect an approximal caries, apart from the traditional visual and tactile methods:',
+      prompt: 'Choose the single best answer.',
+      vignette: {
+        narrative: 'Caries detection in dental practice requires careful clinical evaluation.',
+      },
+      meta: {
+        tags: ['LDEK'],
+      },
+    });
+
+    expect(updated.category).toBe('Kedokteran Gigi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('polish_ldek_dental_consensus4');
+  });
 });
