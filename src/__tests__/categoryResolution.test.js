@@ -130,4 +130,44 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_review_needed).toBe(false);
     expect(updated.meta.category_resolution.promotion_rule).toBe('polish_ldek_dental_consensus4');
   });
+
+  it('promotes targeted tw-medqa category rescues with sharp low-runner-up signals', () => {
+    const updated = applyResolvedCategory({
+      source: 'tw-medqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'TWM-IPD-MCQ-00081',
+      title: 'PCR is one of the greatest discoveries of the twentieth century.',
+      prompt: 'Pilih jawaban yang paling tepat.',
+      options: [
+        { option_text: 'DNA template' },
+        { option_text: 'heat stable polymerase' },
+        { option_text: 'RNA primer only' },
+      ],
+      meta: { tags: ['Taiwan'] },
+    });
+
+    expect(updated.category).toBe('Biokimia');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('tw_medqa_targeted_runner2');
+  });
+
+  it('promotes targeted pubmedqa specialty rescues when the winning signal is sharp and uncontested', () => {
+    const updated = applyResolvedCategory({
+      source: 'pubmedqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'PMQ-IPD-MCQ-00018',
+      title: 'Specialist categorization check',
+      prompt: 'Does the specialty signal remain decisive?',
+      vignette: {
+        narrative: 'The abstract discusses study outcomes without adding extra specialty keywords.',
+      },
+      meta: {
+        organ_system: 'pharmacology',
+      },
+    });
+
+    expect(updated.category).toBe('Farmakologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('pubmedqa_targeted_runner2');
+  });
 });

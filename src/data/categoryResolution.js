@@ -428,6 +428,27 @@ const POLISH_LDEK_DENTAL_PROMOTION_MATCHES = new Set([
   'articulator',
 ].map((term) => normalizeText(term)));
 
+const PUBMEDQA_PROMOTION_MATCHES = {
+  Farmakologi: new Set(['pharmacology'].map((term) => normalizeText(term))),
+  Bedah: new Set(['surgical', 'postoperative'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Masyarakat': new Set(['public health'].map((term) => normalizeText(term))),
+  Neurologi: new Set(['neurological'].map((term) => normalizeText(term))),
+  Anatomi: new Set(['ligament', 'vein'].map((term) => normalizeText(term))),
+  'Anestesi & Emergency Medicine': new Set(['anesthesia', 'emergency'].map((term) => normalizeText(term))),
+};
+
+const TW_MEDQA_PROMOTION_MATCHES = {
+  Biokimia: new Set(['dna', 'rna', 'metabolism'].map((term) => normalizeText(term))),
+  Radiologi: new Set(['ct scan', 'mri', 'x ray'].map((term) => normalizeText(term))),
+  'Obstetri & Ginekologi': new Set(['gynecology', 'labor'].map((term) => normalizeText(term))),
+  Neurologi: new Set(['neurological'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Anak': new Set(['pediatric'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Masyarakat': new Set(['public health', 'surveillance'].map((term) => normalizeText(term))),
+  'Kulit & Kelamin': new Set(['dermatology'].map((term) => normalizeText(term))),
+  Farmakologi: new Set(['receptor'].map((term) => normalizeText(term))),
+  'Ilmu Penyakit Dalam': new Set(['endocrine'].map((term) => normalizeText(term))),
+};
+
 const HIGH_CONFIDENCE_THRESHOLD = 5;
 const HIGH_CONFIDENCE_LEAD = 2;
 const MEDIUM_CONFIDENCE_THRESHOLD = 3;
@@ -563,26 +584,62 @@ function hasPromotionSignal(signals, allowedMatches) {
 
 function getCategoryPromotion(caseData, resolution) {
   const sourceKey = normalizeText(caseData?.source || caseData?.meta?.source || '');
-  if (sourceKey !== 'polish ldek en') return null;
-  if (resolution.resolved_category !== 'Kedokteran Gigi') return null;
   if (resolution.confidence !== 'low') return null;
-  if (!hasPromotionSignal(resolution.winning_signals, POLISH_LDEK_DENTAL_PROMOTION_MATCHES)) return null;
 
-  const hasConsensus = Array.isArray(resolution.winning_signals)
-    && resolution.winning_signals.some((signal) => signal?.source === 'content-consensus');
+  if (sourceKey === 'polish ldek en') {
+    if (resolution.resolved_category !== 'Kedokteran Gigi') return null;
+    if (!hasPromotionSignal(resolution.winning_signals, POLISH_LDEK_DENTAL_PROMOTION_MATCHES)) return null;
 
-  if (resolution.runner_up_score <= 2) {
-    return {
-      rule: 'polish_ldek_dental_runner2',
-      confidence: 'high',
-    };
+    const hasConsensus = Array.isArray(resolution.winning_signals)
+      && resolution.winning_signals.some((signal) => signal?.source === 'content-consensus');
+
+    if (resolution.runner_up_score <= 2) {
+      return {
+        rule: 'polish_ldek_dental_runner2',
+        confidence: 'high',
+      };
+    }
+
+    if (resolution.runner_up_score <= 4 && hasConsensus) {
+      return {
+        rule: 'polish_ldek_dental_consensus4',
+        confidence: 'high',
+      };
+    }
+
+    return null;
   }
 
-  if (resolution.runner_up_score <= 4 && hasConsensus) {
-    return {
-      rule: 'polish_ldek_dental_consensus4',
-      confidence: 'high',
-    };
+  if (sourceKey === 'pubmedqa' && resolution.runner_up_score <= 2) {
+    const allowedMatches = PUBMEDQA_PROMOTION_MATCHES[resolution.resolved_category];
+    if (allowedMatches && hasPromotionSignal(resolution.winning_signals, allowedMatches)) {
+      return {
+        rule: 'pubmedqa_targeted_runner2',
+        confidence: 'high',
+      };
+    }
+  }
+
+  if (sourceKey === 'tw medqa' && resolution.runner_up_score <= 2) {
+    const allowedMatches = TW_MEDQA_PROMOTION_MATCHES[resolution.resolved_category];
+    if (allowedMatches && hasPromotionSignal(resolution.winning_signals, allowedMatches)) {
+      return {
+        rule: 'tw_medqa_targeted_runner2',
+        confidence: 'high',
+      };
+    }
+  }
+
+  if (sourceKey === 'tw medqa' && resolution.runner_up_score <= 4) {
+    const allowedMatches = TW_MEDQA_PROMOTION_MATCHES[resolution.resolved_category];
+    const hasConsensus = Array.isArray(resolution.winning_signals)
+      && resolution.winning_signals.some((signal) => signal?.source === 'content-consensus');
+    if (allowedMatches && hasConsensus && hasPromotionSignal(resolution.winning_signals, allowedMatches)) {
+      return {
+        rule: 'tw_medqa_targeted_consensus4',
+        confidence: 'high',
+      };
+    }
   }
 
   return null;

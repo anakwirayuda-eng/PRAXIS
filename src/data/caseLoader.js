@@ -4,6 +4,7 @@
  */
 import { useEffect, useSyncExternalStore } from 'react';
 import { caseBank as handCrafted, CATEGORIES } from './caseBank';
+import { sanitizeFdiTryoutCase } from './fdiTryoutSanitizer';
 import { captureException, fetchJsonWithWatchdog } from '../lib/runtimeWatchdog';
 import { deobfuscateCase, isObfuscated } from '../lib/aegisDecoder';
 
@@ -41,6 +42,7 @@ function normalizeOption(option, index) {
 }
 
 function normalizeCase(rawCase, fallbackId) {
+  rawCase = sanitizeFdiTryoutCase(rawCase ?? {});
   const normalizedId = Number.isInteger(rawCase?._id) ? rawCase._id : fallbackId;
   const meta = rawCase?.meta ?? {};
   const vignette = (typeof rawCase?.vignette === 'string') ? {} : (rawCase?.vignette ?? {});
