@@ -232,6 +232,11 @@ ADVISORY_MANUAL_CODES = {
 }
 
 
+def has_readability_ai_pass(case_data: dict[str, Any]) -> bool:
+    meta = case_data.get("meta") or {}
+    return meta.get("readability_ai_pass") is True
+
+
 def read_json(path: Path, default: Any) -> Any:
     if not path.exists():
         return default
@@ -524,6 +529,7 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
     meta = case_data.get("meta") or {}
     option_preview = [excerpt(option.get("text"), 90) for option in (case_data.get("options") or [])[:5]]
     all_keys = case_keys(case_data)
+    readability_ai_pass = has_readability_ai_pass(case_data)
 
     auto_reasons: list[dict[str, Any]] = []
     manual_reasons: list[dict[str, Any]] = []
@@ -542,11 +548,11 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
             elif bucket == "auto_fix":
                 push_reason(auto_reasons, seen_auto, signal["code"], signal["origin"], signal.get("evidence"))
 
-    if meta.get("needs_review") is True:
+    if meta.get("needs_review") is True and not readability_ai_pass:
         push_reason(manual_reasons, seen_manual, "needs_review", "meta.needs_review")
     if meta.get("truncated") is True:
         push_reason(manual_reasons, seen_manual, "truncated", "meta.truncated")
-    if is_quarantined(case_data):
+    if is_quarantined(case_data) and not readability_ai_pass:
         push_reason(manual_reasons, seen_manual, "quarantined", "meta.status" if str(meta.get("status") or "").startswith("QUARANTINED") else "meta.quarantined", str(meta.get("status") or meta.get("quarantine_reason") or ""))
 
     current_correct_count = correct_count(case_data)
@@ -559,14 +565,14 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
 
     if IMAGE_DEPENDENT_RE.search(question_text):
         push_reason(manual_reasons, seen_manual, "image_dependency", "heuristic")
-    if AOTA_RE.search(joined_text):
+    if AOTA_RE.search(joined_text) and not readability_ai_pass:
         push_reason(manual_reasons, seen_manual, "aota_suspect", "heuristic")
-    if NEGATION_RE.search(prompt):
+    if NEGATION_RE.search(prompt) and not readability_ai_pass:
         push_reason(advisory_reasons, seen_advisory, "negation_blindspot", "heuristic", excerpt(prompt, 120))
     option_blob = "\n".join(option_texts(case_data))
-    if ABSOLUTE_RE.search(option_blob):
+    if ABSOLUTE_RE.search(option_blob) and not readability_ai_pass:
         push_reason(advisory_reasons, seen_advisory, "absolute_trap", "heuristic")
-    if has_length_bias(case_data):
+    if has_length_bias(case_data) and not readability_ai_pass:
         push_reason(advisory_reasons, seen_advisory, "length_bias", "heuristic")
     if UNIT_COLLISION_RE.findall(joined_text):
         unique_units = sorted({match.lower() for match in UNIT_COLLISION_RE.findall(joined_text)})

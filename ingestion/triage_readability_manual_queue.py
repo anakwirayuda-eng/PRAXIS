@@ -189,6 +189,13 @@ def classify_item(item: dict[str, Any], meta: dict[str, Any]) -> tuple[str, str,
     reason_codes = {reason["code"] for reason in item.get("reasons", [])}
     source = str(item.get("source") or "").strip()
     needs_review_reason = str(meta.get("needs_review_reason") or "").strip()
+    readability_ai_hold = str(meta.get("readability_ai_hold") or "").strip()
+    readability_ai_pass = meta.get("readability_ai_pass") is True
+
+    if readability_ai_hold:
+        return "human_shortlist", "clinical_rewrite", "AI adjudication already exhausted the automated lane and needs a final editor pass"
+    if readability_ai_pass and reason_codes == {"metric_collision"}:
+        return "human_shortlist", "clinical_rewrite", "answer adjudication is already settled; the remaining unit collision now needs an editor rewrite pass"
 
     if needs_review_reason == "source_contamination_detected":
         return "human_shortlist", "contaminated_source_rewrite", "source contamination needs selective salvage or retirement"

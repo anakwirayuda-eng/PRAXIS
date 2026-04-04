@@ -207,6 +207,35 @@ function setSingleCorrectOption(options, correctIndex) {
   return changed;
 }
 
+function resolveOptionIndex(caseRecord, rawOptionId) {
+  if (!Array.isArray(caseRecord?.options) || caseRecord.options.length === 0) {
+    return -1;
+  }
+
+  const normalized = normalizeWhitespace(rawOptionId).toUpperCase();
+  if (!normalized) {
+    return -1;
+  }
+
+  const letter = normalized.startsWith('OP') ? normalized.slice(2) : normalized;
+  let optionIndex = caseRecord.options.findIndex((option) => {
+    const optionId = normalizeWhitespace(option?.id).toUpperCase();
+    return optionId === normalized || optionId === letter || optionId === `OP${letter}`;
+  });
+  if (optionIndex >= 0) {
+    return optionIndex;
+  }
+
+  if (/^[A-E]$/.test(letter)) {
+    optionIndex = letter.charCodeAt(0) - 65;
+    if (optionIndex >= 0 && optionIndex < caseRecord.options.length) {
+      return optionIndex;
+    }
+  }
+
+  return -1;
+}
+
 async function main() {
   if (!existsSync(RESULTS_DIR)) {
     console.log(`Result directory not found: ${RESULTS_DIR}. Nothing to apply.`);
@@ -314,11 +343,7 @@ async function main() {
     }
 
     const winningResult = verdict.result;
-    const optionIndex = Array.isArray(caseRecord.options)
-      ? caseRecord.options.findIndex(
-          (option) => String(option?.id ?? '').toUpperCase() === winningResult.correctOptionId.toUpperCase(),
-        )
-      : -1;
+    const optionIndex = resolveOptionIndex(caseRecord, winningResult.correctOptionId);
 
     if (optionIndex === -1) {
       meta.needs_review = true;

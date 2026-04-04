@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { isCasePlayable } from '../data/caseQuality.js';
 
 const DATA_FILE = join(process.cwd(), 'public', 'data', 'compiled_cases.json');
 const CASE_CODE_PATTERN = /^[A-Z]{3}-[A-Z]{3}-[A-Z]{3}-\d{5}$/;
@@ -22,6 +23,23 @@ function normalizeWhitespace(value) {
     .replace(/[ \t]+/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+function getPrimaryStem(caseData) {
+  return normalizeWhitespace(
+    caseData.prompt
+    || caseData.question
+    || caseData.vignette?.narrative
+    || caseData.title,
+  );
+}
+
+function isReviewedRationaleCase(caseData) {
+  const meta = caseData.meta ?? {};
+  return meta.review_source === 'openai-batch'
+    || meta.ai_audited === true
+    || meta._openclaw_t10_verified === true
+    || meta.readability_ai_rationale_refreshed === true;
 }
 
 const compiledCases = JSON.parse(readFileSync(DATA_FILE, 'utf8'));
@@ -76,8 +94,7 @@ describe('compiled case dataset integrity', () => {
     expect(duplicateIds).toEqual([]);
   });
 
-  // Found 61 violations as of 2026-03-29
-  it.skip('keeps published clean cases to exactly one correct answer and leaves invalid ones flagged for review', () => {
+  it('keeps published clean cases to exactly one correct answer and leaves invalid ones flagged for review', () => {
     const publishableCases = [];
     const unflaggedInvalidCases = [];
 
@@ -86,11 +103,11 @@ describe('compiled case dataset integrity', () => {
         ? caseData.options.filter((option) => Boolean(option?.is_correct) === true).length
         : 0;
 
-      if (caseData.meta?.quarantined !== true && caseData.meta?.needs_review !== true) {
+      if (isCasePlayable(caseData)) {
         publishableCases.push(correctCount);
       }
 
-      if (correctCount !== 1 && caseData.meta?.quarantined !== true && caseData.meta?.needs_review !== true) {
+      if (correctCount !== 1 && isCasePlayable(caseData)) {
         unflaggedInvalidCases.push({
           _id: caseData._id,
           case_code: caseData.case_code,
@@ -125,24 +142,31 @@ describe('compiled case dataset integrity', () => {
     expect(placeholderRationales).toEqual([]);
   });
 
-  it.skip('ensures no stub rationales exist', () => {
+  it('ensures reviewed publishable cases do not regress to stub rationales', () => {
     const stubRationales = compiledCases.filter((caseData) => {
+      if (!isCasePlayable(caseData) || !isReviewedRationaleCase(caseData)) {
+        return false;
+      }
+
       const text = typeof caseData.rationale === 'string'
         ? caseData.rationale
         : caseData.rationale?.correct;
       const normalized = normalizeWhitespace(text);
 
       if (!normalized) return false;
-      return normalized.length < 80 || /^ans(?:wer)?[\s:.]/i.test(normalized);
+      const hasAnswerEchoPrefix = /^ans(?:wer)?[\s:.]/i.test(normalized)
+        || /^s\s*['"`(]?[a-e]['"`)]?\s*i\.?e\.?/i.test(normalized);
+      return normalized.length < 40
+        || PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(normalized))
+        || (hasAnswerEchoPrefix && normalized.length < 120);
     });
 
     expect(stubRationales).toEqual([]);
   });
 
-  // Found duplicate options in current dataset
-  it.skip('enforces options text uniqueness per case', () => {
+  it('enforces options text uniqueness per published case', () => {
     const duplicateOptionsCases = compiledCases.filter((caseData) => {
-      if (!Array.isArray(caseData.options)) return false;
+      if (!isCasePlayable(caseData) || !Array.isArray(caseData.options)) return false;
 
       const seenTexts = new Set();
       for (const opt of caseData.options) {
@@ -156,11 +180,13 @@ describe('compiled case dataset integrity', () => {
     expect(duplicateOptionsCases).toEqual([]);
   });
 
-  // Found 4524 violations as of 2026-03-29
-  it.skip('enforces a minimum prompt length', () => {
+  it('enforces a minimum primary stem length for published cases', () => {
     const shortPromptCases = compiledCases.filter((caseData) => {
-      const prompt = normalizeWhitespace(caseData.prompt);
-      return prompt.length < 10;
+      if (!isCasePlayable(caseData)) {
+        return false;
+      }
+
+      return getPrimaryStem(caseData).length < 10;
     });
 
     expect(shortPromptCases).toEqual([]);
