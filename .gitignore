@@ -73,3 +73,5 @@ temp-vite.err
 dossier_*.md
 igakuqa_*.md
 .aider*
+__pycache__/
+*.py[cod]
