@@ -1,8 +1,8 @@
-/**
+﻿/**
  * MedCase Pro — Case Player Page
  * Core vignette display + MCQ/SCT rendering + DFA state
  */
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
@@ -62,20 +62,70 @@ function VitalsBadge({ label, value, icon: Icon, alert }) {
  * - Image type badges
  * - Sticky positioning (image stays visible while scrolling options)
  */
-function CaseImageGallery({ images, imageType }) {
+export function CaseImageGallery({ images, imageType }) {
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const [inverted, setInverted] = useState(false);
-
-  useEffect(() => {
-    if (lightboxIdx === null) return;
-    const handler = (e) => { if (e.key === 'Escape') setLightboxIdx(null); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [lightboxIdx]);
+  const lightboxRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const lastTriggerRef = useRef(null);
 
   const isPacs = imageType?.ui_mode === 'pacs_dark';
   const isEcg = imageType?.type === 'ECG';
   const typeBadge = imageType ? `${imageType.emoji} ${imageType.type}` : '📸 Clinical';
+  const closeLightbox = useCallback(() => setLightboxIdx(null), []);
+
+  const openLightbox = useCallback((index, triggerElement) => {
+    lastTriggerRef.current = triggerElement;
+    setLightboxIdx(index);
+  }, []);
+
+  useEffect(() => {
+    if (lightboxIdx === null) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      lastTriggerRef.current?.focus?.();
+    };
+  }, [lightboxIdx]);
+
+  const handleLightboxKeyDown = useCallback((event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeLightbox();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusable = Array.from(
+      lightboxRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') ?? [],
+    ).filter((element) => !element.hasAttribute('disabled') && element.getAttribute('aria-hidden') !== 'true');
+
+    if (focusable.length === 0) {
+      event.preventDefault();
+      lightboxRef.current?.focus();
+      return;
+    }
+
+    const firstFocusable = focusable[0];
+    const lastFocusable = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstFocusable) {
+      event.preventDefault();
+      lastFocusable.focus();
+      return;
+    }
+
+    if (!event.shiftKey && document.activeElement === lastFocusable) {
+      event.preventDefault();
+      firstFocusable.focus();
+    }
+  }, [closeLightbox]);
 
   return (
     <>
@@ -125,8 +175,13 @@ function CaseImageGallery({ images, imageType }) {
               key={img}
               role="button"
               tabIndex={0}
-              onClick={() => setLightboxIdx(idx)}
-              onKeyDown={(e) => { if (e.key === 'Enter') setLightboxIdx(idx); }}
+              aria-label={`Open ${typeBadge} image ${idx + 1}`}
+              onClick={(event) => openLightbox(idx, event.currentTarget)}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') return;
+                event.preventDefault();
+                openLightbox(idx, event.currentTarget);
+              }}
               style={{
                 borderRadius: 'var(--radius-md)',
                 overflow: 'hidden',
@@ -160,10 +215,14 @@ function CaseImageGallery({ images, imageType }) {
       {/* Lightbox with Zoom+Pan */}
       {lightboxIdx !== null && (
         <div
+          ref={lightboxRef}
           className="case-image-lightbox"
-          onClick={() => setLightboxIdx(null)}
+          onClick={closeLightbox}
+          onKeyDown={handleLightboxKeyDown}
           role="dialog"
+          aria-modal="true"
           aria-label="Image lightbox"
+          tabIndex={-1}
         >
           <div onClick={(e) => e.stopPropagation()} style={{ position: 'relative', maxWidth: '100vw', maxHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw' }}>
             <TransformWrapper centerOnInit={true} minScale={0.5} maxScale={4} initialScale={1}>
@@ -199,14 +258,14 @@ function CaseImageGallery({ images, imageType }) {
                 </button>
               )}
               {images.length > 1 && lightboxIdx > 0 && (
-                <button onClick={() => setLightboxIdx(i => i - 1)} style={{
+                <button onClick={() => setLightboxIdx(i => i - 1)} aria-label="Previous image" style={{
                   background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff',
                   padding: '6px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
                   backdropFilter: 'blur(8px)',
                 }}>← Prev</button>
               )}
               {images.length > 1 && lightboxIdx < images.length - 1 && (
-                <button onClick={() => setLightboxIdx(i => i + 1)} style={{
+                <button onClick={() => setLightboxIdx(i => i + 1)} aria-label="Next image" style={{
                   background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff',
                   padding: '6px 16px', borderRadius: 'var(--radius-md)', cursor: 'pointer',
                   backdropFilter: 'blur(8px)',
@@ -215,7 +274,8 @@ function CaseImageGallery({ images, imageType }) {
             </div>
           </div>
           <button
-            onClick={() => setLightboxIdx(null)}
+            ref={closeButtonRef}
+            onClick={closeLightbox}
             style={{
               position: 'absolute', 
               top: 'max(24px, env(safe-area-inset-top))', 
@@ -261,7 +321,7 @@ export function CasePlayerSession({
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   // ── Stamina Analytics: track time per question ──
-  const questionStartTime = useRef(Date.now());
+  const questionStartTime = useRef(0);
   const touchEliminateTimerRef = useRef(null);
   const suppressTouchTapRef = useRef(false);
 
@@ -311,7 +371,6 @@ export function CasePlayerSession({
   const vitals = vignette.vitalSigns;
   const options = caseData.options ?? [];
   const rationale = caseData.rationale ?? { correct: '', distractors: {}, pearl: '' };
-  const distractors = Object.entries(rationale.distractors ?? {});
   const provenance = caseData.meta?.provenance ?? [];
   const difficulty = caseData.meta?.difficulty ?? 0;
   const isBookmarked = bookmarks.includes(caseData._id);
@@ -389,9 +448,28 @@ export function CasePlayerSession({
   }, [caseData._id, caseData.options, isSCT]);
 
   const availableOptionIds = new Set(displayOptions.map((option) => option.id));
+  const displayOptionById = useMemo(
+    () => new Map(displayOptions.map((option) => [option.id, option])),
+    [displayOptions],
+  );
+  const correctOptionLabel = correctOption
+    ? (displayOptionById.get(correctOption.id)?.displayLetter ?? correctOption.id)
+    : null;
+  const distractors = useMemo(
+    () => Object.entries(rationale.distractors ?? {}).map(([optionId, text]) => ([
+      displayOptionById.get(optionId)?.displayLetter ?? optionId,
+      text,
+    ])),
+    [displayOptionById, rationale.distractors],
+  );
 
   useEffect(() => {
     startCase(caseData);
+    setTimer(0);
+    setShowExplanation(false);
+    setFsrsGraded(false);
+    setEliminated(new Set());
+    suppressTouchTapRef.current = false;
     questionStartTime.current = Date.now(); // reset timer for new case
     return () => {
       nextCase();
@@ -783,7 +861,11 @@ export function CasePlayerSession({
         </h3>
 
         {!isSCT && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gridAutoRows: '1fr', gap: 'var(--sp-3)' }}>
+          <div
+            role="radiogroup"
+            aria-label="Answer options"
+            style={{ display: 'grid', gridTemplateColumns: '1fr', gridAutoRows: '1fr', gap: 'var(--sp-3)' }}
+          >
             {!isReviewing && isTouchDevice && (
               <div style={{
                 fontSize: 'var(--fs-xs)',
@@ -806,11 +888,23 @@ export function CasePlayerSession({
                 <Motion.div
                   key={opt.id}
                   className={optionClass}
+                  role="radio"
+                  tabIndex={isReviewing ? -1 : 0}
+                  aria-checked={selectedAnswer === opt.id}
+                  aria-disabled={isReviewing || isEliminated}
                   onClick={() => {
                     if (suppressTouchTapRef.current) {
                       suppressTouchTapRef.current = false;
                       return;
                     }
+                    if (!isReviewing && !isEliminated) {
+                      selectAnswer(opt.id);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') return;
+                    event.preventDefault();
+                    event.stopPropagation();
                     if (!isReviewing && !isEliminated) {
                       selectAnswer(opt.id);
                     }
@@ -1002,7 +1096,7 @@ export function CasePlayerSession({
 
             {!isCorrect && (
               <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)' }}>
-                The correct answer is <strong style={{ color: 'var(--accent-success)' }}>{correctOption?.id ?? 'N/A'}: {correctOption?.text ?? 'Unavailable'}</strong>
+                The correct answer is <strong style={{ color: 'var(--accent-success)' }}>{correctOptionLabel ?? 'N/A'}: {correctOption?.text ?? 'Unavailable'}</strong>
               </p>
             )}
           </Motion.div>
@@ -1014,6 +1108,7 @@ export function CasePlayerSession({
           <ExplanationPanel
             rationale={rationale}
             correctOption={correctOption}
+            correctOptionLabel={correctOptionLabel}
             distractors={distractors}
             provenance={provenance}
           />
@@ -1058,10 +1153,9 @@ function MedText({ text }) {
   const parts = [];
   let lastIndex = 0;
 
-  // Reset regex
-  MEDICAL_HIGHLIGHT_RE.lastIndex = 0;
+  const highlightRegex = new RegExp(MEDICAL_HIGHLIGHT_RE.source, MEDICAL_HIGHLIGHT_RE.flags);
   let match;
-  while ((match = MEDICAL_HIGHLIGHT_RE.exec(text)) !== null) {
+  while ((match = highlightRegex.exec(text)) !== null) {
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }
@@ -1085,7 +1179,7 @@ function MedText({ text }) {
  *  2. Clinical Pearl promoted ABOVE full explanation as key takeaway
  *  3. Placeholder detection: honest "no explanation" notice
  */
-function ExplanationPanel({ rationale, correctOption, distractors, provenance }) {
+function ExplanationPanel({ rationale, correctOption, correctOptionLabel, distractors, provenance }) {
   const [isDecrypted, setIsDecrypted] = useState(false);
   const hasRealExplanation = !isPlaceholderExplanation(rationale.correct);
   const isLongExplanation = hasRealExplanation && rationale.correct.length > 200;
@@ -1133,7 +1227,7 @@ function ExplanationPanel({ rationale, correctOption, distractors, provenance })
           {!isLongExplanation && (
             <div style={{ marginBottom: 'var(--sp-4)' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)', color: 'var(--accent-success)' }}>
-                <CheckCircle size={18} /> {correctOption?.id ? `Why ${correctOption.id} is correct` : 'Explanation'}
+                <CheckCircle size={18} /> {correctOptionLabel ? `Why ${correctOptionLabel} is correct` : 'Explanation'}
               </h3>
               <p style={{ fontSize: 'var(--fs-sm)', lineHeight: 1.8, color: 'var(--text-secondary)' }}>
                 <MedText text={rationale.correct} />
@@ -1169,7 +1263,7 @@ function ExplanationPanel({ rationale, correctOption, distractors, provenance })
             <Motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
               <div style={{ marginBottom: 'var(--sp-4)' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)', color: 'var(--accent-success)' }}>
-                  <CheckCircle size={18} /> {correctOption?.id ? `Why ${correctOption.id} is correct` : 'Explanation'}
+                  <CheckCircle size={18} /> {correctOptionLabel ? `Why ${correctOptionLabel} is correct` : 'Explanation'}
                 </h3>
                 <p style={{ fontSize: 'var(--fs-sm)', lineHeight: 1.8, color: 'var(--text-secondary)' }}>
                   <MedText text={rationale.correct} />
@@ -1191,7 +1285,7 @@ function ExplanationPanel({ rationale, correctOption, distractors, provenance })
             <BookOpen size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />
             No detailed explanation available for this source.
             {correctOption && (
-              <span> The correct answer is <strong style={{ color: 'var(--accent-success)' }}>{correctOption.id}: {correctOption.text}</strong>.</span>
+              <span> The correct answer is <strong style={{ color: 'var(--accent-success)' }}>{correctOptionLabel ?? correctOption.id}: {correctOption.text}</strong>.</span>
             )}
           </p>
         </div>

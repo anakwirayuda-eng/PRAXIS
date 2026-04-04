@@ -23,8 +23,40 @@ const PRESETS = [
   { label: 'USMLE Mini Block', questions: 20, time: 30, exam: 'USMLE', icon: 'US' },
   { label: 'Full Mock Mixed', questions: 50, time: 60, exam: 'all', icon: 'ALL' },
   { label: 'Hard Cases Only', questions: 10, time: 25, exam: 'all', icon: 'HARD', difficulty: '3' },
-  { label: 'Flashcard Sprint', questions: 20, time: 10, exam: 'all', icon: '⚡', questionMode: 'rapid_recall' },
+  { label: 'Flashcard Sprint', questions: 20, time: 10, exam: 'all', icon: 'âš¡', questionMode: 'rapid_recall' },
 ];
+
+const QUESTION_COUNT_LIMITS = { min: 1, max: 100, fallback: 10 };
+const TIME_LIMIT_LIMITS = { min: 5, max: 200, fallback: 30 };
+
+function clampNumber(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function parseBoundedInt(value, { min, max, fallback }) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return clampNumber(parsed, min, max);
+}
+
+function normalizeConfig(config) {
+  return {
+    ...config,
+    questionCount: parseBoundedInt(config.questionCount, QUESTION_COUNT_LIMITS),
+    timeLimit: parseBoundedInt(config.timeLimit, TIME_LIMIT_LIMITS),
+  };
+}
+
+function buildExamAnswerRecord(currentCase, answerId) {
+  const correctOption = currentCase?.options?.find((option) => option.is_correct) ?? null;
+  return {
+    caseId: currentCase?._id,
+    title: currentCase?.title,
+    category: currentCase?.category,
+    answer: answerId,
+    correct: answerId !== null && answerId === correctOption?.id,
+  };
+}
 
 function TimerRing({ value, max, size = 52, stroke = 4 }) {
   const radius = (size - stroke) / 2;
@@ -83,8 +115,8 @@ export default function ExamMode() {
   } = useStore();
 
   const [config, setConfig] = useState({
-    questionCount: 10,
-    timeLimit: 30,
+    questionCount: QUESTION_COUNT_LIMITS.fallback,
+    timeLimit: TIME_LIMIT_LIMITS.fallback,
     categories: 'all',
     difficulty: 'all',
     examType: 'all',
@@ -97,6 +129,10 @@ export default function ExamMode() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [examNotice, setExamNotice] = useState('');
   const timerRef = useRef(null);
+  const currentCaseRef = useRef(null);
+  const selectedAnswerRef = useRef(null);
+  const examAnswersLengthRef = useRef(0);
+  const examIdxRef = useRef(0);
   const loadedCases = useMemo(() => caseBank.slice(0, totalCases), [caseBank, totalCases]);
 
   const getPoolForConfig = useCallback((cfg) => loadedCases.filter((caseData) => {
@@ -135,12 +171,25 @@ export default function ExamMode() {
   const examProgress = examQueue.length > 0 ? ((examIdx + 1) / examQueue.length) * 100 : 0;
 
   useEffect(() => {
+    currentCaseRef.current = currentCase;
+    selectedAnswerRef.current = selectedAnswer;
+    examAnswersLengthRef.current = examAnswers.length;
+    examIdxRef.current = examIdx;
+  }, [currentCase, selectedAnswer, examAnswers.length, examIdx]);
+
+  useEffect(() => {
     if (examState !== 'RUNNING') return undefined;
 
     timerRef.current = window.setInterval(() => {
       setTimeLeft((current) => {
         if (current <= 1) {
           window.clearInterval(timerRef.current);
+          if (currentCaseRef.current && examAnswersLengthRef.current <= examIdxRef.current) {
+            setExamAnswers((answers) => {
+              if (answers.length > examIdxRef.current) return answers;
+              return [...answers, buildExamAnswerRecord(currentCaseRef.current, selectedAnswerRef.current)];
+            });
+          }
           setExamState('RESULTS');
           return 0;
         }
@@ -163,15 +212,13 @@ export default function ExamMode() {
     }
   }, [examState, resetSession]);
 
-  const formatTime = (seconds) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
-
   const updateConfig = (updater) => {
     setExamNotice('');
     setConfig((current) => ({ ...current, ...updater }));
   };
 
   const startExam = useCallback((overrideConfig) => {
-    const cfg = overrideConfig || config;
+    const cfg = normalizeConfig(overrideConfig || config);
 
     if (status !== 'ready') {
       setExamNotice('Wait for the full case library to finish loading before starting exam mode.');
@@ -203,14 +250,7 @@ export default function ExamMode() {
   const handleSubmit = () => {
     if (selectedAnswer === null || !currentCase) return;
 
-    const isCorrect = selectedAnswer === correctOption?.id;
-    setExamAnswers((current) => [...current, {
-      caseId: currentCase._id,
-      title: currentCase.title,
-      category: currentCase.category,
-      answer: selectedAnswer,
-      correct: isCorrect,
-    }]);
+    setExamAnswers((current) => [...current, buildExamAnswerRecord(currentCase, selectedAnswer)]);
     submitAnswer();
   };
 
@@ -508,9 +548,11 @@ export default function ExamMode() {
               type="number"
               className="input"
               value={config.questionCount}
-              min={1}
-              max={100}
-              onChange={(event) => updateConfig({ questionCount: Number.parseInt(event.target.value, 10) || 10 })}
+              min={QUESTION_COUNT_LIMITS.min}
+              max={QUESTION_COUNT_LIMITS.max}
+              onChange={(event) => updateConfig({
+                questionCount: parseBoundedInt(event.target.value, QUESTION_COUNT_LIMITS),
+              })}
             />
           </div>
           <div>
@@ -522,9 +564,11 @@ export default function ExamMode() {
               type="number"
               className="input"
               value={config.timeLimit}
-              min={5}
-              max={200}
-              onChange={(event) => updateConfig({ timeLimit: Number.parseInt(event.target.value, 10) || 30 })}
+              min={TIME_LIMIT_LIMITS.min}
+              max={TIME_LIMIT_LIMITS.max}
+              onChange={(event) => updateConfig({
+                timeLimit: parseBoundedInt(event.target.value, TIME_LIMIT_LIMITS),
+              })}
             />
           </div>
           <div>
@@ -544,14 +588,14 @@ export default function ExamMode() {
             </label>
             <select id="exam-type-filter" className="input" value={config.examType} onChange={(event) => updateConfig({ examType: event.target.value })}>
               <option value="all">All</option>
-              <option value="UKMPPD">🇮🇩 UKMPPD</option>
-              <option value="USMLE">🇺🇸 USMLE</option>
-              <option value="MIR-Spain">🇪🇸 MIR-Spain</option>
-              <option value="IgakuQA">🇯🇵 IgakuQA</option>
-              <option value="International">🌍 International</option>
-              <option value="Academic">📚 Academic</option>
-              <option value="Research">🔬 Research</option>
-              <option value="Clinical">🏥 Clinical</option>
+              <option value="UKMPPD">ðŸ‡®ðŸ‡© UKMPPD</option>
+              <option value="USMLE">ðŸ‡ºðŸ‡¸ USMLE</option>
+              <option value="MIR-Spain">ðŸ‡ªðŸ‡¸ MIR-Spain</option>
+              <option value="IgakuQA">ðŸ‡¯ðŸ‡µ IgakuQA</option>
+              <option value="International">ðŸŒ International</option>
+              <option value="Academic">ðŸ“š Academic</option>
+              <option value="Research">ðŸ”¬ Research</option>
+              <option value="Clinical">ðŸ¥ Clinical</option>
             </select>
           </div>
         </div>

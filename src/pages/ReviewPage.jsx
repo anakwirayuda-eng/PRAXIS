@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
 import { getCaseRouteId } from '../data/caseIdentity';
-import { getDueCards, getBrainStats, getCaseState, recalcRetrievability } from '../data/fsrs';
+import { getDueCards, getBrainStats, getCaseState } from '../data/fsrs';
 import { useStore } from '../data/store';
 import Brain from 'lucide-react/dist/esm/icons/brain';
 import RotateCcw from 'lucide-react/dist/esm/icons/rotate-ccw';
@@ -38,7 +38,8 @@ export default function ReviewPage() {
   const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
   const isLibraryReady = status === 'ready';
   const [threshold, setThreshold] = useState(0.9);
-  const [nowSeconds, setNowSeconds] = useState(() => Date.now() / 1000);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const minuteTick = Math.floor(nowMs / 60000);
   const loadedCases = useMemo(() => caseBank.slice(0, totalCases), [caseBank, totalCases]);
   const casesById = useMemo(
     () => new Map(loadedCases.map((caseData) => [caseData._id, caseData])),
@@ -56,12 +57,11 @@ export default function ReviewPage() {
   }, [casesById]);
 
   // Clean stats — immune from quarantined/truncated memory
-  const brainStats = useMemo(() => getBrainStats(validIds), [validIds, nowSeconds]);
+  const brainStats = useMemo(() => getBrainStats(validIds), [validIds, minuteTick]);
 
   const dueCards = useMemo(() => {
-    recalcRetrievability();
     return getDueCards(threshold, 50, validIds);
-  }, [validIds, threshold]);
+  }, [validIds, threshold, minuteTick]);
 
   const reviewPlaylist = useMemo(
     () => dueCards
@@ -72,11 +72,20 @@ export default function ReviewPage() {
   );
 
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setNowSeconds(Date.now() / 1000);
-    }, 60000);
+    let intervalId = null;
+    let timeoutId = null;
+    const syncClock = () => setNowMs(Date.now());
 
-    return () => window.clearInterval(interval);
+    syncClock();
+    timeoutId = window.setTimeout(() => {
+      syncClock();
+      intervalId = window.setInterval(syncClock, 60000);
+    }, 60000 - (Date.now() % 60000));
+
+    return () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      if (intervalId !== null) window.clearInterval(intervalId);
+    };
   }, []);
 
   const openReviewCase = (caseId) => {
@@ -101,7 +110,7 @@ export default function ReviewPage() {
   const getTimeSinceReview = (caseId) => {
     const state = getCaseState(caseId);
     if (!state || state.lastReview === 0) return 'Never';
-    const hours = (nowSeconds - state.lastReview) / 3600;
+    const hours = (nowMs / 1000 - state.lastReview) / 3600;
     if (hours < 1) return `${Math.round(hours * 60)}m ago`;
     if (hours < 24) return `${Math.round(hours)}h ago`;
     return `${Math.round(hours / 24)}d ago`;

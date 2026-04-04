@@ -29,7 +29,7 @@ const LAB_DB = [
   // Electrolytes
   { pattern: /\b(Na\+?|Sodium|Natrium)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Sodium', normal: '135–145 mEq/L', unit: 'mEq/L' },
   { pattern: /\b(K\+?|Potassium|Kalium)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Potassium', normal: '3.5–5.0 mEq/L', unit: 'mEq/L' },
-  { pattern: /\b(Cl\-?|Chloride)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Chloride', normal: '96–106 mEq/L', unit: 'mEq/L' },
+  { pattern: /\b(Cl-?|Chloride)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Chloride', normal: '96–106 mEq/L', unit: 'mEq/L' },
   { pattern: /\b(Ca\s*(?:2\+)?|Calcium)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Calcium', normal: '8.5–10.5 mg/dL (2.1–2.6 mmol/L)', unit: 'mg/dL' },
   { pattern: /\b(Mg|Magnesium)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Magnesium', normal: '1.7–2.2 mg/dL', unit: 'mg/dL' },
   { pattern: /\b(Phosph(?:orus|ate)|PO4)\s*[:\-–]?\s*(\d+\.?\d*)/gi, label: 'Phosphate', normal: '2.5–4.5 mg/dL', unit: 'mg/dL' },
@@ -117,13 +117,18 @@ function identifyLabMatch(matchText) {
 
 function LabTooltip({ text, labEntry }) {
   const [isOpen, setIsOpen] = useState(false);
-  const toggle = (e) => { e.preventDefault(); setIsOpen(!isOpen); };
+  const tooltipId = useMemo(
+    () => `lab-tooltip-${labEntry.label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    [labEntry.label],
+  );
+  const toggle = () => setIsOpen((open) => !open);
 
   return (
-    <span
+    <button
+      type="button"
       className="lab-tooltip-trigger"
-      tabIndex="0"
-      role="button"
+      aria-expanded={isOpen}
+      aria-describedby={isOpen ? tooltipId : undefined}
       onClick={toggle}
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
@@ -131,14 +136,22 @@ function LabTooltip({ text, labEntry }) {
       onBlur={() => setIsOpen(false)}
       style={{
         position: 'relative',
+        display: 'inline',
+        padding: 0,
+        border: 'none',
+        background: 'none',
         borderBottom: '1.5px dashed var(--accent-info)',
         cursor: 'help',
         color: 'var(--accent-info)',
         fontWeight: 600,
+        font: 'inherit',
+        textAlign: 'inherit',
       }}
     >
       {text}
       <span
+        id={tooltipId}
+        role="tooltip"
         className="lab-tooltip-popup"
         style={{
           position: 'absolute',
@@ -171,7 +184,7 @@ function LabTooltip({ text, labEntry }) {
           ✅ Normal: {labEntry.normal}
         </span>
       </span>
-    </span>
+    </button>
   );
 }
 

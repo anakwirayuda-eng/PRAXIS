@@ -34,9 +34,20 @@ vi.mock('framer-motion', () => {
   };
 });
 
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+if (!globalThis.ResizeObserver) {
+  globalThis.ResizeObserver = ResizeObserverMock;
+}
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });
+

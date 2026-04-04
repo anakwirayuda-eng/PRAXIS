@@ -4,7 +4,7 @@
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../data/store';
 import { hasVerifiedAdminSession } from '../lib/adminSession';
@@ -44,6 +44,8 @@ export default function Layout({ children }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsButtonRef = useRef(null);
   const settingsPopoverRef = useRef(null);
+  const firstSettingsActionRef = useRef(null);
+  const wasSettingsOpenRef = useRef(false);
   const lastNonPrometricThemeRef = useRef(0);
   const [settingsPopoverStyle, setSettingsPopoverStyle] = useState(null);
   const { count: runtimeIssueCount } = useRuntimeWatchdog();
@@ -63,7 +65,6 @@ export default function Layout({ children }) {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 768px)');
     const handleChange = (event) => setIsMobile(event.matches);
-    setIsMobile(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
@@ -92,7 +93,7 @@ export default function Layout({ children }) {
     const theme = THEMES[idx];
     document.documentElement.setAttribute('data-theme', theme.id === 'surgical-slate' ? '' : theme.id);
     document.body.classList.remove('theme-cbt'); // Clean up legacy class
-    try { localStorage.setItem('praxis_theme', theme.id); } catch {}
+    try { localStorage.setItem('praxis_theme', theme.id); } catch { /* ignore localStorage write errors */ }
   }, []);
 
   const changeThemeSmoothly = useCallback((newIdx) => {
@@ -135,7 +136,7 @@ export default function Layout({ children }) {
   // Close sidebar on mobile navigation
   useEffect(() => {
     if (isMobile && sidebarOpen) setSidebarOpen(false);
-  }, [location.pathname]);
+  }, [isMobile, location.pathname, setSidebarOpen, sidebarOpen]);
 
   // Click outside settings
   useEffect(() => {
@@ -183,6 +184,19 @@ export default function Layout({ children }) {
     };
   }, [isMobile, settingsOpen]);
 
+  useEffect(() => {
+    if (settingsOpen) {
+      wasSettingsOpenRef.current = true;
+      firstSettingsActionRef.current?.focus();
+      return;
+    }
+
+    if (wasSettingsOpenRef.current) {
+      settingsButtonRef.current?.focus();
+      wasSettingsOpenRef.current = false;
+    }
+  }, [settingsOpen]);
+
   const isAdmin = hasVerifiedAdminSession();
   const openHeaderSearch = () => {
     if (location.pathname === '/cases') {
@@ -206,7 +220,15 @@ export default function Layout({ children }) {
 
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-brand" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+          <Link
+            to="/"
+            className="sidebar-brand"
+            style={{ cursor: 'pointer', textDecoration: 'none' }}
+            onClick={() => {
+              setSettingsOpen(false);
+              if (isMobile) setSidebarOpen(false);
+            }}
+          >
             <div className="sidebar-brand-icon">
               <img src={`${import.meta.env.BASE_URL}praxis-logo.png`} alt="PRAXIS" style={{ width: 28, height: 28, borderRadius: 6 }} />
             </div>
@@ -214,7 +236,7 @@ export default function Layout({ children }) {
               <h1 style={{ letterSpacing: '0.05em' }}>PRAXIS</h1>
               <p>Clinical Case Simulator</p>
             </div>
-          </div>
+          </Link>
         </div>
 
         <nav className="sidebar-nav">
@@ -285,7 +307,7 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      <main className={`main-content ${sidebarOpen && !isMobile ? 'sidebar-visible' : 'sidebar-hidden'}`}>
+      <div className={`main-content ${sidebarOpen && !isMobile ? 'sidebar-visible' : 'sidebar-hidden'}`}>
         <header className="header">
           <div className="header-left" style={{ display: 'flex', gap: 'var(--sp-4)', alignItems: 'center' }}>
             <button className="btn btn-icon btn-ghost header-menu-btn" onClick={toggleSidebar} aria-label="Toggle navigation">
@@ -343,58 +365,36 @@ export default function Layout({ children }) {
                 onClick={() => setSettingsOpen(!settingsOpen)}
                 aria-label="Settings"
                 aria-expanded={settingsOpen}
-                aria-haspopup="menu"
+                aria-haspopup="dialog"
+                aria-controls="page-settings-popover"
               >
                 <Settings size={16} />
               </button>
 
-              {false && settingsOpen && (
-                <div className="glass-card header-popover">
-                  <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
-                    <Clock size={16} /> <span>{timerEnabled ? 'Hide HUD Timer' : 'Show HUD Timer'}</span>
-                  </button>
-                  <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); navigate('/review'); }}>
-                    <RotateCcw size={16} /> <span>Open FSRS Review</span>
-                  </button>
-
-                  <div style={{ width: '100%', height: '1px', background: 'rgba(148, 163, 184, 0.1)', margin: '4px 0' }} />
-
-                  {/* Single Source of Truth — Exam Day Simulator toggle */}
-                  <button
-                    className="btn btn-ghost"
-                    style={{
-                      justifyContent: 'flex-start', width: '100%',
-                      ...(isPrometric ? { background: 'rgba(239,68,68,0.12)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)' } : {})
-                    }}
-                    onClick={() => { setSettingsOpen(false); changeThemeSmoothly(isPrometric ? lastNonPrometricThemeRef.current : 2); }}
-                  >
-                    🏥 <span>{isPrometric ? 'Exit CBT Mode' : 'Exam Day Simulator'}</span>
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </header>
 
         {settingsOpen && typeof document !== 'undefined' && createPortal(
           <div
+            id="page-settings-popover"
             ref={settingsPopoverRef}
             className="glass-card header-popover"
             style={settingsPopoverStyle ?? undefined}
-            role="menu"
+            role="dialog"
+            aria-modal="false"
             aria-label="Page settings"
           >
-            <button role="menuitem" className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
+            <button ref={firstSettingsActionRef} className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); toggleTimer(); }}>
               <Clock size={16} /> <span>{timerEnabled ? 'Hide HUD Timer' : 'Show HUD Timer'}</span>
             </button>
-            <button role="menuitem" className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); navigate('/review'); }}>
+            <button className="btn btn-ghost" style={{ justifyContent: 'flex-start', width: '100%' }} onClick={() => { setSettingsOpen(false); navigate('/review'); }}>
               <RotateCcw size={16} /> <span>Open FSRS Review</span>
             </button>
 
             <div style={{ width: '100%', height: '1px', background: 'rgba(148, 163, 184, 0.1)', margin: '4px 0' }} />
 
             <button
-              role="menuitem"
               className="btn btn-ghost"
               style={{
                 justifyContent: 'flex-start', width: '100%',
@@ -420,7 +420,7 @@ export default function Layout({ children }) {
             {children}
           </Motion.div>
         </AnimatePresence>
-      </main>
+      </div>
     </div>
   );
 }

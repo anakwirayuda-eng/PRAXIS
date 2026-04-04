@@ -3,7 +3,7 @@
  * Crowdsource QA: students propose corrections to bad data.
  * Submits to POST /api/feedback/propose (shadowban-gated).
  */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import X from 'lucide-react/dist/esm/icons/x';
 import Send from 'lucide-react/dist/esm/icons/send';
@@ -39,15 +39,24 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const closeTimerRef = useRef(null);
+  const dialogRef = useRef(null);
+  const closeButtonRef = useRef(null);
+  const lastActiveRef = useRef(null);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setField('');
     setCorrection('');
     setReference('');
     setSubmitted(false);
     setError('');
     setSubmitting(false);
-  };
+  }, []);
+
+  const closeModal = useCallback(() => {
+    window.clearTimeout(closeTimerRef.current);
+    reset();
+    onClose();
+  }, [onClose, reset]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -55,7 +64,54 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
       reset();
     }
     return () => window.clearTimeout(closeTimerRef.current);
-  }, [isOpen]);
+  }, [isOpen, reset]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    lastActiveRef.current = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+
+      const focusable = Array.from(
+        dialogRef.current?.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])') ?? [],
+      ).filter((element) => !element.hasAttribute('disabled') && element.getAttribute('aria-hidden') !== 'true');
+
+      if (focusable.length === 0) return;
+
+      const firstFocusable = focusable[0];
+      const lastFocusable = focusable[focusable.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstFocusable) {
+        event.preventDefault();
+        lastFocusable.focus();
+        return;
+      }
+
+      if (!event.shiftKey && document.activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+      lastActiveRef.current?.focus?.();
+    };
+  }, [closeModal, isOpen]);
 
   const handleSubmit = async () => {
     if (!field || !correction.trim() || reference.trim().length < 5) {
@@ -117,10 +173,15 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 'var(--sp-4)',
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) { reset(); onClose(); } }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
         >
           <Motion.div
+            ref={dialogRef}
             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="heal-case-modal-title"
+            tabIndex={-1}
             style={{
               width: '100%', maxWidth: 520, maxHeight: '85vh', overflowY: 'auto',
               padding: 'var(--sp-6)', borderRadius: 'var(--radius-xl)',
@@ -133,9 +194,9 @@ export function HealCaseModal({ isOpen, onClose, caseData }) {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--sp-4)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
                 <Stethoscope size={20} style={{ color: '#a855f7' }} />
-                <h3 style={{ margin: 0, fontSize: 'var(--fs-md)' }}>Heal this Case</h3>
+                <h3 id="heal-case-modal-title" style={{ margin: 0, fontSize: 'var(--fs-md)' }}>Heal this Case</h3>
               </div>
-              <button onClick={() => { reset(); onClose(); }} style={{
+              <button ref={closeButtonRef} type="button" aria-label="Close heal case modal" onClick={closeModal} style={{
                 background: 'none', border: 'none', color: 'var(--text-muted)',
                 cursor: 'pointer', padding: 4, display: 'flex',
               }}><X size={18} /></button>

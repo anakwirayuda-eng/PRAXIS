@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -102,5 +102,235 @@ describe('case player FSRS regression coverage', () => {
 
     expect(startCase).toHaveBeenCalled();
     expect(submitAnswer).toHaveBeenCalledWith({ skipFsrsUpdate: true });
-  });
+  }, 15000);
+
+  it('selects focused answer cards with Enter and Space', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const caseData = buildCase({
+      options: [
+        { id: 'answer-correct', text: 'Correct option', is_correct: true, sct_panel_votes: 0 },
+        { id: 'answer-wrong', text: 'Wrong option', is_correct: false, sct_panel_votes: 0 },
+      ],
+    });
+    const selectAnswer = vi.fn();
+
+    render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={caseData}
+          caseBank={[caseData]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer={null}
+          startCase={vi.fn()}
+          selectAnswer={selectAnswer}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    const option = screen.getByRole('radio', { name: /Correct option/i });
+    expect(option).toHaveAttribute('role', 'radio');
+
+    fireEvent.keyDown(option, { key: 'Enter' });
+    expect(selectAnswer).toHaveBeenCalledWith('answer-correct');
+
+    selectAnswer.mockClear();
+    fireEvent.keyDown(option, { key: ' ' });
+    expect(selectAnswer).toHaveBeenCalledWith('answer-correct');
+  }, 15000);
+
+  it('shows the displayed answer label in review feedback after shuffling', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const caseData = buildCase({
+      _id: 21,
+      options: [
+        { id: 'correct-id', text: 'Correct option', is_correct: true, sct_panel_votes: 0 },
+        { id: 'wrong-id', text: 'Wrong option', is_correct: false, sct_panel_votes: 0 },
+        { id: 'third-id', text: 'Third option', is_correct: false, sct_panel_votes: 0 },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={caseData}
+          caseBank={[caseData]}
+          navigate={vi.fn()}
+          machineState="REVIEWING"
+          selectedAnswer="wrong-id"
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    const correctLetter = document.querySelector('.option-card.correct .option-letter')?.textContent;
+    const feedback = screen.getByText(/The correct answer is/i).closest('p');
+
+    expect(correctLetter).toBeTruthy();
+    expect(feedback?.textContent).toContain(`The correct answer is ${correctLetter}: Correct option`);
+    expect(feedback?.textContent).not.toContain('correct-id');
+  }, 15000);
+
+  it('resets per-case timer state when the session receives a new case', async () => {
+    vi.useFakeTimers();
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const firstCase = buildCase({ _id: 30, title: 'First Timed Case' });
+    const secondCase = buildCase({ _id: 31, title: 'Second Timed Case' });
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={firstCase}
+          caseBank={[firstCase, secondCase]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer={null}
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(screen.getByText('00:03')).toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={secondCase}
+          caseBank={[firstCase, secondCase]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer={null}
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('00:00')).toBeInTheDocument();
+  }, 15000);
+
+  it('opens the image lightbox with Space and restores focus when closed', async () => {
+    const { CaseImageGallery } = await import('../pages/CasePlayer.jsx');
+
+    render(
+      <CaseImageGallery
+        images={['first.png', 'second.png']}
+        imageType={{ emoji: '🩻', type: 'X-ray', ui_mode: 'pacs_dark' }}
+      />,
+    );
+
+    const thumb = screen.getByRole('button', { name: /Open 🩻 X-ray image 1/i });
+    thumb.focus();
+
+    fireEvent.keyDown(thumb, { key: ' ' });
+
+    const dialog = screen.getByRole('dialog', { name: /Image lightbox/i });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+
+    const closeButton = screen.getByRole('button', { name: /Close lightbox/i });
+    await waitFor(() => {
+      expect(closeButton).toHaveFocus();
+    });
+
+    fireEvent.keyDown(closeButton, { key: 'Tab' });
+    expect(screen.getByRole('button', { name: /Bone Window/i })).toHaveFocus();
+
+    fireEvent.keyDown(dialog, { key: 'Escape' });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /Image lightbox/i })).not.toBeInTheDocument();
+    });
+    expect(thumb).toHaveFocus();
+  }, 15000);
+
+  it('renders smart vignette lab matches as native buttons with tooltip state', async () => {
+    const { default: SmartVignette } = await import('../components/SmartVignette.jsx');
+
+    render(<SmartVignette text="Hb 10 g/dL" />);
+
+    const trigger = screen.getByRole('button', { name: /Hb 10/i });
+    expect(trigger.tagName).toBe('BUTTON');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).not.toHaveAttribute('aria-describedby');
+
+    fireEvent.click(trigger);
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    expect(trigger).toHaveAttribute('aria-describedby');
+    expect(screen.getByRole('tooltip')).toHaveTextContent(/Normal:/i);
+  }, 15000);
+
+  it('closes the heal-case modal with Escape and restores focus to the trigger', async () => {
+    vi.doUnmock('../components/QuestionFeedback.jsx');
+    const { QuestionFeedback } = await import('../components/QuestionFeedback.jsx');
+
+    render(
+      <QuestionFeedback
+        caseId={7}
+        caseData={{
+          _id: 7,
+          prompt: 'A patient presents with progressive dyspnea.',
+          options: [
+            { id: 'A', text: 'Observe', is_correct: true },
+            { id: 'B', text: 'Operate', is_correct: false },
+          ],
+          rationale: { correct: 'Observation is appropriate here.' },
+        }}
+      />,
+    );
+
+    const healTrigger = screen.getByRole('button', { name: /Heal this Case/i });
+    healTrigger.focus();
+
+    fireEvent.click(healTrigger);
+
+    const dialog = screen.getByRole('dialog', { name: /Heal this Case/i });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Close heal case modal/i })).toHaveFocus();
+    });
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /Heal this Case/i })).not.toBeInTheDocument();
+    });
+    expect(healTrigger).toHaveFocus();
+  }, 15000);
 });
+
