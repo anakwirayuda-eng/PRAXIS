@@ -37,7 +37,8 @@ const DIRS = {
   sources: path.resolve(__dirname, 'sources'),
   output: path.resolve(__dirname, 'output'),
   public: path.resolve(PROJECT_ROOT, 'public'),
-  legacy: path.resolve(PROJECT_ROOT, 'public', 'data'),
+  publicData: path.resolve(PROJECT_ROOT, 'public', 'data'),
+  legacyFlatFile: path.resolve(PROJECT_ROOT, 'public', 'compiled_cases.json'),
 };
 
 // ═══════════════════════════════════════
@@ -141,17 +142,18 @@ function stageDeploy() {
   console.log('══════════════════════════════════════');
 
   const sourceFile = path.join(DIRS.output, 'compiled_cases.json');
-  const targetFile = path.join(DIRS.public, 'compiled_cases.json');
-
-  // 1. Destroy legacy SSOT violator
-  if (fs.existsSync(DIRS.legacy)) {
-    fs.rmSync(DIRS.legacy, { recursive: true, force: true });
-    console.log('  🗑️ Destroyed stale legacy directory: public/data/');
-  }
+  const targetFile = path.join(DIRS.publicData, 'compiled_cases.json');
 
   if (!fs.existsSync(sourceFile)) {
     console.log('  ⚠️ No compiled output found. Skipping deploy.');
     return;
+  }
+
+  fs.mkdirSync(DIRS.publicData, { recursive: true });
+
+  if (fs.existsSync(DIRS.legacyFlatFile)) {
+    fs.rmSync(DIRS.legacyFlatFile, { force: true });
+    console.log('  🗑️ Removed stale flat deploy target: public/compiled_cases.json');
   }
 
   // 2. 🔥 Hack 4: Atomic Swap — write to .tmp, then rename (0ms, zero-downtime)
@@ -161,7 +163,7 @@ function stageDeploy() {
 
   const stats = fs.statSync(targetFile);
   Manifest.markDeployed();
-  console.log(`  ✅ Atomic deploy → public/compiled_cases.json (${(stats.size / 1024 / 1024).toFixed(1)}MB)`);
+  console.log(`  ✅ Atomic deploy → public/data/compiled_cases.json (${(stats.size / 1024 / 1024).toFixed(1)}MB)`);
 }
 
 // ═══════════════════════════════════════
