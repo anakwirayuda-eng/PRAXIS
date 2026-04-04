@@ -54,6 +54,22 @@ function buildCompiledCase(overrides = {}) {
   };
 }
 
+function createStarterLibraryFetchMock(compiledCases = []) {
+  return vi.fn(async (input) => {
+    const url = String(input);
+    if (url.includes('manifest.json')) {
+      return { ok: false, status: 404, json: async () => ({}) };
+    }
+    if (url.includes('compiled_cases.json')) {
+      return { ok: true, status: 200, json: async () => compiledCases };
+    }
+    if (url.includes('quarantine_manifest.json')) {
+      return { ok: false, status: 404, json: async () => [] };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  });
+}
+
 describe('review and exam regression coverage', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -120,7 +136,14 @@ describe('review and exam regression coverage', () => {
     const dueTime = new Date('2026-04-01T00:01:00Z');
     let mockNow = initialTime.getTime();
     vi.spyOn(Date, 'now').mockImplementation(() => mockNow);
+    vi.stubGlobal('fetch', createStarterLibraryFetchMock());
+    const timeoutCallbacks = [];
     const intervalCallbacks = [];
+    vi.spyOn(window, 'setTimeout').mockImplementation((callback, delay) => {
+      timeoutCallbacks.push({ callback, delay });
+      return timeoutCallbacks.length;
+    });
+    vi.spyOn(window, 'clearTimeout').mockImplementation(() => {});
     vi.spyOn(window, 'setInterval').mockImplementation((callback) => {
       intervalCallbacks.push(callback);
       return intervalCallbacks.length;
@@ -156,17 +179,17 @@ describe('review and exam regression coverage', () => {
     );
 
     expect(screen.getByRole('button', { name: /Start Review \(0 cards\)/i })).toBeDisabled();
-    expect(intervalCallbacks.length).toBeGreaterThan(0);
+    expect(timeoutCallbacks).toHaveLength(1);
+    expect(timeoutCallbacks[0].delay).toBe(60000);
 
     await act(async () => {
       mockNow = dueTime.getTime();
-      intervalCallbacks.at(-1)();
+      timeoutCallbacks[0].callback();
       await Promise.resolve();
     });
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start Review \(1 cards\)/i })).toBeEnabled();
-    });
+    expect(intervalCallbacks).toHaveLength(1);
+    expect(screen.getByRole('button', { name: /Start Review \(1 cards\)/i })).toBeEnabled();
     expect(screen.getByText(starterCase.title)).toBeInTheDocument();
   }, 15000);
 
@@ -174,6 +197,7 @@ describe('review and exam regression coverage', () => {
     const initialTime = new Date('2026-04-01T00:00:30.250Z');
     let mockNow = initialTime.getTime();
     vi.spyOn(Date, 'now').mockImplementation(() => mockNow);
+    vi.stubGlobal('fetch', createStarterLibraryFetchMock());
     const timeoutCalls = [];
     const intervalCalls = [];
     vi.spyOn(window, 'setTimeout').mockImplementation((callback, delay) => {
@@ -225,9 +249,7 @@ describe('review and exam regression coverage', () => {
 
     expect(intervalCalls).toHaveLength(1);
     expect(intervalCalls[0].delay).toBe(60000);
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Start Review \(1 cards\)/i })).toBeEnabled();
-    });
+    expect(screen.getByRole('button', { name: /Start Review \(1 cards\)/i })).toBeEnabled();
     expect(screen.getByText(starterCase.title)).toBeInTheDocument();
   }, 15000);
 
@@ -347,6 +369,7 @@ describe('review and exam regression coverage', () => {
     vi.spyOn(window, 'clearInterval').mockImplementation(() => {});
     const timedOutCase = buildCompiledCase({
       title: 'Timed Out Case',
+      category: 'Unclassified',
       meta: {
         examType: 'MIR-Spain',
         difficulty: 2,
@@ -354,19 +377,7 @@ describe('review and exam regression coverage', () => {
         provenance: ['test-fixture'],
       },
     });
-    const fetchMock = vi.fn(async (input) => {
-      const url = String(input);
-      if (url.includes('manifest.json')) {
-        return { ok: false, status: 404, json: async () => ({}) };
-      }
-      if (url.includes('compiled_cases.json')) {
-        return { ok: true, status: 200, json: async () => [timedOutCase] };
-      }
-      if (url.includes('quarantine_manifest.json')) {
-        return { ok: false, status: 404, json: async () => [] };
-      }
-      return { ok: false, status: 404, json: async () => ({}) };
-    });
+    const fetchMock = createStarterLibraryFetchMock([timedOutCase]);
     vi.stubGlobal('fetch', fetchMock);
 
     const { useStore } = await import('../data/store.js');
@@ -383,6 +394,7 @@ describe('review and exam regression coverage', () => {
 
     fireEvent.change(screen.getByLabelText(/Questions/i), { target: { value: '1' } });
     fireEvent.change(screen.getByLabelText(/Category/i), { target: { value: 'Unclassified' } });
+    fireEvent.change(screen.getByLabelText(/Exam Type/i), { target: { value: 'MIR-Spain' } });
     fireEvent.change(screen.getByLabelText(/Time Limit \(minutes\)/i), { target: { value: '5' } });
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Start Exam/i })).toBeEnabled();

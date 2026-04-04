@@ -44,9 +44,21 @@ if (!globalThis.ResizeObserver) {
   globalThis.ResizeObserver = ResizeObserverMock;
 }
 
+if (!globalThis.requestAnimationFrame) {
+  globalThis.requestAnimationFrame = (callback) => window.setTimeout(() => callback(Date.now()), 16);
+}
+
+if (!globalThis.cancelAnimationFrame) {
+  globalThis.cancelAnimationFrame = (frame) => window.clearTimeout(frame);
+}
+
+window.scrollTo = vi.fn();
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.clearAllMocks();
   vi.unstubAllGlobals();
 });

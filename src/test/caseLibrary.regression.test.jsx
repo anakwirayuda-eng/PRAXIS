@@ -88,7 +88,7 @@ describe('case library split regression coverage', () => {
     });
     expect(loader.getCaseById(starterCases.length)).toMatchObject({
       title: 'Hydrated Runtime Case',
-      category: 'internal-medicine',
+      category: 'Bedah',
       q_type: 'MCQ',
     });
     expect(loader.getCaseById(starterCases.length).options[0].id).toBe('A');
@@ -117,14 +117,14 @@ describe('case library split regression coverage', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText(/Loading the full case library in the background/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Memuat bank soal/i)).toBeInTheDocument();
 
     deferred.resolve([buildCompiledCase({ title: 'Dashboard Runtime Case' })]);
 
     const totalCasesLabel = (starterCases.length + 1).toLocaleString();
     expect(await screen.findByText(textContentMatcher(`${totalCasesLabel} kasus tersedia`, 'p'))).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.queryByText(/Loading the full case library in the background/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Memuat bank soal/i)).not.toBeInTheDocument();
     });
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });

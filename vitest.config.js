@@ -1,12 +1,21 @@
-import { configDefaults, defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
+import { configDefaults, defineConfig, mergeConfig } from 'vitest/config';
+import viteConfig from './vite.config.js';
 
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: './src/test/setupTests.jsx',
-    exclude: [...configDefaults.exclude, 'e2e/**'],
-  },
-});
+export default mergeConfig(
+  viteConfig,
+  defineConfig({
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      setupFiles: './src/test/setupTests.jsx',
+      clearMocks: true,
+      exclude: [...configDefaults.exclude, 'e2e/**'],
+      pool: 'threads',
+      maxWorkers: 1,
+      fileParallelism: false,
+      testTimeout: 20000,
+      hookTimeout: 30000,
+      teardownTimeout: 30000,
+    },
+  }),
+);

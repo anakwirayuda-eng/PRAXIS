@@ -4,6 +4,7 @@
  */
 import { useEffect, useSyncExternalStore } from 'react';
 import { caseBank as handCrafted, CATEGORIES } from './caseBank';
+import { normalizeCategoryExact } from './categoryResolution';
 import { sanitizeFdiTryoutCase } from './fdiTryoutSanitizer';
 import { captureException, fetchJsonWithWatchdog } from '../lib/runtimeWatchdog';
 import { deobfuscateCase, isObfuscated } from '../lib/aegisDecoder';
@@ -53,8 +54,9 @@ function normalizeCase(rawCase, fallbackId) {
     || rawCase?.topic
     || rawCase?.subject_name
     || (rawCase?.case_code ? `Case ${rawCase.case_code}` : `${rawCase?.category || 'Clinical'} Review`);
-  const category = CATEGORIES[rawCase?.category]
-    ? rawCase.category
+  const normalizedRawCategory = normalizeCategoryExact(rawCase?.category);
+  const category = CATEGORIES[normalizedRawCategory]
+    ? normalizedRawCategory
     : (CATEGORIES[meta?.category_resolution?.resolved_category]
         ? meta.category_resolution.resolved_category
         : FALLBACK_CATEGORY);
@@ -134,9 +136,9 @@ function normalizeCase(rawCase, fallbackId) {
           }
         : {
             raw_category: rawCase?.category ?? null,
-            raw_normalized_category: CATEGORIES[rawCase?.category] ? rawCase.category : null,
+            raw_normalized_category: normalizedRawCategory,
             resolved_category: category,
-            confidence: CATEGORIES[rawCase?.category] ? 'high' : 'low',
+            confidence: normalizedRawCategory ? 'high' : 'low',
             category_conflict: false,
             winning_signals: [],
             runner_up_category: null,

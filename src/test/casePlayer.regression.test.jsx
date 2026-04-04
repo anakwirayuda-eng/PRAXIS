@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -219,27 +219,31 @@ describe('case player FSRS regression coverage', () => {
       </MemoryRouter>,
     );
 
-    await vi.advanceTimersByTimeAsync(3000);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
     expect(screen.getByText('00:03')).toBeInTheDocument();
 
-    rerender(
-      <MemoryRouter>
-        <CasePlayerSession
-          caseData={secondCase}
-          caseBank={[firstCase, secondCase]}
-          navigate={vi.fn()}
-          machineState="ANSWERING"
-          selectedAnswer={null}
-          startCase={vi.fn()}
-          selectAnswer={vi.fn()}
-          submitAnswer={vi.fn()}
-          nextCase={vi.fn()}
-          toggleBookmark={vi.fn()}
-          bookmarks={[]}
-          flagQuestion={vi.fn()}
-        />
-      </MemoryRouter>,
-    );
+    await act(async () => {
+      rerender(
+        <MemoryRouter>
+          <CasePlayerSession
+            caseData={secondCase}
+            caseBank={[firstCase, secondCase]}
+            navigate={vi.fn()}
+            machineState="ANSWERING"
+            selectedAnswer={null}
+            startCase={vi.fn()}
+            selectAnswer={vi.fn()}
+            submitAnswer={vi.fn()}
+            nextCase={vi.fn()}
+            toggleBookmark={vi.fn()}
+            bookmarks={[]}
+            flagQuestion={vi.fn()}
+          />
+        </MemoryRouter>,
+      );
+    });
 
     expect(screen.getByText('00:00')).toBeInTheDocument();
   }, 15000);
