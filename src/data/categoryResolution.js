@@ -563,6 +563,10 @@ function getRawWeight(source, rawCategory, profile) {
 }
 
 function getNarrative(caseData) {
+  if (typeof caseData?.vignette === 'string') {
+    return caseData.vignette;
+  }
+
   return caseData?.vignette?.narrative
     || caseData?.question
     || caseData?.meta?.narrative
@@ -681,7 +685,16 @@ export function resolveCaseCategory(caseData) {
     addSignal(scoreMap, signalMap, prefixCategory, profile.prefix, 'prefix', prefix);
   }
 
-  const titlePromptCorpus = [caseData?.title, caseData?.prompt, caseData?.topic, caseData?.subject_name, caseData?.subject]
+  const titlePromptCorpus = [
+    caseData?.title,
+    caseData?.prompt,
+    caseData?.topic,
+    caseData?.meta?.topic,
+    caseData?.subject_name,
+    caseData?.subject,
+    caseData?.meta?.subject_name,
+    caseData?.meta?.subject,
+  ]
     .filter(Boolean)
     .join(' ');
   collectKeywordSignals(titlePromptCorpus, 'keyword', profile.keyword, scoreMap, signalMap);

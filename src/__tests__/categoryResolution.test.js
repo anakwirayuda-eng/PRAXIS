@@ -170,4 +170,59 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_review_needed).toBe(false);
     expect(updated.meta.category_resolution.promotion_rule).toBe('pubmedqa_targeted_runner2');
   });
+
+  it('scores meta-only subject/topic fields the same way as top-level fields', () => {
+    const topLevel = resolveCaseCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-00002',
+      title: 'True regarding lag phase is',
+      subject: 'Microbiology',
+      topic: 'microbiology',
+      meta: { tags: ['microbiology'] },
+    });
+
+    const metaOnly = resolveCaseCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-00002',
+      title: 'True regarding lag phase is',
+      meta: {
+        subject: 'Microbiology',
+        topic: 'microbiology',
+        tags: ['microbiology'],
+      },
+    });
+
+    expect(metaOnly.resolved_category).toBe(topLevel.resolved_category);
+    expect(metaOnly.confidence).toBe(topLevel.confidence);
+    expect(metaOnly.runner_up_score).toBe(topLevel.runner_up_score);
+    expect(metaOnly.winning_signals).toEqual(topLevel.winning_signals);
+  });
+
+  it('treats string vignettes the same as narrative objects for scoring', () => {
+    const objectVignette = resolveCaseCategory({
+      source: 'pubmedqa',
+      category: 'Ilmu Kesehatan Masyarakat',
+      vignette: {
+        narrative: 'Bone anchor fixation was used during the surgical repair.',
+      },
+      meta: {
+        topic_keywords: ['bone'],
+      },
+    });
+
+    const stringVignette = resolveCaseCategory({
+      source: 'pubmedqa',
+      category: 'Ilmu Kesehatan Masyarakat',
+      vignette: 'Bone anchor fixation was used during the surgical repair.',
+      meta: {
+        topic_keywords: ['bone'],
+      },
+    });
+
+    expect(stringVignette.resolved_category).toBe(objectVignette.resolved_category);
+    expect(stringVignette.confidence).toBe(objectVignette.confidence);
+    expect(stringVignette.winning_signals).toEqual(objectVignette.winning_signals);
+  });
 });

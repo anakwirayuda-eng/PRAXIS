@@ -7,6 +7,7 @@
  *   node ingestion/normalize-categories.mjs --target public
  *   node ingestion/normalize-categories.mjs --target both
  */
+import Database from 'better-sqlite3';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -16,6 +17,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
 const OUTPUT_FILE = join(__dirname, 'output', 'compiled_cases.json');
 const PUBLIC_FILE = join(PROJECT_ROOT, 'public', 'data', 'compiled_cases.json');
+const SQLITE_FILE = join(PROJECT_ROOT, 'server', 'data', 'casebank.db');
 const REPORT_DIR = join(__dirname, 'output');
 
 function parseTargetArg(argv) {
@@ -30,7 +32,49 @@ function writeJsonAtomic(filePath, value) {
   renameSync(tmp, filePath);
 }
 
-function normalizeDataset(filePath) {
+function buildSqliteRawResolutionMap() {
+  if (!existsSync(SQLITE_FILE)) return null;
+
+  const db = new Database(SQLITE_FILE, { readonly: true });
+  const rows = db.prepare(`
+    SELECT case_id, category, meta_json
+    FROM cases
+    ORDER BY case_id
+  `).all();
+  db.close();
+
+  const rawMap = new Map();
+  for (const row of rows) {
+    const meta = JSON.parse(row.meta_json || '{}');
+    const resolution = meta?.category_resolution || {};
+    rawMap.set(row.case_id, {
+      raw_category: resolution.raw_category || row.category || null,
+      raw_normalized_category: resolution.raw_normalized_category || null,
+    });
+  }
+
+  return rawMap;
+}
+
+function hydrateSqliteRawResolution(caseData, sqliteRawMap) {
+  if (!sqliteRawMap) return caseData;
+  const rawResolution = sqliteRawMap.get(caseData?._id);
+  if (!rawResolution) return caseData;
+
+  return {
+    ...caseData,
+    meta: {
+      ...(caseData?.meta || {}),
+      category_resolution: {
+        ...(caseData?.meta?.category_resolution || {}),
+        raw_category: rawResolution.raw_category,
+        raw_normalized_category: rawResolution.raw_normalized_category,
+      },
+    },
+  };
+}
+
+function normalizeDataset(filePath, sqliteRawMap = null) {
   const raw = JSON.parse(readFileSync(filePath, 'utf8'));
   const countsByRaw = {};
   const countsByResolved = {};
@@ -42,10 +86,20 @@ function normalizeDataset(filePath) {
   let autoFixed = 0;
   let reviewQueued = 0;
   let unclassified = 0;
+  let sqliteRawBackfilled = 0;
 
   const normalized = raw.map((caseData) => {
-    const resolution = resolveCaseCategory(caseData);
-    const updated = applyResolvedCategory(caseData);
+    const hydratedCase = hydrateSqliteRawResolution(caseData, sqliteRawMap);
+    if (hydratedCase !== caseData) {
+      const priorRaw = caseData?.meta?.category_resolution?.raw_category || null;
+      const nextRaw = hydratedCase?.meta?.category_resolution?.raw_category || null;
+      if (priorRaw !== nextRaw) {
+        sqliteRawBackfilled += 1;
+      }
+    }
+
+    const resolution = resolveCaseCategory(hydratedCase);
+    const updated = applyResolvedCategory(hydratedCase);
 
     const rawLabel = resolution.raw_normalized_category || resolution.raw_category || '<missing>';
     const resolvedLabel = resolution.resolved_category || '<missing>';
@@ -70,6 +124,7 @@ function normalizeDataset(filePath) {
       reviewQueue.push({
         _id: updated._id,
         case_code: updated.case_code || null,
+        source: updated.meta?.source || updated.source || null,
         title: updated.title || updated.topic || updated.subject_name || '',
         raw_category: resolution.raw_category,
         raw_normalized_category: resolution.raw_normalized_category,
@@ -98,6 +153,7 @@ function normalizeDataset(filePath) {
       auto_fixed_high_confidence: autoFixed,
       review_queued: reviewQueued,
       unclassified,
+      sqlite_raw_backfilled: sqliteRawBackfilled,
       counts_by_confidence: countsByConfidence,
       counts_by_raw_category: countsByRaw,
       counts_by_resolved_category: countsByResolved,
@@ -132,7 +188,11 @@ function main() {
 
   if (!existsSync(REPORT_DIR)) mkdirSync(REPORT_DIR, { recursive: true });
 
-  const results = targets.map((filePath) => normalizeDataset(filePath));
+  const sqliteRawMap = targets.includes(PUBLIC_FILE) ? buildSqliteRawResolutionMap() : null;
+  const results = targets.map((filePath) => normalizeDataset(
+    filePath,
+    filePath === PUBLIC_FILE ? sqliteRawMap : null,
+  ));
   const primary = results[0];
 
   writeJsonAtomic(join(REPORT_DIR, 'category_resolution_audit.json'), primary.audit);
