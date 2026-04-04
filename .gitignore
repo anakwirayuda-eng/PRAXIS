@@ -64,6 +64,9 @@ ingestion/output/
 tmp_*
 *.tmp
 fix-rt-bug.cjs
+dist-codex-verify/
+temp-build-fdi/
+temp-vite.err
 
 # Dossier files (internal docs)
 *_DOSSIER.md
