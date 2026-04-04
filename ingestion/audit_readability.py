@@ -3,10 +3,17 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    from ingestion.readability_rules import EXPLICIT_IMAGE_DEPENDENT_RE
+except ModuleNotFoundError:
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    from ingestion.readability_rules import EXPLICIT_IMAGE_DEPENDENT_RE
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -36,10 +43,7 @@ GENERIC_PROMPT_RE = re.compile(
     re.IGNORECASE,
 )
 AOTA_RE = re.compile(r"\b(?:all of the above|none of the above|semua jawaban benar|semua di atas|tidak satupun)\b", re.IGNORECASE)
-IMAGE_DEPENDENT_RE = re.compile(
-    r"\b(?:gambar(?:\s+berikut|\s+di\s+bawah)?|foto\s+(?:toraks|thorax)|ct\s*scan.*gambar|mri.*gambar|ekg.*gambar)\b",
-    re.IGNORECASE,
-)
+IMAGE_DEPENDENT_RE = EXPLICIT_IMAGE_DEPENDENT_RE
 HALLUCINATION_RE = re.compile(
     r"(?:\[auto-analysis\]|more commonly indicated|is not a valid treatment|is not a common diagnosis)",
     re.IGNORECASE,
@@ -515,6 +519,7 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
     prompt = normalize_whitespace(case_data.get("prompt"))
     narrative = extract_narrative(case_data)
     rationale_text = extract_rationale(case_data)
+    question_text = "\n".join(filter(None, [case_data.get("title"), prompt, narrative]))
     joined_text = "\n".join(filter(None, [case_data.get("title"), prompt, narrative, rationale_text]))
     meta = case_data.get("meta") or {}
     option_preview = [excerpt(option.get("text"), 90) for option in (case_data.get("options") or [])[:5]]
@@ -552,7 +557,7 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
     elif current_correct_count > 1:
         push_reason(manual_reasons, seen_manual, "multi_correct", "heuristic")
 
-    if IMAGE_DEPENDENT_RE.search(joined_text):
+    if IMAGE_DEPENDENT_RE.search(question_text):
         push_reason(manual_reasons, seen_manual, "image_dependency", "heuristic")
     if AOTA_RE.search(joined_text):
         push_reason(manual_reasons, seen_manual, "aota_suspect", "heuristic")

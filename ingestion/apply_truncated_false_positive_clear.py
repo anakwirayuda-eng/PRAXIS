@@ -1,13 +1,19 @@
 from __future__ import annotations
 
-import re
 import json
 import sqlite3
+import sys
 from collections import Counter, defaultdict
 from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+try:
+    from ingestion.readability_rules import is_explicit_image_dependent
+except ModuleNotFoundError:
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    from ingestion.readability_rules import is_explicit_image_dependent
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -16,16 +22,13 @@ JSON_FILE = ROOT / "public" / "data" / "compiled_cases.json"
 QUEUE_FILE = ROOT / "ingestion" / "output" / "readability_batch_salvage_queue.json"
 REPORT_FILE = ROOT / "ingestion" / "output" / "truncated_false_positive_clear_report.json"
 
-TARGET_SOURCES = {"medmcqa", "frenchmedmcqa", "medqa", "nano1337-mcqs", "ukmppd-scribd", "worldmedqa", "headqa"}
+TARGET_SOURCES = {"medmcqa", "frenchmedmcqa", "medqa", "nano1337-mcqs", "ukmppd-scribd", "ukmppd-ukdicorner", "worldmedqa", "headqa"}
 GENERIC_PROMPTS = {
     "choose the correct answer.",
     "pilih jawaban yang paling tepat.",
 }
-PROMOTE_NARRATIVE_SOURCES = {"frenchmedmcqa", "nano1337-mcqs", "ukmppd-scribd", "worldmedqa"}
+PROMOTE_NARRATIVE_SOURCES = {"frenchmedmcqa", "nano1337-mcqs", "ukmppd-scribd", "ukmppd-ukdicorner", "worldmedqa"}
 SHORT_PROMPT_PROMOTE_SOURCES = {"headqa"}
-IMAGE_HINT_RE = re.compile(r"\b(image|picture|gambar|foto|linked to image)\b", re.IGNORECASE)
-
-
 def read_json(path: Path, default: Any) -> Any:
     if not path.exists():
         return default
@@ -242,14 +245,14 @@ def is_safe_candidate(case_data: dict[str, Any]) -> tuple[bool, str]:
     if source in PROMOTE_NARRATIVE_SOURCES and is_generic_prompt(prompt):
         if not narrative or len(narrative) < 30:
             return False, "short_narrative"
-        if IMAGE_HINT_RE.search(prompt) or IMAGE_HINT_RE.search(narrative):
+        if is_explicit_image_dependent(prompt, narrative):
             return False, "image_dependent_prompt"
     if source in SHORT_PROMPT_PROMOTE_SOURCES:
         if len(prompt) >= 30:
             return False, "prompt_not_short"
         if not narrative or len(narrative) < 30:
             return False, "short_narrative"
-        if IMAGE_HINT_RE.search(prompt) or IMAGE_HINT_RE.search(narrative):
+        if is_explicit_image_dependent(prompt, narrative):
             return False, "image_dependent_prompt"
     return True, "candidate"
 
