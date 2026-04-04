@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import sys
 from collections import Counter, defaultdict
@@ -22,13 +23,18 @@ JSON_FILE = ROOT / "public" / "data" / "compiled_cases.json"
 QUEUE_FILE = ROOT / "ingestion" / "output" / "readability_batch_salvage_queue.json"
 REPORT_FILE = ROOT / "ingestion" / "output" / "truncated_false_positive_clear_report.json"
 
-TARGET_SOURCES = {"medmcqa", "frenchmedmcqa", "medqa", "nano1337-mcqs", "ukmppd-scribd", "ukmppd-ukdicorner", "worldmedqa", "headqa"}
+TARGET_SOURCES = {"medmcqa", "frenchmedmcqa", "medqa", "nano1337-mcqs", "ukmppd-scribd", "ukmppd-ukdicorner", "worldmedqa", "headqa", "sct-alchemist-v3"}
+TARGET_SOURCE_PREFIXES = ("mmlu-",)
 GENERIC_PROMPTS = {
     "choose the correct answer.",
     "pilih jawaban yang paling tepat.",
 }
 PROMOTE_NARRATIVE_SOURCES = {"frenchmedmcqa", "nano1337-mcqs", "ukmppd-scribd", "ukmppd-ukdicorner", "worldmedqa"}
 SHORT_PROMPT_PROMOTE_SOURCES = {"headqa"}
+SAFE_TEMPLATE_ELLIPSIS_RE = re.compile(
+    r"^(?:jika\s+ditemukan|bila\s+ditemukan|when\s+finding|if\s+there\s+is).+(?:apakah\s+hipotesis\s+menjadi|does\s+the\s+hypothesis\s+become)\.\.\.$",
+    re.IGNORECASE,
+)
 def read_json(path: Path, default: Any) -> Any:
     if not path.exists():
         return default
@@ -220,10 +226,22 @@ def has_complete_options(case_data: dict[str, Any]) -> bool:
     return sum(1 for option in options if len(normalize_text(option.get("text"))) >= 3) >= 4
 
 
+def is_target_source(source: str) -> bool:
+    return source in TARGET_SOURCES or source.startswith(TARGET_SOURCE_PREFIXES)
+
+
+def has_safe_terminal_ellipsis(case_data: dict[str, Any], stem: str) -> bool:
+    source = str(case_data.get("source") or "")
+    if source != "sct-alchemist-v3":
+        return False
+    normalized = normalize_text(stem)
+    return SAFE_TEMPLATE_ELLIPSIS_RE.match(normalized) is not None
+
+
 def is_safe_candidate(case_data: dict[str, Any]) -> tuple[bool, str]:
     meta = case_data.get("meta") or {}
     source = str(case_data.get("source") or "")
-    if source not in TARGET_SOURCES:
+    if not is_target_source(source):
         return False, "unsupported_source"
     if meta.get("truncated") is not True:
         return False, "not_truncated"
@@ -240,7 +258,7 @@ def is_safe_candidate(case_data: dict[str, Any]) -> tuple[bool, str]:
     stem = narrative if is_generic_prompt(prompt) and narrative else prompt or narrative or normalize_text(case_data.get("title"))
     if len(stem) < 18:
         return False, "short_stem"
-    if "..." in stem or stem.endswith(".."):
+    if ("..." in stem or stem.endswith("..")) and not has_safe_terminal_ellipsis(case_data, stem):
         return False, "ellipsis_stem"
     if source in PROMOTE_NARRATIVE_SOURCES and is_generic_prompt(prompt):
         if not narrative or len(narrative) < 30:
@@ -300,7 +318,7 @@ def main() -> None:
     target_ids = [
         int(item["_id"])
         for item in queue
-        if item.get("playbook") == "truncated_text_recovery" and item.get("source") in TARGET_SOURCES
+        if item.get("playbook") == "truncated_text_recovery" and is_target_source(str(item.get("source") or ""))
     ]
 
     connection = sqlite3.connect(DB_FILE)

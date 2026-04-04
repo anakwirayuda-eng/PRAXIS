@@ -17,9 +17,12 @@ EXPLICIT_IMAGE_DEPENDENT_RE = re.compile(
     r"electrocardiogram is shown below|ecg is shown below|ekg is shown below|"
     r"radiograph is shown below|x-?ray is shown below|"
     r"lesion in the picture|spirometry in image|"
-    r"gambar(?:\s+berikut|\s+di\s+bawah|\s+seperti\s+berikut)?|"
-    r"foto(?:\s+berikut|\s+di\s+bawah)?|"
-    r"pada gambar|lihat gambar|lihat foto"
+    r"gambar\s+(?:berikut|di\s+bawah|seperti\s+berikut|di\s+samping)|"
+    r"foto\s+(?:berikut|di\s+bawah|seperti\s+berikut|di\s+samping)|"
+    r"pada\s+gambar(?:\s+berikut|\s+di\s+bawah|\s+di\s+samping)?|"
+    r"seperti\s+(?:pada|di)\s+gambar|"
+    r"seperti\s+(?:pada|di)\s+foto|"
+    r"lihat gambar|lihat foto"
     r")\b",
     re.IGNORECASE,
 )
