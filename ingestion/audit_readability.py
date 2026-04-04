@@ -29,6 +29,7 @@ WATERMARK_RE = re.compile(
 MOJIBAKE_RE = re.compile(r"(?:Ã.|Â|â€|â€¢|â€“|â€”|â€œ|â€|â€˜|â€™)")
 ORPHAN_LINEBREAK_RE = re.compile(r"[a-z0-9,;:]\s*\n\s*[a-z]", re.IGNORECASE)
 LEADING_OPTION_ARTIFACT_RE = re.compile(r"^(?:[A-E][\.\)]\s+)")
+INITIALS_OPENING_RE = re.compile(r"^([A-E])\.\s+([A-Z])\.\s+")
 GENERIC_PROMPT_RE = re.compile(
     r"^(?:review this case and choose the best answer\.?|pilih jawaban yang paling tepat\.?)$",
     re.IGNORECASE,
@@ -249,6 +250,15 @@ def parse_json(value: Any, fallback: Any) -> Any:
         return json.loads(value)
     except json.JSONDecodeError:
         return fallback
+
+
+def has_leading_option_artifact(text: str) -> bool:
+    normalized = str(text or "").strip()
+    if not normalized:
+        return False
+    if INITIALS_OPENING_RE.match(normalized):
+        return False
+    return LEADING_OPTION_ARTIFACT_RE.match(normalized) is not None
 
 
 def read_cases_from_sqlite(path: Path) -> list[dict[str, Any]]:
@@ -561,7 +571,7 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
         push_reason(auto_reasons, seen_auto, "watermark_noise", "heuristic")
     if ORPHAN_LINEBREAK_RE.search(prompt) or ORPHAN_LINEBREAK_RE.search(narrative):
         push_reason(auto_reasons, seen_auto, "orphan_linebreak", "heuristic")
-    if LEADING_OPTION_ARTIFACT_RE.match(prompt) or LEADING_OPTION_ARTIFACT_RE.match(narrative):
+    if has_leading_option_artifact(prompt) or has_leading_option_artifact(narrative):
         push_reason(auto_reasons, seen_auto, "leading_option_artifact", "heuristic")
     if has_duplicate_options(case_data):
         push_reason(auto_reasons, seen_auto, "duplicate_options", "heuristic")
