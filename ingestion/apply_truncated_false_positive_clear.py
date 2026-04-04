@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import json
 import sqlite3
 from collections import Counter, defaultdict
@@ -15,11 +16,14 @@ JSON_FILE = ROOT / "public" / "data" / "compiled_cases.json"
 QUEUE_FILE = ROOT / "ingestion" / "output" / "readability_batch_salvage_queue.json"
 REPORT_FILE = ROOT / "ingestion" / "output" / "truncated_false_positive_clear_report.json"
 
-TARGET_SOURCES = {"medmcqa", "frenchmedmcqa"}
+TARGET_SOURCES = {"medmcqa", "frenchmedmcqa", "medqa", "nano1337-mcqs", "ukmppd-scribd", "worldmedqa", "headqa"}
 GENERIC_PROMPTS = {
     "choose the correct answer.",
     "pilih jawaban yang paling tepat.",
 }
+PROMOTE_NARRATIVE_SOURCES = {"frenchmedmcqa", "nano1337-mcqs", "ukmppd-scribd", "worldmedqa"}
+SHORT_PROMPT_PROMOTE_SOURCES = {"headqa"}
+IMAGE_HINT_RE = re.compile(r"\b(image|picture|gambar|foto|linked to image)\b", re.IGNORECASE)
 
 
 def read_json(path: Path, default: Any) -> Any:
@@ -235,6 +239,18 @@ def is_safe_candidate(case_data: dict[str, Any]) -> tuple[bool, str]:
         return False, "short_stem"
     if "..." in stem or stem.endswith(".."):
         return False, "ellipsis_stem"
+    if source in PROMOTE_NARRATIVE_SOURCES and is_generic_prompt(prompt):
+        if not narrative or len(narrative) < 30:
+            return False, "short_narrative"
+        if IMAGE_HINT_RE.search(prompt) or IMAGE_HINT_RE.search(narrative):
+            return False, "image_dependent_prompt"
+    if source in SHORT_PROMPT_PROMOTE_SOURCES:
+        if len(prompt) >= 30:
+            return False, "prompt_not_short"
+        if not narrative or len(narrative) < 30:
+            return False, "short_narrative"
+        if IMAGE_HINT_RE.search(prompt) or IMAGE_HINT_RE.search(narrative):
+            return False, "image_dependent_prompt"
     return True, "candidate"
 
 
@@ -247,7 +263,15 @@ def apply_case_update(case_data: dict[str, Any]) -> tuple[dict[str, Any], list[s
 
     prompt = normalize_text(updated.get("prompt"))
     narrative = normalize_text(get_narrative(updated))
-    if updated.get("source") == "frenchmedmcqa" and is_generic_prompt(prompt) and narrative:
+    if updated.get("source") in PROMOTE_NARRATIVE_SOURCES and is_generic_prompt(prompt) and narrative:
+        updated["prompt"] = narrative
+        if normalize_text(updated.get("title")) == narrative:
+            set_narrative(updated, "")
+        else:
+            set_narrative(updated, narrative)
+        with_quality_flag(meta, "prompt_promoted_from_narrative")
+        fix_kinds.append("prompt_promoted_from_narrative")
+    elif updated.get("source") in SHORT_PROMPT_PROMOTE_SOURCES and len(prompt) < 30 and narrative:
         updated["prompt"] = narrative
         if normalize_text(updated.get("title")) == narrative:
             set_narrative(updated, "")
