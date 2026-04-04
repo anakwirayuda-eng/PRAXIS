@@ -2,6 +2,8 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const mockNavigate = vi.fn();
+
 vi.mock('../lib/adminSession', () => ({
   hasVerifiedAdminSession: () => false,
 }));
@@ -10,9 +12,18 @@ vi.mock('../lib/runtimeWatchdog', () => ({
   useRuntimeWatchdog: () => ({ count: 0 }),
 }));
 
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 describe('layout accessibility regressions', () => {
   beforeEach(() => {
     vi.resetModules();
+    mockNavigate.mockReset();
     window.matchMedia = vi.fn().mockImplementation(() => ({
       matches: false,
       media: '(max-width: 768px)',
@@ -54,5 +65,22 @@ describe('layout accessibility regressions', () => {
     expect(screen.getByRole('dialog', { name: /Page settings/i })).toBeInTheDocument();
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Show HUD Timer|Hide HUD Timer/i })).toHaveFocus();
+  }, 15000);
+
+  it('supports the advertised Ctrl+K shortcut without requiring a mouse click', async () => {
+    const { MemoryRouter } = await import('react-router-dom');
+    const { default: Layout } = await import('../components/Layout.jsx');
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Layout>
+          <main id="main-content">Body</main>
+        </Layout>
+      </MemoryRouter>,
+    );
+
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
+
+    expect(mockNavigate).toHaveBeenCalledWith('/cases', { state: { focusSearch: true } });
   }, 15000);
 });

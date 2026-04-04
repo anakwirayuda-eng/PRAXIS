@@ -38,6 +38,15 @@ const baseNavItems = [
   { to: '/quality', icon: Shield, label: 'Data Quality' },
 ];
 
+function isEditableTarget(target) {
+  if (typeof HTMLElement === 'undefined' || !(target instanceof HTMLElement)) {
+    return false;
+  }
+
+  const tagName = target.tagName.toLowerCase();
+  return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+}
+
 export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,18 +119,35 @@ export default function Layout({ children }) {
     changeThemeSmoothly((themeIndex + 1) % THEMES.length);
   }, [themeIndex, changeThemeSmoothly]);
 
+  const openHeaderSearch = useCallback(() => {
+    if (location.pathname === '/cases') {
+      window.dispatchEvent(new Event('praxis:focus-case-search'));
+      return;
+    }
+    navigate('/cases', { state: { focusSearch: true } });
+  }, [location.pathname, navigate]);
+
   useEffect(() => {
     applyThemeToDOM(themeIndex);
 
     const handleGlobalKeys = (e) => {
-      if (e.altKey && e.key.toLowerCase() === 't') {
+      const lowerKey = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && lowerKey === 'k') {
+        if (isEditableTarget(e.target)) return;
+        e.preventDefault();
+        openHeaderSearch();
+        return;
+      }
+
+      if (e.altKey && lowerKey === 't') {
+        if (isEditableTarget(e.target)) return;
         e.preventDefault();
         cycleTheme();
       }
     };
     window.addEventListener('keydown', handleGlobalKeys);
     return () => window.removeEventListener('keydown', handleGlobalKeys);
-  }, [themeIndex, cycleTheme, applyThemeToDOM]);
+  }, [themeIndex, cycleTheme, applyThemeToDOM, openHeaderSearch]);
 
   // Scroll-Bleed Guillotine — lock background scroll when mobile sidebar open
   useEffect(() => {
@@ -198,13 +224,6 @@ export default function Layout({ children }) {
   }, [settingsOpen]);
 
   const isAdmin = hasVerifiedAdminSession();
-  const openHeaderSearch = () => {
-    if (location.pathname === '/cases') {
-      window.dispatchEvent(new Event('praxis:focus-case-search'));
-      return;
-    }
-    navigate('/cases', { state: { focusSearch: true } });
-  };
 
   const runtimeIssueBadge = runtimeIssueCount > 99 ? '99+' : String(runtimeIssueCount);
   const navItems = [

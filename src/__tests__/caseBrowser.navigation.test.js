@@ -391,6 +391,31 @@ describe('CaseBrowser quality-aware navigation', () => {
     expect(screen.queryByRole('button', { name: /show only reviewed/i })).not.toBeInTheDocument();
   });
 
+  it('renders fallback metadata safely when category and exam labels are missing', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 403, title: 'Fallback metadata case', category: null, examType: '', narrative: '' }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    const { container } = render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.getByText('Fallback metadata case')).toBeInTheDocument();
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
+    expect(screen.getByText(/Clinical vignette preview unavailable/i)).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-testid="case-card"] .badge')).toHaveLength(2);
+  });
+
   it('focuses the search input when navigation requests browser search intent', async () => {
     mockSnapshot = {
       ...mockSnapshot,

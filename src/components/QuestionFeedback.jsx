@@ -45,7 +45,11 @@ function loadFeedback() {
 }
 
 function saveFeedback(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // Ignore storage write failures so feedback UI does not crash.
+  }
 }
 
 async function syncToServer(caseId, tags, comment) {
@@ -69,7 +73,11 @@ export function QuestionFeedback({ caseId, caseData }) {
   const [submitted, setSubmitted] = useState(false);
   const [existingFeedback, setExistingFeedback] = useState(null);
   const [feedbackError, setFeedbackError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const closeTimerRef = useRef(null);
+  const feedbackPanelId = `feedback-panel-${caseId}`;
+  const feedbackStatusId = `feedback-status-${caseId}`;
 
   useEffect(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -86,6 +94,8 @@ export function QuestionFeedback({ caseId, caseData }) {
     setSubmitted(false);
     setIsOpen(false);
     setFeedbackError('');
+    setIsSubmitting(false);
+    setIsRetrying(false);
     return () => window.clearTimeout(closeTimerRef.current);
   }, [caseId]);
 
@@ -105,37 +115,42 @@ export function QuestionFeedback({ caseId, caseData }) {
     const pendingEntries = Object.entries(all).filter(([, entry]) => entry?.synced === false);
     if (pendingEntries.length === 0) return false;
 
+    setIsRetrying(true);
     let syncedAny = false;
     let syncedCurrentCaseEntry = null;
 
-    for (const [pendingCaseId, pending] of pendingEntries) {
-      const normalizedCaseId = Number.isFinite(Number(pendingCaseId))
-        ? Number(pendingCaseId)
-        : pendingCaseId;
-      const ok = await syncToServer(normalizedCaseId, pending.tags || [], pending.comment || '');
-      if (!ok) continue;
+    try {
+      for (const [pendingCaseId, pending] of pendingEntries) {
+        const normalizedCaseId = Number.isFinite(Number(pendingCaseId))
+          ? Number(pendingCaseId)
+          : pendingCaseId;
+        const ok = await syncToServer(normalizedCaseId, pending.tags || [], pending.comment || '');
+        if (!ok) continue;
 
-      const syncedEntry = {
-        ...pending,
-        synced: true,
-        syncedAt: Date.now(),
-      };
-      all[pendingCaseId] = syncedEntry;
-      syncedAny = true;
+        const syncedEntry = {
+          ...pending,
+          synced: true,
+          syncedAt: Date.now(),
+        };
+        all[pendingCaseId] = syncedEntry;
+        syncedAny = true;
 
-      if (String(pendingCaseId) === String(caseId)) {
-        syncedCurrentCaseEntry = syncedEntry;
+        if (String(pendingCaseId) === String(caseId)) {
+          syncedCurrentCaseEntry = syncedEntry;
+        }
       }
-    }
 
-    if (!syncedAny) return false;
+      if (!syncedAny) return false;
 
-    saveFeedback(all);
-    if (syncedCurrentCaseEntry) {
-      setExistingFeedback(syncedCurrentCaseEntry);
-      setFeedbackError('');
+      saveFeedback(all);
+      if (syncedCurrentCaseEntry) {
+        setExistingFeedback(syncedCurrentCaseEntry);
+        setFeedbackError('');
+      }
+      return true;
+    } finally {
+      setIsRetrying(false);
     }
-    return true;
   }, [caseId]);
 
   useEffect(() => {
@@ -160,24 +175,30 @@ export function QuestionFeedback({ caseId, caseData }) {
   };
 
   const handleSubmit = async () => {
-    if (selectedTags.length === 0 && !comment.trim()) return;
+    const trimmedComment = comment.trim();
+    if (isSubmitting || (selectedTags.length === 0 && !trimmedComment)) return;
+    setIsSubmitting(true);
 
-    // Sync to backend first — only persist locally on success
-    const ok = await syncToServer(caseId, selectedTags, comment.trim());
-    setFeedbackError(ok ? '' : 'Tidak bisa mengirim ke server. Feedback disimpan lokal dulu.');
+    try {
+      // Sync to backend first — only persist locally on success
+      const ok = await syncToServer(caseId, selectedTags, trimmedComment);
+      setFeedbackError(ok ? '' : 'Tidak bisa mengirim ke server. Feedback disimpan lokal dulu.');
 
-    const nextEntry = {
-      tags: selectedTags,
-      comment: comment.trim(),
-      timestamp: Date.now(),
-      synced: ok,
-    };
-    persistFeedbackState(nextEntry);
-    setExistingFeedback(nextEntry);
-    setSubmitted(true);
+      const nextEntry = {
+        tags: selectedTags,
+        comment: trimmedComment,
+        timestamp: Date.now(),
+        synced: ok,
+      };
+      persistFeedbackState(nextEntry);
+      setExistingFeedback(nextEntry);
+      setSubmitted(true);
 
-    window.clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = window.setTimeout(() => setIsOpen(false), 1200);
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = window.setTimeout(() => setIsOpen(false), 1200);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClear = async () => {
@@ -207,6 +228,9 @@ export function QuestionFeedback({ caseId, caseData }) {
       <button
         type="button"
         onClick={() => setIsOpen(o => !o)}
+        aria-expanded={isOpen}
+        aria-controls={feedbackPanelId}
+        aria-describedby={feedbackError || isRetrying ? feedbackStatusId : undefined}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -256,13 +280,19 @@ export function QuestionFeedback({ caseId, caseData }) {
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
             style={{ overflow: 'hidden' }}
           >
-            <div style={{
+            <div
+              id={feedbackPanelId}
+              style={{
               padding: 'var(--sp-4)',
               borderRadius: 'var(--radius-lg)',
               background: 'rgba(15,23,42,0.5)',
               border: '1px solid rgba(99,102,241,0.15)',
               backdropFilter: 'blur(12px)',
-            }} role="dialog" aria-label="Question quality feedback">
+            }}
+              role="dialog"
+              aria-label="Question quality feedback"
+              aria-busy={isSubmitting || isRetrying}
+            >
               {/* Header */}
               <div style={{
                 display: 'flex',
@@ -293,17 +323,22 @@ export function QuestionFeedback({ caseId, caseData }) {
                 </button>
               </div>
 
-              {feedbackError && (
-                <div style={{
+              {(feedbackError || isRetrying) && (
+                <div
+                  id={feedbackStatusId}
+                  role="status"
+                  aria-live="polite"
+                  style={{
                   marginBottom: 'var(--sp-3)',
                   padding: 'var(--sp-2) var(--sp-3)',
                   borderRadius: 'var(--radius-md)',
-                  background: 'rgba(245,158,11,0.12)',
-                  border: '1px solid rgba(245,158,11,0.25)',
-                  color: '#fbbf24',
+                  background: isRetrying ? 'rgba(56,189,248,0.12)' : 'rgba(245,158,11,0.12)',
+                  border: isRetrying ? '1px solid rgba(56,189,248,0.25)' : '1px solid rgba(245,158,11,0.25)',
+                  color: isRetrying ? '#7dd3fc' : '#fbbf24',
                   fontSize: 'var(--fs-xs)',
-                }}>
-                  {feedbackError}
+                }}
+                >
+                  {isRetrying ? 'Menyinkronkan feedback lokal…' : feedbackError}
                 </div>
               )}
 
@@ -345,6 +380,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                           type="button"
                           aria-pressed={active}
                           onClick={() => toggleTag(tag.id)}
+                          disabled={isSubmitting}
                           style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -381,6 +417,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                       placeholder="Catatan tambahan (opsional)..."
                       rows={2}
                       maxLength={500}
+                      disabled={isSubmitting}
                       style={{
                         width: '100%',
                         resize: 'vertical',
@@ -414,6 +451,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                       <button
                         type="button"
                         onClick={handleClear}
+                        disabled={isSubmitting}
                         style={{
                           padding: '6px 14px',
                           borderRadius: 'var(--radius-md)',
@@ -431,7 +469,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                     <button
                       type="button"
                       onClick={handleSubmit}
-                      disabled={selectedTags.length === 0 && !comment.trim()}
+                      disabled={isSubmitting || (selectedTags.length === 0 && !comment.trim())}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -439,19 +477,19 @@ export function QuestionFeedback({ caseId, caseData }) {
                         padding: '6px 16px',
                         borderRadius: 'var(--radius-md)',
                         border: 'none',
-                        background: selectedTags.length > 0 || comment.trim()
+                        background: isSubmitting || selectedTags.length > 0 || comment.trim()
                           ? 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))'
                           : 'rgba(148,163,184,0.1)',
-                        color: selectedTags.length > 0 || comment.trim() ? '#fff' : 'var(--text-muted)',
+                        color: isSubmitting || selectedTags.length > 0 || comment.trim() ? '#fff' : 'var(--text-muted)',
                         fontSize: 'var(--fs-xs)',
                         fontWeight: 600,
-                        cursor: selectedTags.length > 0 || comment.trim() ? 'pointer' : 'default',
-                        opacity: selectedTags.length > 0 || comment.trim() ? 1 : 0.5,
+                        cursor: isSubmitting || selectedTags.length > 0 || comment.trim() ? 'pointer' : 'default',
+                        opacity: isSubmitting || selectedTags.length > 0 || comment.trim() ? 1 : 0.5,
                         transition: 'all 0.2s',
                       }}
                     >
                       <Send size={12} />
-                      Simpan
+                      {isSubmitting ? 'Menyimpan…' : 'Simpan'}
                     </button>
                   </div>
                 </>

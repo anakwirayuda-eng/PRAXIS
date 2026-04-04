@@ -46,6 +46,23 @@ function ProgressRing({ value, size = 80, stroke = 6, color = 'var(--accent-prim
   );
 }
 
+function loadDismissedBannerState() {
+  if (typeof window === 'undefined') return true;
+  try {
+    return !!localStorage.getItem('praxis_banner_q1_dismissed');
+  } catch {
+    return false;
+  }
+}
+
+function saveDismissedBannerState() {
+  try {
+    localStorage.setItem('praxis_banner_q1_dismissed', 'true');
+  } catch {
+    // Ignore storage write failures and still dismiss for this session.
+  }
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { totalAnswered, streak, completedCases, getAccuracy, categoryScores } = useStore();
@@ -116,8 +133,10 @@ export default function Dashboard() {
     let truncated = 0;
     let quarantined = 0;
     let aiAudited = 0;
+    let clean = 0;
 
     for (const caseData of caseBank) {
+      if (isCasePlayable(caseData)) clean++;
       if (isCaseQuarantined(caseData)) quarantined++;
       if (isCaseNeedsReview(caseData)) needsReview++;
       if (isCaseTruncated(caseData)) truncated++;
@@ -126,7 +145,7 @@ export default function Dashboard() {
 
     return {
       total: caseBank.length,
-      clean: caseBank.length - quarantined - needsReview,
+      clean,
       quarantined,
       needsReview,
       truncated,
@@ -141,10 +160,8 @@ export default function Dashboard() {
     { label: 'Study Streak', value: `${streak}d`, icon: Zap, color: 'var(--accent-warning)' },
   ];
 
-  const [isBannerDismissed, setIsBannerDismissed] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return !!localStorage.getItem('praxis_banner_q1_dismissed');
-  });
+  const [isBannerDismissed, setIsBannerDismissed] = useState(loadDismissedBannerState);
+  const getQualityWidth = (count) => (dataQuality.total > 0 ? `${(count / dataQuality.total) * 100}%` : '0%');
 
   return (
     <div>
@@ -161,7 +178,8 @@ export default function Dashboard() {
             marginBottom: 'var(--sp-6)', boxShadow: '0 4px 24px rgba(16,185,129,0.05)',
           }}>
             <button
-              onClick={() => { localStorage.setItem('praxis_banner_q1_dismissed', 'true'); setIsBannerDismissed(true); }}
+              type="button"
+              onClick={() => { saveDismissedBannerState(); setIsBannerDismissed(true); }}
               style={{
                 position: 'absolute', top: 12, right: 12, background: 'none', border: 'none',
                 color: 'rgba(52,211,153,0.4)', cursor: 'pointer', padding: 4, borderRadius: 'var(--radius-sm)',
@@ -339,10 +357,10 @@ export default function Dashboard() {
       <div className="glass-card" style={{ padding: 'var(--sp-4) var(--sp-5)', marginBottom: 'var(--sp-8)', display: 'flex', alignItems: 'center', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
         <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>📊 Data Quality</span>
         <div style={{ flex: 1, minWidth: 200, height: 8, borderRadius: 4, background: 'rgba(148,163,184,0.1)', overflow: 'hidden', display: 'flex' }}>
-          <div style={{ width: `${(dataQuality.clean / dataQuality.total * 100)}%`, background: 'var(--accent-success)', transition: 'width 1s ease' }} />
-          <div style={{ width: `${(dataQuality.truncated / dataQuality.total * 100)}%`, background: 'var(--accent-warning)', transition: 'width 1s ease' }} />
-          <div style={{ width: `${(dataQuality.needsReview / dataQuality.total * 100)}%`, background: '#f97316', transition: 'width 1s ease' }} />
-          <div style={{ width: `${(dataQuality.quarantined / dataQuality.total * 100)}%`, background: 'var(--accent-danger)', transition: 'width 1s ease' }} />
+          <div style={{ width: getQualityWidth(dataQuality.clean), background: 'var(--accent-success)', transition: 'width 1s ease' }} />
+          <div style={{ width: getQualityWidth(dataQuality.truncated), background: 'var(--accent-warning)', transition: 'width 1s ease' }} />
+          <div style={{ width: getQualityWidth(dataQuality.needsReview), background: '#f97316', transition: 'width 1s ease' }} />
+          <div style={{ width: getQualityWidth(dataQuality.quarantined), background: 'var(--accent-danger)', transition: 'width 1s ease' }} />
         </div>
         <div style={{ display: 'flex', gap: 'var(--sp-4)', fontSize: 'var(--fs-xs)', flexWrap: 'wrap' }}>
           <span style={{ color: 'var(--accent-success)' }}>✅ {dataQuality.clean.toLocaleString()} Clean</span>

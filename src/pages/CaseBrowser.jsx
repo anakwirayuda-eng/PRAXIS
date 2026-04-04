@@ -81,6 +81,22 @@ function getBrowserResetKey(searchParams) {
   return next.toString();
 }
 
+function getCaseCategoryToken(category) {
+  const normalized = String(category || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  return normalized || 'unknown';
+}
+
+function getCaseExamLabel(meta) {
+  const examType = meta?.examType;
+  return examType && examType !== 'BOTH' ? examType : null;
+}
+
+function getNarrativePreview(narrative) {
+  const text = String(narrative || '').trim();
+  if (!text) return 'Clinical vignette preview unavailable.';
+  return text.length > 120 ? `${text.substring(0, 120)}...` : text;
+}
+
 export function buildCasePlaylist(cases, currentIndex, maxSize = 2000) {
   const safeCases = Array.isArray(cases) ? cases : [];
   const cappedSize = Math.max(1, maxSize);
@@ -649,6 +665,8 @@ export default function CaseBrowser() {
       <div className="grid grid-2 stagger">
         {paginatedCases.map((caseData, index) => {
           const cat = CATEGORIES[caseData.category] ?? { label: caseData.category ?? 'Unknown', color: 'var(--text-muted)' };
+          const categoryToken = getCaseCategoryToken(caseData.category);
+          const examLabel = getCaseExamLabel(caseData.meta);
           const isCompleted = completedCases.includes(caseData._id);
           const isBookmarked = bookmarks.includes(caseData._id);
           const narrative = caseData.vignette?.narrative ?? '';
@@ -685,7 +703,7 @@ export default function CaseBrowser() {
                   </span>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', flexWrap: 'wrap', minWidth: 0 }}>
-                    <span className={`badge badge-${caseData.category.replace('-', '')}`} style={{ background: `${cat.color}15`, color: cat.color }}>
+                    <span className={`badge badge-${categoryToken}`} style={{ background: `${cat.color}15`, color: cat.color }}>
                       {cat.label}
                     </span>
                     {caseData.meta?.category_review_needed && (
@@ -696,8 +714,8 @@ export default function CaseBrowser() {
                     <span className={`badge ${caseData.q_type === 'SCT' ? 'badge-warning' : caseData.q_type === 'CLINICAL_DISCUSSION' ? 'badge-success' : 'badge-info'}`}>
                       {caseData.q_type === 'CLINICAL_DISCUSSION' ? 'Clinical' : caseData.q_type}
                     </span>
-                    {caseData.meta.examType !== 'BOTH' && (
-                      <span className="badge badge-primary">{caseData.meta.examType}</span>
+                    {examLabel && (
+                      <span className="badge badge-primary">{examLabel}</span>
                     )}
                   </div>
                 </div>
@@ -712,7 +730,7 @@ export default function CaseBrowser() {
 
               <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
                 {demographics.age && demographics.sex ? `${demographics.age}y/${demographics.sex} - ` : ''}
-                {narrative.substring(0, 120)}...
+                {getNarrativePreview(narrative)}
               </p>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
