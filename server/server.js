@@ -52,6 +52,7 @@ app.use('/api/*', cors({
 
 app.use('/api/*', async (c, next) => {
   c.set('db', appDb);
+  c.set('adminKey', process.env.ADMIN_KEY || '');
   await next();
 });
 

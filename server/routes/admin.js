@@ -3,28 +3,16 @@
  * Protected by ADMIN_KEY header (timing-safe comparison)
  */
 import { Hono } from 'hono';
-
-// Timing-safe key comparison
-function verifyKey(input, expected) {
-  if (!input || !expected) return false;
-  if (input.length !== expected.length) return false;
-  let result = 0;
-  for (let i = 0; i < input.length; i++) {
-    result |= input.charCodeAt(i) ^ expected.charCodeAt(i);
-  }
-  return result === 0;
-}
+import { getAdminAuthFailure } from '../lib/adminAuth.js';
 
 export function createAdminRoutes() {
   const admin = new Hono();
 
   // Middleware: check ADMIN_KEY
   admin.use('*', async (c, next) => {
-    const key = c.req.header('X-Admin-Key') || c.req.query('key');
-    const expected = c.env?.ADMIN_KEY || 'praxis-admin-2026';
-
-    if (!verifyKey(key, expected)) {
-      return c.json({ error: 'Unauthorized. Set X-Admin-Key header.' }, 401);
+    const failure = getAdminAuthFailure(c);
+    if (failure) {
+      return c.json({ error: failure.error }, failure.status);
     }
     await next();
   });

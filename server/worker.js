@@ -71,6 +71,7 @@ app.use('/api/admin/*', async (c, next) => {
 // Layer 5: Inject D1 database into context
 app.use('/api/*', async (c, next) => {
   c.set('db', c.env.DB);
+  c.set('adminKey', c.env?.ADMIN_KEY || '');
   await next();
 });
 

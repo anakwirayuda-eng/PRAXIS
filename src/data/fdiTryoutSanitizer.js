@@ -12,6 +12,7 @@ function cleanText(value) {
     .replace(/\s+/g, ' ')
     .replace(/\s+([,.:;!?])/g, '$1')
     .replace(/([,.:;!?])([^\s])/g, '$1 $2')
+    .replace(/\s*\.\s*\.\s*\./g, ' ...')
     .replace(/\s*\/\s*/g, '/')
     .replace(/\s*-\s*/g, ' - ')
     .trim();

@@ -61,16 +61,6 @@ async function syncToServer(caseId, tags, comment) {
   }
 }
 
-async function deleteFromServer(caseId) {
-  try {
-    const res = await fetch(`${API_BASE}/api/feedback/by-case/${caseId}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return res.ok;
-  } catch { return false; }
-}
-
 export function QuestionFeedback({ caseId, caseData }) {
   const [healOpen, setHealOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -201,19 +191,12 @@ export function QuestionFeedback({ caseId, caseData }) {
       return;
     }
 
-    // Notify server so admin inbox stays clean
-    const ok = await deleteFromServer(caseId);
-    if (!ok) {
-      setFeedbackError('Gagal menghapus feedback dari server. Coba lagi nanti.');
-      return; // Prevent local wipe if server wipe failed
-    }
-
     persistFeedbackState(null);
     setExistingFeedback(null);
     setSelectedTags([]);
     setComment('');
     setSubmitted(false);
-    setFeedbackError('');
+    setFeedbackError('Feedback yang sudah terkirim tetap tersimpan di server; entri lokal disembunyikan dari perangkat ini.');
   };
 
   const feedbackCount = Object.keys(loadFeedback()).length;
@@ -442,7 +425,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                           fontWeight: 500,
                         }}
                       >
-                        Hapus Feedback
+                        {existingFeedback?.synced === false ? 'Hapus Feedback' : 'Sembunyikan di Perangkat Ini'}
                       </button>
                     )}
                     <button

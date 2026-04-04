@@ -3,6 +3,7 @@
  * All DB operations are async via D1 binding.
  */
 import { Hono } from 'hono';
+import { getAdminAuthFailure } from '../lib/adminAuth.js';
 
 // Tag whitelist (O(1) validation)
 const VALID_TAGS = new Set([
@@ -48,6 +49,12 @@ function waitUntil(c, task) {
 
 export function createFeedbackRoutes() {
   const feedback = new Hono();
+
+  function requireAdmin(c) {
+    const failure = getAdminAuthFailure(c);
+    if (!failure) return null;
+    return c.json({ error: failure.error }, failure.status);
+  }
 
   // POST /api/feedback — Submit new feedback
   feedback.post('/', async (c) => {
@@ -157,6 +164,8 @@ export function createFeedbackRoutes() {
 
   // GET /api/feedback — List all feedback (admin)
   feedback.get('/', async (c) => {
+    const denied = requireAdmin(c);
+    if (denied) return denied;
     const db = c.get('db');
     const limit = parseLimit(c.req.query('limit'));
     const offset = parseOffset(c.req.query('offset'));
@@ -176,6 +185,8 @@ export function createFeedbackRoutes() {
 
   // GET /api/feedback/stats
   feedback.get('/stats', async (c) => {
+    const denied = requireAdmin(c);
+    if (denied) return denied;
     const db = c.get('db');
     const limit = parseLimit(c.req.query('limit'));
 
@@ -213,6 +224,8 @@ export function createFeedbackRoutes() {
 
   // GET /api/feedback/case/:caseId
   feedback.get('/case/:caseId', async (c) => {
+    const denied = requireAdmin(c);
+    if (denied) return denied;
     const db = c.get('db');
     const case_id = String(c.req.param('caseId')).replace(/[^a-zA-Z0-9_-]/g, '');
     if (!case_id) return c.json({ error: 'Invalid case_id' }, 400);
@@ -231,6 +244,8 @@ export function createFeedbackRoutes() {
 
   // PATCH /api/feedback/:id — Update feedback status (admin)
   feedback.patch('/:id', async (c) => {
+    const denied = requireAdmin(c);
+    if (denied) return denied;
     const db = c.get('db');
     const id = parseInt(c.req.param('id'));
     if (isNaN(id)) return c.json({ error: 'Invalid ID' }, 400);
@@ -264,6 +279,8 @@ export function createFeedbackRoutes() {
 
   // GET /api/feedback/proposals — List pending proposals (admin)
   feedback.get('/proposals', async (c) => {
+    const denied = requireAdmin(c);
+    if (denied) return denied;
     const db = c.get('db');
     const limit = parseLimit(c.req.query('limit'));
     const offset = parseOffset(c.req.query('offset'));

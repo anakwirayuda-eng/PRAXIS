@@ -1,4 +1,6 @@
 // Quick API test
+const adminKey = process.env.ADMIN_KEY || '';
+
 const tests = [
   { name: 'Health Check', fn: () => fetch('http://localhost:3001/api/health').then(r => r.json()) },
   { 
@@ -14,7 +16,7 @@ const tests = [
   { 
     name: 'Admin Overview', 
     fn: () => fetch('http://localhost:3001/api/admin/overview', {
-      headers: { 'X-Admin-Key': 'praxis-admin-2026' },
+      headers: adminKey ? { 'X-Admin-Key': adminKey } : {},
     }).then(r => r.json())
   },
   { 
