@@ -1,12 +1,13 @@
 import Database from 'better-sqlite3';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { applyResolvedCategory } from '../src/data/categoryResolution.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
 const DB_PATH = join(PROJECT_ROOT, 'server', 'data', 'casebank.db');
+const PUBLIC_DATA_PATH = join(PROJECT_ROOT, 'public', 'data', 'compiled_cases.json');
 const REPORT_DIR = join(__dirname, 'output');
 
 function writeJsonAtomic(filePath, value) {
@@ -34,31 +35,62 @@ function stableStringify(value) {
   return JSON.stringify(stableSort(value));
 }
 
-function normalizeMeta(caseRow, options) {
+function hasContent(value) {
+  if (typeof value === 'string') return value.trim().length > 0;
+  if (Array.isArray(value)) return value.length > 0;
+  if (value && typeof value === 'object') return Object.keys(value).length > 0;
+  return value !== null && value !== undefined;
+}
+
+function loadPublicCaseMap() {
+  if (!existsSync(PUBLIC_DATA_PATH)) return new Map();
+
+  const publicCases = JSON.parse(readFileSync(PUBLIC_DATA_PATH, 'utf8'));
+  return new Map(publicCases.map((caseData) => [caseData._id, caseData]));
+}
+
+function normalizeOption(option, index) {
+  return {
+    option_id: option?.option_id ?? option?.id ?? index,
+    option_text: option?.option_text ?? option?.text ?? '',
+    text: option?.option_text ?? option?.text ?? '',
+    is_correct: option?.is_correct === true || option?.is_correct === 1,
+  };
+}
+
+function normalizeMeta(caseRow, options, publicCase = null) {
   const meta = JSON.parse(caseRow.meta_json || '{}');
-  const vignette = JSON.parse(caseRow.vignette_json || '{}');
+  const publicMeta = publicCase?.meta && typeof publicCase.meta === 'object'
+    ? publicCase.meta
+    : {};
+  const dbVignette = JSON.parse(caseRow.vignette_json || '{}');
+  const vignette = hasContent(dbVignette) ? dbVignette : (publicCase?.vignette ?? {});
+  const source = caseRow.source || meta.source || publicCase?.source || publicMeta.source || '';
+  const subject = caseRow.subject || meta.subject || publicCase?.subject || publicMeta.subject || publicMeta.subject_name || '';
+  const topic = caseRow.topic || meta.topic || publicCase?.topic || publicMeta.topic || '';
+  const title = caseRow.title || publicCase?.title || publicCase?.subject_name || null;
+  const prompt = caseRow.prompt || publicCase?.prompt || '';
+  const normalizedOptions = options.length > 0
+    ? options.map((option, index) => normalizeOption(option, index))
+    : (Array.isArray(publicCase?.options) ? publicCase.options.map((option, index) => normalizeOption(option, index)) : []);
 
   return {
     case_id: caseRow.case_id,
     case_code: caseRow.case_code,
-    source: caseRow.source || meta.source || '',
+    source,
     category: caseRow.category,
-    title: caseRow.title,
-    prompt: caseRow.prompt,
-    subject: caseRow.subject,
-    topic: caseRow.topic,
+    title,
+    prompt,
+    question: publicCase?.question || null,
+    subject,
+    topic,
     vignette,
-    options: options.map((option) => ({
-      option_id: option.option_id,
-      option_text: option.option_text,
-      text: option.option_text,
-      is_correct: option.is_correct === 1,
-    })),
+    options: normalizedOptions,
     meta: {
       ...meta,
-      source: meta.source || caseRow.source || '',
-      subject: meta.subject || caseRow.subject || '',
-      topic: meta.topic || caseRow.topic || '',
+      source,
+      subject,
+      topic,
     },
   };
 }
@@ -66,6 +98,7 @@ function normalizeMeta(caseRow, options) {
 function main() {
   const db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
+  const publicCasesById = loadPublicCaseMap();
 
   const caseRows = db.prepare(`
     SELECT case_id, case_code, category, title, prompt, source, subject, topic, meta_json, vignette_json
@@ -109,11 +142,14 @@ function main() {
   const apply = db.transaction(() => {
     for (const row of caseRows) {
       const options = optionsByCaseId.get(row.case_id) || [];
+      const publicCase = publicCasesById.get(row.case_id) || null;
       const originalMeta = JSON.parse(row.meta_json || '{}');
       const originalCategory = row.category;
       const priorRawCategory = originalMeta?.category_resolution?.raw_category || originalCategory;
+      const normalizedCase = normalizeMeta(row, options, publicCase);
+      const sourceKey = normalizedCase.source || row.source || 'UNKNOWN';
 
-      const updated = applyResolvedCategory(normalizeMeta(row, options));
+      const updated = applyResolvedCategory(normalizedCase);
       const nextMetaJson = JSON.stringify(updated.meta || {});
       const nextCategory = updated.category || originalCategory;
 
@@ -124,8 +160,8 @@ function main() {
         reviewQueue.push({
           case_id: row.case_id,
           case_code: row.case_code,
-          source: row.source,
-          title: row.title,
+          source: sourceKey,
+          title: normalizedCase.title,
           raw_category: originalCategory,
           final_category: nextCategory,
           confidence: updated.meta.category_resolution?.confidence || 'low',
@@ -139,7 +175,7 @@ function main() {
 
       if (changedFromRaw) {
         audit.category_changed_from_raw += 1;
-        audit.category_changed_by_source[row.source || 'UNKNOWN'] = (audit.category_changed_by_source[row.source || 'UNKNOWN'] || 0) + 1;
+        audit.category_changed_by_source[sourceKey] = (audit.category_changed_by_source[sourceKey] || 0) + 1;
         const key = `${priorRawCategory || '<missing>'} -> ${nextCategory}`;
         audit.top_changes[key] = (audit.top_changes[key] || 0) + 1;
       }
@@ -147,7 +183,7 @@ function main() {
       if (categoryChanged || metaChanged) {
         updateCase.run(nextCategory, nextMetaJson, row.case_id);
         audit.updated_rows += 1;
-        audit.changed_by_source[row.source || 'UNKNOWN'] = (audit.changed_by_source[row.source || 'UNKNOWN'] || 0) + 1;
+        audit.changed_by_source[sourceKey] = (audit.changed_by_source[sourceKey] || 0) + 1;
         if (!changedFromRaw) {
           audit.metadata_updated_only += 1;
         }
