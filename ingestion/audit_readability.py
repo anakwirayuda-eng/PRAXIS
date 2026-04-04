@@ -30,6 +30,7 @@ MOJIBAKE_RE = re.compile(r"(?:Ã.|Â|â€|â€¢|â€“|â€”|â€œ|â�
 ORPHAN_LINEBREAK_RE = re.compile(r"[a-z0-9,;:]\s*\n\s*[a-z]", re.IGNORECASE)
 LEADING_OPTION_ARTIFACT_RE = re.compile(r"^(?:[A-E][\.\)]\s+)")
 INITIALS_OPENING_RE = re.compile(r"^([A-E])\.\s+([A-Z])\.\s+")
+SPECIES_ABBREVIATION_RE = re.compile(r"^[A-E]\.\s+[a-z]")
 GENERIC_PROMPT_RE = re.compile(
     r"^(?:review this case and choose the best answer\.?|pilih jawaban yang paling tepat\.?)$",
     re.IGNORECASE,
@@ -257,6 +258,8 @@ def has_leading_option_artifact(text: str) -> bool:
     if not normalized:
         return False
     if INITIALS_OPENING_RE.match(normalized):
+        return False
+    if SPECIES_ABBREVIATION_RE.match(normalized):
         return False
     return LEADING_OPTION_ARTIFACT_RE.match(normalized) is not None
 
