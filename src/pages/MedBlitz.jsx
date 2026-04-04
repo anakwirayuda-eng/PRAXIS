@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useCaseBank } from '../data/caseLoader';
+import { isCasePlayable } from '../data/caseQuality';
 import Zap from 'lucide-react/dist/esm/icons/zap';
 import Clock from 'lucide-react/dist/esm/icons/clock';
 import Trophy from 'lucide-react/dist/esm/icons/trophy';
@@ -47,9 +48,7 @@ export default function MedBlitz() {
       c.q_type === 'MCQ' &&
       c.options?.length >= 2 &&
       c.options.some(o => o.is_correct) &&
-      !c.meta?.quarantined &&        // Quality gate
-      !c.meta?.truncated &&          // Quality gate
-      !c.meta?.needs_review &&       // Quality gate
+      isCasePlayable(c) &&           // Quality gate
       (c.vignette?.narrative?.length < 200 || c.meta?.questionMode === 'rapid_recall')
     );
   }, [caseBank, status]);

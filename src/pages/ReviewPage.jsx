@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { isCasePlayable } from '../data/caseQuality';
 import { getCaseRouteId } from '../data/caseIdentity';
 import { getDueCards, getBrainStats, getCaseState } from '../data/fsrs';
 import { useStore } from '../data/store';
@@ -49,7 +50,7 @@ export default function ReviewPage() {
   const validIds = useMemo(() => {
     const valid = new Set();
     casesById.forEach((c, id) => {
-      if (!c.meta?.quarantined && !c.meta?.truncated && !c.meta?.needs_review) {
+      if (isCasePlayable(c)) {
         valid.add(id);
       }
     });

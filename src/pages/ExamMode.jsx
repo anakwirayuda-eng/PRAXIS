@@ -16,6 +16,7 @@ import Trophy from 'lucide-react/dist/esm/icons/trophy';
 import XCircle from 'lucide-react/dist/esm/icons/x-circle';
 import Zap from 'lucide-react/dist/esm/icons/zap';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { isCasePlayable } from '../data/caseQuality';
 import { useStore } from '../data/store';
 
 const PRESETS = [
@@ -139,9 +140,7 @@ export default function ExamMode() {
     if (caseData.q_type === 'CLINICAL_DISCUSSION') return false;
     if (caseData.q_type === 'SCT') return false;
     if (caseData.options?.length < 2) return false;
-    if (caseData.meta?.quarantined === true) return false;   // Quality gate
-    if (caseData.meta?.truncated === true) return false;     // Quality gate
-    if (caseData.meta?.needs_review === true) return false;  // Quality gate
+    if (!isCasePlayable(caseData)) return false;             // Quality gate
     if (cfg.categories !== 'all' && caseData.category !== cfg.categories) return false;
     if (cfg.difficulty !== 'all' && caseData.meta.difficulty !== Number.parseInt(cfg.difficulty, 10)) return false;
     if (cfg.examType !== 'all' && caseData.meta.examType !== cfg.examType && caseData.meta.examType !== 'BOTH') return false;

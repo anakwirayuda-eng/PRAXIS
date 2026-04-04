@@ -117,10 +117,11 @@ function LoginGate({ onLogin }) {
 function OverviewCards({ overview }) {
   if (!overview) return null;
   const cards = [
-    { label: 'Total Cases', value: overview.total_cases?.toLocaleString(), color: 'var(--accent-primary)' },
-    { label: 'Decayed (FDA)', value: overview.quality_flags?.decayed, color: '#fb7185' },
-    { label: 'Quarantined', value: overview.quality_flags?.quarantined, color: '#f59e0b' },
-    { label: 'Do Not Shuffle', value: overview.quality_flags?.do_not_shuffle, color: '#a78bfa' },
+    { label: 'Feedback Reports', value: overview.feedback?.total?.toLocaleString?.() ?? '0', color: 'var(--accent-primary)' },
+    { label: 'Open Feedback', value: overview.feedback?.open?.toLocaleString?.() ?? '0', color: '#f59e0b' },
+    { label: 'Pending Proposals', value: overview.proposals_pending?.toLocaleString?.() ?? '0', color: '#a78bfa' },
+    { label: 'Telemetry Events', value: overview.telemetry_events?.toLocaleString?.() ?? '0', color: '#34d399' },
+    { label: 'Recorded Edits', value: overview.edits?.toLocaleString?.() ?? '0', color: '#fb7185' },
   ];
 
   return (

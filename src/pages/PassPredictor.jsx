@@ -5,6 +5,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useCaseBank } from '../data/caseLoader';
+import { isCasePlayable } from '../data/caseQuality';
 import { brainMatrix, recalcRetrievability, getBrainStats } from '../data/fsrs';
 import { useStore } from '../data/store';
 import { captureException, captureMessage } from '../lib/runtimeWatchdog';
@@ -22,8 +23,7 @@ const WORKER_MAX_RESTARTS = 1;
 
 function isPlayablePredictorCase(caseData, examType) {
   if (caseData?.q_type !== 'MCQ') return false;
-  if (caseData?.meta?.quarantined || caseData?.meta?.truncated || caseData?.meta?.needs_review) return false;
-  if (caseData?.meta?.status?.startsWith?.('QUARANTINED')) return false;
+  if (!isCasePlayable(caseData)) return false;
   return examType === 'all'
     || caseData?.meta?.examType === examType
     || caseData?.meta?.examType === 'BOTH';

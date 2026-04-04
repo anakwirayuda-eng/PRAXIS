@@ -36,6 +36,16 @@ function parseOffset(val) {
   return isNaN(n) || n < 0 ? 0 : n;
 }
 
+function waitUntil(c, task) {
+  if (c.executionCtx?.waitUntil) {
+    c.executionCtx.waitUntil(task);
+    return;
+  }
+  Promise.resolve(task).catch((error) => {
+    console.error('[Feedback] Background task failed:', error?.message || error);
+  });
+}
+
 export function createFeedbackRoutes() {
   const feedback = new Hono();
 
@@ -75,7 +85,8 @@ export function createFeedbackRoutes() {
       const id = results[1].results[0]?.id || 0;
 
       // Fire-and-forget audit (non-blocking)
-      c.executionCtx.waitUntil(
+      waitUntil(
+        c,
         db.prepare(
           'INSERT INTO audit_log (action, entity_type, entity_id, details) VALUES (?, ?, ?, ?)'
         ).bind('feedback_created', 'feedback', String(id), JSON.stringify({ case_id: cleanCaseId, tags: validTags })).run()
@@ -130,7 +141,8 @@ export function createFeedbackRoutes() {
 
       const id = results[1].results[0]?.id || 0;
 
-      c.executionCtx.waitUntil(
+      waitUntil(
+        c,
         db.prepare(
           'INSERT INTO audit_log (action, entity_type, entity_id, details) VALUES (?, ?, ?, ?)'
         ).bind('proposal_submitted', 'pending_edit', String(id), JSON.stringify({ case_id: cleanCaseId, field })).run()

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../data/store';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { isCaseNeedsReview, isCasePlayable, isCaseQuarantined, isCaseTruncated } from '../data/caseQuality';
 import { getCaseRouteId } from '../data/caseIdentity';
 import Play from 'lucide-react/dist/esm/icons/play';
 import Shuffle from 'lucide-react/dist/esm/icons/shuffle';
@@ -77,7 +78,7 @@ export default function Dashboard() {
 
   const startRandomCase = () => {
     const completedSet = new Set(completedCases);
-    const qualityPool = caseBank.filter(c => !c.meta?.quarantined && !c.meta?.needs_review && !c.meta?.truncated);
+    const qualityPool = caseBank.filter(isCasePlayable);
     const unseenPool = qualityPool.filter(c => !completedSet.has(c._id || c.id));
     const pool = unseenPool.length > 0 ? unseenPool : qualityPool;
     if (pool.length === 0) return;
@@ -91,7 +92,7 @@ export default function Dashboard() {
     const sctPool = caseBank.filter(c =>
       c.q_type === 'SCT' &&
       (c.meta?.examType === 'UKMPPD' || c.meta?.examType === 'BOTH') &&
-      !c.meta?.quarantined && !c.meta?.needs_review && !c.meta?.truncated &&
+      isCasePlayable(c) &&
       !completedSet.has(c._id || c.id)
     );
     if (sctPool.length > 0) {
@@ -105,7 +106,7 @@ export default function Dashboard() {
   // 🧠 SCT-specific stats for the dedicated SCT Command Center
   const sctStats = useMemo(() => {
     const completedSet = new Set(completedCases);
-    const sctCases = caseBank.filter(c => c.q_type === 'SCT' && !c.meta?.quarantined && !c.meta?.needs_review && !c.meta?.truncated);
+    const sctCases = caseBank.filter(c => c.q_type === 'SCT' && isCasePlayable(c));
     const sctCompleted = sctCases.filter(c => completedSet.has(c._id || c.id)).length;
     return { total: sctCases.length, completed: sctCompleted };
   }, [caseBank, completedCases]);
@@ -117,9 +118,9 @@ export default function Dashboard() {
     let aiAudited = 0;
 
     for (const caseData of caseBank) {
-      if (caseData.meta?.quarantined === true) quarantined++;
-      if (caseData.meta?.needs_review === true) needsReview++;
-      if (caseData.meta?.truncated === true) truncated++;
+      if (isCaseQuarantined(caseData)) quarantined++;
+      if (isCaseNeedsReview(caseData)) needsReview++;
+      if (isCaseTruncated(caseData)) truncated++;
       if (caseData.meta?.ai_audited === true) aiAudited++;
     }
 

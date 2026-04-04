@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { isCasePlayable, isCaseQuarantined } from '../data/caseQuality';
 import { caseMatchesRouteId, getCaseRouteId } from '../data/caseIdentity';
 import { useStore } from '../data/store';
 import { updateReview } from '../data/fsrs';
@@ -546,7 +547,7 @@ export function CasePlayerSession({
     const currentIdx = caseBank.findIndex((entry) => entry._id === caseData._id);
     for (let i = currentIdx + 1; i < caseBank.length; i++) {
       const next = caseBank[i];
-      if (!next.meta?.quarantined && !next.meta?.needs_review && !next.meta?.truncated) {
+      if (isCasePlayable(next)) {
         navigate(`/case/${encodeURIComponent(getCaseRouteId(next))}`, { state: { ...location.state } });
         return;
       }
@@ -695,7 +696,7 @@ export function CasePlayerSession({
       <div className="case-player-split">
         <div className="vignette-pane">
           {/* Quarantine warning */}
-          {caseData.meta?.quarantined && (
+          {isCaseQuarantined(caseData) && (
             <div style={{
               padding: 'var(--sp-3) var(--sp-4)',
               marginBottom: 'var(--sp-4)',
@@ -709,7 +710,7 @@ export function CasePlayerSession({
               color: '#f87171',
             }}>
               <AlertTriangle size={16} />
-              <span><strong>Quarantined</strong> — {caseData.meta.quarantine_reason || 'data quality issue'}</span>
+              <span><strong>Quarantined</strong> — {caseData.meta.quarantine_reason || caseData.meta.status || 'data quality issue'}</span>
             </div>
           )}
 

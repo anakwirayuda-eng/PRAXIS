@@ -9,8 +9,9 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
-import feedbackRoutes from './routes/feedback.js';
-import adminRoutes from './routes/admin.js';
+import { createFeedbackRoutes } from './routes/feedback.js';
+import { createAdminRoutes } from './routes/admin.js';
+import { createD1Shim } from './d1-shim.js';
 import { db, insertTelemetry } from './db.js';
 
 const app = new Hono();
@@ -18,6 +19,7 @@ const PORT = parseInt(process.env.PORT || '3001');
 const isDev = process.argv.includes('--dev');
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
   .split(',').map(o => o.trim());
+const appDb = createD1Shim(db);
 
 // ═══════════════════════════════════════
 // SECURITY MIDDLEWARE (7-Layer Defense)
@@ -47,6 +49,11 @@ app.use('/api/*', cors({
   allowHeaders: ['Content-Type', 'X-Admin-Key', 'X-Praxis-Shield'],
   maxAge: 86400,
 }));
+
+app.use('/api/*', async (c, next) => {
+  c.set('db', appDb);
+  await next();
+});
 
 // Layer 4: Shield Header — reject direct attacks bypassing Cloudflare
 // In production, Cloudflare Transform Rule injects X-Praxis-Shield header.
@@ -107,8 +114,8 @@ app.get('/api/health', (c) =>
 );
 
 // API Routes
-app.route('/api/feedback', feedbackRoutes);
-app.route('/api/admin', adminRoutes);
+app.route('/api/feedback', createFeedbackRoutes());
+app.route('/api/admin', createAdminRoutes());
 
 // ═══════════════════════════════════════
 // TELEMETRY BEACON (Bomb #1 + #2 fixed)

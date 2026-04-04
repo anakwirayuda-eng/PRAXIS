@@ -50,6 +50,7 @@ function buildCase({
   needsReview = false,
   truncated = false,
   quarantined = false,
+  status = '',
 }) {
   return {
     _id,
@@ -73,6 +74,7 @@ function buildCase({
       needs_review: needsReview,
       truncated,
       quarantined,
+      status,
     },
   };
 }
@@ -112,8 +114,9 @@ describe('CaseBrowser quality-aware navigation', () => {
         buildCase({ _id: 102, title: 'Needs review case', needsReview: true }),
         buildCase({ _id: 103, title: 'Truncated case', truncated: true }),
         buildCase({ _id: 104, title: 'Quarantined case', quarantined: true }),
+        buildCase({ _id: 105, title: 'Status quarantine case', status: 'QUARANTINED_AI_CONFLICT' }),
       ],
-      totalCases: 4,
+      totalCases: 5,
     };
 
     const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
@@ -131,6 +134,30 @@ describe('CaseBrowser quality-aware navigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/case/101?n=1', expect.objectContaining({
       state: expect.objectContaining({ caseNumber: 1, playlist: expect.arrayContaining(['101']) }),
     }));
+  });
+
+  it('hides status-quarantined cases from the browser even when the boolean quarantine flag is false', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 120, title: 'Visible clean case' }),
+        buildCase({ _id: 121, title: 'Status quarantine case', status: 'QUARANTINED_HASH_ANCHOR_MISMATCH' }),
+      ],
+      totalCases: 2,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.getByText('Visible clean case')).toBeInTheDocument();
+    expect(screen.queryByText('Status quarantine case')).not.toBeInTheDocument();
   });
 
   it('does not open an unrelated random case when the current filters yield no results', async () => {

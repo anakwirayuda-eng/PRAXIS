@@ -12,6 +12,7 @@
 import { useMemo, useState, useEffect, useRef, useDeferredValue } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CATEGORIES, useCaseBank } from '../data/caseLoader';
+import { isCaseNeedsReview, isCaseQuarantined, isCaseTruncated } from '../data/caseQuality';
 import { getCaseRouteId } from '../data/caseIdentity';
 import { useStore } from '../data/store';
 import Search from 'lucide-react/dist/esm/icons/search';
@@ -176,12 +177,12 @@ export default function CaseBrowser() {
   const filteredCases = useMemo(() => {
     const filtered = caseBank.filter((caseData) => {
       const meta = caseData.meta ?? {};
-      const isTruncated = meta.truncated === true;
-      const needsReview = meta.needs_review === true;
+      const isTruncated = isCaseTruncated(caseData);
+      const needsReview = isCaseNeedsReview(caseData);
       if (showBookmarksOnly && !bookmarks.includes(caseData._id)) return false;
       if (hideCompleted && completedCases.includes(caseData._id)) return false;
       if (showImagesOnly && (!caseData.images || caseData.images.length === 0)) return false;
-      if (meta.quarantined === true) return false; // Always hide quarantined
+      if (isCaseQuarantined(caseData)) return false; // Always hide quarantined
       if (hideTruncated && isTruncated) return false;
       if (hideUnreviewed && needsReview) return false;                 // 'hide': exclude flagged
       if (showOnlyReviewed && !meta.reviewed) return false;            // 'reviewed': require positive flag
@@ -577,7 +578,7 @@ export default function CaseBrowser() {
                     ? { background: 'rgba(14,165,233,0.15)', color: '#38bdf8', border: '1px solid rgba(14,165,233,0.3)' }
                     : {}}
                 >
-                  <CheckCircle size={14} /> Hide Unreviewed
+                  <CheckCircle size={14} /> Hide Needs Review
                 </button>
 
                 {canFilterReviewed && (
@@ -617,7 +618,7 @@ export default function CaseBrowser() {
             )}
             {reviewMode === 'all' && (
               <span className="badge badge-info">
-                <CheckCircle size={12} /> Including unreviewed
+                <CheckCircle size={12} /> Including needs review
               </span>
             )}
             {canFilterReviewed && reviewMode === 'reviewed' && (

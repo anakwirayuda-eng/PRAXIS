@@ -12,6 +12,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../data/store';
+import { isCasePlayable } from '../data/caseQuality';
 import { Shield, Lock, Brain, ChevronRight, RotateCcw, Trophy, Star, ArrowRight, Zap, AlertTriangle } from 'lucide-react';
 
 const SCT_UNLOCK_THRESHOLD = 200; // Production threshold
@@ -86,12 +87,7 @@ export default function SCTArena() {
       try {
         const { ensureCaseBankLoaded } = await import('../data/caseLoader');
         const allCases = await ensureCaseBankLoaded();
-        const sct = allCases.filter(c => 
-          c.q_type === 'SCT' &&
-          !c.meta?.quarantined &&
-          !c.meta?.truncated &&
-          !c.meta?.needs_review
-        );
+        const sct = allCases.filter(c => c.q_type === 'SCT' && isCasePlayable(c));
         for (let i = sct.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [sct[i], sct[j]] = [sct[j], sct[i]];
