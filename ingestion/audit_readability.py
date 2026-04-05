@@ -262,6 +262,31 @@ def parse_json(value: Any, fallback: Any) -> Any:
         return fallback
 
 
+def normalize_source_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def build_public_source_overrides(path: Path) -> dict[str, str]:
+    raw_cases = read_json(path, [])
+    overrides: dict[str, str] = {}
+
+    for case_data in raw_cases:
+        if not isinstance(case_data, dict):
+            continue
+        meta = case_data.get("meta") or {}
+        source = normalize_source_text(meta.get("source") or case_data.get("source"))
+        if not source:
+            continue
+        for raw_key in (case_data.get("_id"), case_data.get("hash_id"), case_data.get("case_code")):
+            if raw_key in (None, ""):
+                continue
+            key = normalize_source_text(raw_key)
+            if key and key not in overrides:
+                overrides[key] = source
+
+    return overrides
+
+
 def has_leading_option_artifact(text: str) -> bool:
     normalized = str(text or "").strip()
     if not normalized:
@@ -274,6 +299,7 @@ def has_leading_option_artifact(text: str) -> bool:
 
 
 def read_cases_from_sqlite(path: Path) -> list[dict[str, Any]]:
+    public_source_overrides = build_public_source_overrides(JSON_DATA_FILE)
     connection = sqlite3.connect(path)
     try:
         case_rows = connection.execute(
@@ -342,7 +368,14 @@ def read_cases_from_sqlite(path: Path) -> list[dict[str, Any]]:
         validation_json,
     ) in case_rows:
         meta = parse_json(meta_json, {})
-        meta.setdefault("source", source or "")
+        resolved_source = normalize_source_text(
+            source
+            or meta.get("source")
+            or public_source_overrides.get(normalize_source_text(case_id))
+            or public_source_overrides.get(normalize_source_text(hash_id))
+            or public_source_overrides.get(normalize_source_text(case_code))
+        )
+        meta.setdefault("source", resolved_source)
         if meta_status:
             meta["status"] = meta_status
         if clinical_consensus:
@@ -361,7 +394,7 @@ def read_cases_from_sqlite(path: Path) -> list[dict[str, Any]]:
                 "category": category,
                 "title": title,
                 "prompt": prompt or "",
-                "source": source or "",
+                "source": resolved_source,
                 "options": options_by_case.get(int(case_id), []),
                 "vignette": parse_json(vignette_json, {}),
                 "rationale": parse_json(rationale_json, {}),

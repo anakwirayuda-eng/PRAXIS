@@ -217,6 +217,7 @@ def classify_item(item: dict[str, Any], meta: dict[str, Any]) -> tuple[str, str,
 def build_lane_record(item: dict[str, Any], meta_override: dict[str, Any] | None = None) -> dict[str, Any]:
     queue_meta = item.get("meta") or {}
     db_meta = meta_override or {}
+    resolved_source = str(item.get("source") or db_meta.get("source") or queue_meta.get("source") or "").strip()
     meta = {
         **queue_meta,
         **db_meta,
@@ -235,7 +236,7 @@ def build_lane_record(item: dict[str, Any], meta_override: dict[str, Any] | None
         "_id": item.get("_id"),
         "case_code": item.get("case_code"),
         "hash_id": item.get("hash_id"),
-        "source": item.get("source"),
+        "source": resolved_source,
         "category": item.get("category"),
         "priority": item.get("priority", 0),
         "lane": lane,
