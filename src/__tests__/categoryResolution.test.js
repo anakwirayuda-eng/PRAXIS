@@ -171,6 +171,75 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_resolution.promotion_rule).toBe('pubmedqa_targeted_runner2');
   });
 
+  it('promotes headqa biochemistry rescues when IPD labels lose cleanly to biochem consensus', () => {
+    const updated = applyResolvedCategory({
+      source: 'headqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'HQA-IPD-MCQ-00163',
+      title: 'Which enzyme uses FAD as a coenzyme',
+      prompt: 'Which enzyme uses FAD as a coenzyme?',
+      vignette: {
+        narrative: 'Which enzyme uses FAD as a coenzyme?',
+      },
+      meta: {
+        source: 'headqa',
+        tags: ['general-medicine'],
+      },
+    });
+
+    expect(updated.category).toBe('Biokimia');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('medium');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('headqa_biochemistry_consensus2');
+  });
+
+  it('promotes medqa pediatric cases when the raw label, pediatric tags, and infant wording all agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medqa',
+      category: 'Ilmu Kesehatan Anak',
+      case_code: 'MQA-GEN-MCQ-00022',
+      title: 'A 3000-g female newborn is delivered at term with a continuous heart murmur',
+      prompt: 'Which of the following is the most likely diagnosis for this patient?',
+      vignette: {
+        narrative: 'A female newborn is delivered at term with a continuous cardiac murmur, cloudy lenses, and hearing loss.',
+      },
+      meta: {
+        source: 'medqa',
+        tags: ['pediatrics', 'cardiology'],
+        organ_system: 'cardiovascular',
+        topic_keywords: ['heart', 'cardiac', 'murmur', 'cardiology'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Anak');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_pediatrics_consensus');
+  });
+
+  it('promotes medqa surgery cases when raw category and surgical context stay aligned', () => {
+    const updated = applyResolvedCategory({
+      source: 'medqa',
+      category: 'Bedah',
+      case_code: 'MQA-BDH-MCQ-00003',
+      title: '38-year-old woman undergoes hemithyroidectomy for treatment of papillary thyroid carcinoma',
+      prompt: 'This patient is most likely to experience which of the following symptoms?',
+      vignette: {
+        narrative: 'A 38-year-old woman undergoes hemithyroidectomy for treatment of localized papillary thyroid carcinoma. During the surgery, a structure adjacent to the superior thyroid artery is damaged.',
+      },
+      meta: {
+        source: 'medqa',
+        tags: ['endocrinology', 'oncology', 'surgery', 'dermatology'],
+        organ_system: 'dermatology',
+      },
+    });
+
+    expect(updated.category).toBe('Bedah');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_surgery_consensus');
+  });
+
   it('scores meta-only subject/topic fields the same way as top-level fields', () => {
     const topLevel = resolveCaseCategory({
       source: 'medmcqa',

@@ -449,6 +449,21 @@ const TW_MEDQA_PROMOTION_MATCHES = {
   'Ilmu Penyakit Dalam': new Set(['endocrine'].map((term) => normalizeText(term))),
 };
 
+const HEADQA_BIOCHEM_PROMOTION_MATCHES = new Set(
+  ['dna', 'rna', 'amino acid', 'enzyme', 'metabolism', 'glycolysis']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDQA_PEDIATRICS_PROMOTION_MATCHES = new Set(
+  ['newborn', 'infant', 'neonate', 'pediatric', 'paediatric']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDQA_SURGERY_PROMOTION_MATCHES = new Set(
+  ['surgery', 'surgical', 'postoperative', 'appendectomy', 'fracture', 'trauma', 'hernia', 'laparotomy']
+    .map((term) => normalizeText(term)),
+);
+
 const HIGH_CONFIDENCE_THRESHOLD = 5;
 const HIGH_CONFIDENCE_LEAD = 2;
 const MEDIUM_CONFIDENCE_THRESHOLD = 3;
@@ -588,14 +603,67 @@ function hasPromotionSignal(signals, allowedMatches) {
 
 function getCategoryPromotion(caseData, resolution) {
   const sourceKey = normalizeText(caseData?.source || caseData?.meta?.source || '');
+  const signals = Array.isArray(resolution.winning_signals) ? resolution.winning_signals : [];
+  const hasConsensus = signals.some((signal) => signal?.source === 'content-consensus');
+  const hasOptionsSignal = signals.some((signal) => signal?.source === 'options');
+
+  if (
+    sourceKey === 'headqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.prefix === 'IPD'
+    && resolution.resolved_category === 'Biokimia'
+    && ['low', 'medium'].includes(resolution.confidence)
+    && resolution.runner_up_score <= 2
+    && hasConsensus
+    && !hasOptionsSignal
+    && hasPromotionSignal(signals, HEADQA_BIOCHEM_PROMOTION_MATCHES)
+  ) {
+    return {
+      rule: 'headqa_biochemistry_consensus2',
+      confidence: 'high',
+    };
+  }
+
   if (resolution.confidence !== 'low') return null;
+
+  if (
+    sourceKey === 'medqa'
+    && resolution.raw_normalized_category === 'Ilmu Kesehatan Anak'
+    && resolution.resolved_category === 'Ilmu Kesehatan Anak'
+    && hasConsensus
+    && !hasOptionsSignal
+    && signals.some((signal) => signal?.source === 'tags' && normalizeText(signal?.match) === 'pediatric')
+    && signals.some((signal) =>
+      (signal?.source === 'keyword' || signal?.source === 'narrative')
+      && MEDQA_PEDIATRICS_PROMOTION_MATCHES.has(normalizeText(signal?.match)))
+  ) {
+    return {
+      rule: 'medqa_pediatrics_consensus',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medqa'
+    && resolution.raw_normalized_category === 'Bedah'
+    && resolution.resolved_category === 'Bedah'
+    && resolution.prefix === 'BDH'
+    && hasConsensus
+    && !hasOptionsSignal
+    && signals.some((signal) => signal?.source === 'tags' && normalizeText(signal?.match) === 'surgery')
+    && signals.some((signal) =>
+      (signal?.source === 'keyword' || signal?.source === 'narrative')
+      && MEDQA_SURGERY_PROMOTION_MATCHES.has(normalizeText(signal?.match)))
+  ) {
+    return {
+      rule: 'medqa_surgery_consensus',
+      confidence: 'high',
+    };
+  }
 
   if (sourceKey === 'polish ldek en') {
     if (resolution.resolved_category !== 'Kedokteran Gigi') return null;
-    if (!hasPromotionSignal(resolution.winning_signals, POLISH_LDEK_DENTAL_PROMOTION_MATCHES)) return null;
-
-    const hasConsensus = Array.isArray(resolution.winning_signals)
-      && resolution.winning_signals.some((signal) => signal?.source === 'content-consensus');
+    if (!hasPromotionSignal(signals, POLISH_LDEK_DENTAL_PROMOTION_MATCHES)) return null;
 
     if (resolution.runner_up_score <= 2) {
       return {
@@ -616,7 +684,7 @@ function getCategoryPromotion(caseData, resolution) {
 
   if (sourceKey === 'pubmedqa' && resolution.runner_up_score <= 2) {
     const allowedMatches = PUBMEDQA_PROMOTION_MATCHES[resolution.resolved_category];
-    if (allowedMatches && hasPromotionSignal(resolution.winning_signals, allowedMatches)) {
+    if (allowedMatches && hasPromotionSignal(signals, allowedMatches)) {
       return {
         rule: 'pubmedqa_targeted_runner2',
         confidence: 'high',
@@ -626,7 +694,7 @@ function getCategoryPromotion(caseData, resolution) {
 
   if (sourceKey === 'tw medqa' && resolution.runner_up_score <= 2) {
     const allowedMatches = TW_MEDQA_PROMOTION_MATCHES[resolution.resolved_category];
-    if (allowedMatches && hasPromotionSignal(resolution.winning_signals, allowedMatches)) {
+    if (allowedMatches && hasPromotionSignal(signals, allowedMatches)) {
       return {
         rule: 'tw_medqa_targeted_runner2',
         confidence: 'high',
@@ -636,9 +704,7 @@ function getCategoryPromotion(caseData, resolution) {
 
   if (sourceKey === 'tw medqa' && resolution.runner_up_score <= 4) {
     const allowedMatches = TW_MEDQA_PROMOTION_MATCHES[resolution.resolved_category];
-    const hasConsensus = Array.isArray(resolution.winning_signals)
-      && resolution.winning_signals.some((signal) => signal?.source === 'content-consensus');
-    if (allowedMatches && hasConsensus && hasPromotionSignal(resolution.winning_signals, allowedMatches)) {
+    if (allowedMatches && hasConsensus && hasPromotionSignal(signals, allowedMatches)) {
       return {
         rule: 'tw_medqa_targeted_consensus4',
         confidence: 'high',
