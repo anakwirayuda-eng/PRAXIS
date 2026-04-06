@@ -129,6 +129,77 @@ describe('case library split regression coverage', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  it('publishes partial progress after the first manifest chunk before the full stream finishes', async () => {
+    const firstChunk = createDeferred();
+    const secondChunk = createDeferred();
+    const fetchMock = vi.fn((url) => {
+      const value = String(url);
+      if (value.includes('manifest.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            chunks: ['cases_part_1.json', 'cases_part_2.json'],
+            totalCases: 2,
+          }),
+        });
+      }
+      if (value.includes('cases_part_1.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => firstChunk.promise,
+        });
+      }
+      if (value.includes('cases_part_2.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => secondChunk.promise,
+        });
+      }
+      if (value.includes('quarantine_manifest.json')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+        });
+      }
+      throw new Error(`Unexpected fetch URL: ${value}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { caseBank: starterCases } = await import('../data/caseBank.js');
+    const loader = await import('../data/caseLoader.js');
+    const loadPromise = loader.ensureCaseBankLoaded();
+
+    expect(loader.getCaseBankSnapshot()).toMatchObject({
+      status: 'loading',
+      totalCases: starterCases.length,
+      compiledCount: 0,
+    });
+
+    firstChunk.resolve([buildCompiledCase({ title: 'Chunk One Runtime Case' })]);
+
+    await waitFor(() => {
+      expect(loader.getCaseBankSnapshot()).toMatchObject({
+        status: 'loading',
+        totalCases: starterCases.length + 1,
+        compiledCount: 2,
+      });
+    });
+    expect(loader.getCaseById(starterCases.length)).toMatchObject({
+      title: 'Chunk One Runtime Case',
+    });
+
+    secondChunk.resolve([buildCompiledCase({ title: 'Chunk Two Runtime Case' })]);
+
+    const cases = await loadPromise;
+    expect(cases).toHaveLength(starterCases.length + 2);
+    expect(loader.getCaseBankSnapshot()).toMatchObject({
+      status: 'ready',
+      totalCases: starterCases.length + 2,
+      compiledCount: 2,
+    });
+  });
+
   it('keeps the data quality dashboard subscribed while the compiled library streams in', async () => {
     const deferred = createDeferred();
     const fetchMock = vi.fn().mockResolvedValue({
@@ -155,13 +226,34 @@ describe('case library split regression coverage', () => {
 
   it('opens a deep link to a compiled case after the library resolves', async () => {
     const deferred = createDeferred();
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => deferred.promise,
+    const fetchMock = vi.fn((url) => {
+      const value = String(url);
+      if (value.includes('manifest.json')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+        });
+      }
+      if (value.includes('compiled_cases.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => deferred.promise,
+        });
+      }
+      if (value.includes('quarantine_manifest.json')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+        });
+      }
+      throw new Error(`Unexpected fetch URL: ${value}`);
     });
     vi.stubGlobal('fetch', fetchMock);
 
     const { caseBank: starterCases } = await import('../data/caseBank.js');
+    const loader = await import('../data/caseLoader.js');
     const { MemoryRouter, Route, Routes } = await import('react-router-dom');
     const { default: CasePlayer } = await import('../pages/CasePlayer.jsx');
 
@@ -177,7 +269,12 @@ describe('case library split regression coverage', () => {
 
     deferred.resolve([buildCompiledCase({ title: 'Deep Linked Runtime Case' })]);
 
-    expect(await screen.findByText('Deep Linked Runtime Case')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(loader.getCaseById(starterCases.length)).toMatchObject({
+        title: 'Deep Linked Runtime Case',
+      });
+    });
+    expect(await screen.findByText('What is the next best step?')).toBeInTheDocument();
     expect(screen.queryByText('Case Not Found')).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });

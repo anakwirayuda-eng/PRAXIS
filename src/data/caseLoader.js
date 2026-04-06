@@ -215,7 +215,7 @@ function hydrateCompiledCases(compiledRaw) {
   }
 
   return new Promise((resolve) => {
-    compiledCount = compiledRaw.length;
+    compiledCount = Math.max(compiledCount, compiledRaw.length);
     const needsDecrypt = isObfuscated(compiledRaw[0]); // Check once at start
     let index = 0;
     let lastRenderTime = Date.now(); // Fix #4: Throttle re-renders
@@ -246,6 +246,8 @@ function hydrateCompiledCases(compiledRaw) {
         setTimeout(processChunk, 0);
       } else {
         compiledOffset += compiledRaw.length; // Advance global offset for next chunk
+        // Ensure small or fast chunks still become visible immediately.
+        publishSnapshot();
         resolve(allCases);
       }
     }
