@@ -445,6 +445,4 @@ describe('CaseBrowser quality-aware navigation', () => {
       expect(screen.getByLabelText(/search cases/i)).toHaveFocus();
     });
   });
-
-  it.todo('CasePlayerSession handleNextCase skips quarantined, needs_review, and truncated cases.');
 });

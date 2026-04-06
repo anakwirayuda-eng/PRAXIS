@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 function buildCase(overrides = {}) {
   return {
@@ -335,6 +335,115 @@ describe('case player FSRS regression coverage', () => {
       expect(screen.queryByRole('dialog', { name: /Heal this Case/i })).not.toBeInTheDocument();
     });
     expect(healTrigger).toHaveFocus();
+  }, 15000);
+
+  it('skips blocked playlist entries when moving to the next case', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const navigate = vi.fn();
+    const currentCase = buildCase({ _id: 50, case_code: 'CASE-001', title: 'Current Case' });
+    const needsReviewCase = buildCase({
+      _id: 51,
+      case_code: 'CASE-002',
+      title: 'Needs Review Case',
+      meta: { ...buildCase().meta, source: 'manual', provenance: [], difficulty: 2, needs_review: true },
+    });
+    const truncatedCase = buildCase({
+      _id: 52,
+      case_code: 'CASE-003',
+      title: 'Truncated Case',
+      meta: { ...buildCase().meta, source: 'manual', provenance: [], difficulty: 2, truncated: true },
+    });
+    const quarantinedCase = buildCase({
+      _id: 53,
+      case_code: 'CASE-004',
+      title: 'Quarantined Case',
+      meta: { ...buildCase().meta, source: 'manual', provenance: [], difficulty: 2, status: 'QUARANTINED_DATA' },
+    });
+    const playableCase = buildCase({ _id: 54, case_code: 'CASE-005', title: 'Playable Next Case' });
+
+    render(
+      <MemoryRouter
+        initialEntries={[{
+          pathname: '/case/CASE-001',
+          state: { playlist: ['CASE-001', 'CASE-002', 'CASE-003', 'CASE-004', 'CASE-005'] },
+        }]}
+      >
+        <Routes>
+          <Route
+            path="/case/:id"
+            element={(
+              <CasePlayerSession
+                caseData={currentCase}
+                caseBank={[currentCase, needsReviewCase, truncatedCase, quarantinedCase, playableCase]}
+                navigate={navigate}
+                machineState="REVIEWING"
+                selectedAnswer="A"
+                startCase={vi.fn()}
+                selectAnswer={vi.fn()}
+                submitAnswer={vi.fn()}
+                nextCase={vi.fn()}
+                toggleBookmark={vi.fn()}
+                bookmarks={[]}
+                flagQuestion={vi.fn()}
+              />
+            )}
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Next Case/i }));
+
+    expect(navigate).toHaveBeenCalledWith('/case/CASE-005', {
+      state: { playlist: ['CASE-001', 'CASE-002', 'CASE-003', 'CASE-004', 'CASE-005'] },
+    });
+  }, 15000);
+
+  it('swallows clipboard copy rejections for the case code badge', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const clipboard = {
+      writeText: vi.fn().mockRejectedValue(new Error('denied')),
+    };
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: clipboard,
+    });
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const caseData = buildCase({ _id: 60, case_code: 'COPY-001', title: 'Clipboard Case' });
+
+    render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={caseData}
+          caseBank={[caseData]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer={null}
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText('COPY-001'));
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(clipboard.writeText).toHaveBeenCalledWith('COPY-001');
   }, 15000);
 });
 

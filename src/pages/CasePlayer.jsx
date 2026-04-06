@@ -522,9 +522,13 @@ export function CasePlayerSession({
     if (playlist && Array.isArray(playlist)) {
       const currentIdx = playlist.indexOf(currentRouteId);
       if (currentIdx !== -1) {
-        // Found in playlist — follow it
-        if (currentIdx < playlist.length - 1) {
-          const nextId = playlist[currentIdx + 1];
+        // Found in playlist — follow the next playable entry when we can resolve it.
+        for (let i = currentIdx + 1; i < playlist.length; i += 1) {
+          const nextId = playlist[i];
+          const nextCaseData = caseBank.find((entry) => caseMatchesRouteId(entry, nextId));
+          if (nextCaseData && !isCasePlayable(nextCaseData)) {
+            continue;
+          }
           navigate(`/case/${encodeURIComponent(nextId)}`, { state: { ...location.state } });
           return;
         }
@@ -638,7 +642,11 @@ export function CasePlayerSession({
               letterSpacing: '0.5px',
             }}
             onClick={() => {
-              navigator.clipboard?.writeText(caseData.case_code || String(caseData._id));
+              const copyValue = caseData.case_code || String(caseData._id);
+              const maybePromise = navigator.clipboard?.writeText?.(copyValue);
+              if (maybePromise && typeof maybePromise.catch === 'function') {
+                maybePromise.catch(() => {});
+              }
             }}
           >
             {caseData.case_code || `#${caseData._id}`}
