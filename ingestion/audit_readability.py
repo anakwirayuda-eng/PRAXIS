@@ -447,6 +447,39 @@ def has_duplicate_options(case_data: dict[str, Any]) -> bool:
     return False
 
 
+def has_orphan_linebreak(text: str, source: str = "") -> bool:
+    raw = str(text or "")
+    if "\n" not in raw:
+        return False
+
+    lowered_source = str(source or "").strip().lower()
+    if lowered_source == "litfl":
+        return False
+
+    if re.search(r"(?im)^(?:q\d+\.\s|curveball answer\b|unusual answer\b|questions\b|show answer\b)", raw):
+        return False
+
+    structured_lab_lines = re.findall(r"(?m)^[A-Za-z][A-Za-z0-9 +/%^<>=().-]*:\s", raw)
+    if len(structured_lab_lines) >= 3:
+        return False
+
+    lines = [normalize_whitespace(line) for line in raw.splitlines() if normalize_whitespace(line)]
+    lab_like_lines = [
+        line
+        for line in lines
+        if re.search(r"\d", line)
+        and re.search(
+            r"(?:g/dl|mg/dl|mm ?hg|mmol/l|meq/l|/mm3|/ul|/ml|%|pao2|paco2|po2|pco2|hco3|ph\b|arterial blood gas|abg|o2 saturation|hemoglobin|hematocrit|leukocyte|platelet|neutrophil|lymphocyte|monocyte|sodium|potassium|creatinine)",
+            line,
+            re.IGNORECASE,
+        )
+    ]
+    if len(lab_like_lines) >= 2:
+        return False
+
+    return ORPHAN_LINEBREAK_RE.search(raw) is not None
+
+
 def is_quarantined(case_data: dict[str, Any]) -> bool:
     meta = case_data.get("meta") or {}
     status = str(meta.get("status") or "")
@@ -460,6 +493,19 @@ def correct_count(case_data: dict[str, Any]) -> int:
 def has_placeholder_option_texts(case_data: dict[str, Any]) -> bool:
     options = case_data.get("options") or []
     if not options:
+        return False
+
+    prompt_blob = "\n".join(
+        filter(
+            None,
+            [
+                normalize_whitespace(case_data.get("prompt")),
+                extract_narrative(case_data),
+                extract_rationale(case_data),
+            ],
+        )
+    ).lower()
+    if "film speed" in prompt_blob:
         return False
 
     placeholder_count = 0
@@ -479,6 +525,10 @@ def has_placeholder_option_texts(case_data: dict[str, Any]) -> bool:
 
 def option_lengths(case_data: dict[str, Any]) -> list[int]:
     return [len(text) for text in option_texts(case_data) if text]
+
+
+def normalize_unit_token(value: str) -> str:
+    return normalize_whitespace(value).lower().replace(" ", "")
 
 
 def has_length_bias(case_data: dict[str, Any]) -> bool:
@@ -631,14 +681,15 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
         push_reason(advisory_reasons, seen_advisory, "length_bias", "heuristic")
     if UNIT_COLLISION_RE.findall(joined_text):
         unique_units = sorted({match.lower() for match in UNIT_COLLISION_RE.findall(joined_text)})
-        if len(unique_units) > 1:
+        normalized_units = {normalize_unit_token(unit) for unit in unique_units}
+        if len(unique_units) >= 3 or len(normalized_units) < len(unique_units):
             push_reason(manual_reasons, seen_manual, "metric_collision", "heuristic", ", ".join(unique_units))
 
     if MOJIBAKE_RE.search(joined_text):
         push_reason(auto_reasons, seen_auto, "mojibake", "heuristic")
     if WATERMARK_RE.search(joined_text):
         push_reason(auto_reasons, seen_auto, "watermark_noise", "heuristic")
-    if ORPHAN_LINEBREAK_RE.search(prompt) or ORPHAN_LINEBREAK_RE.search(narrative):
+    if has_orphan_linebreak(prompt, source) or has_orphan_linebreak(narrative, source):
         push_reason(auto_reasons, seen_auto, "orphan_linebreak", "heuristic")
     if has_leading_option_artifact(prompt) or has_leading_option_artifact(narrative):
         push_reason(auto_reasons, seen_auto, "leading_option_artifact", "heuristic")

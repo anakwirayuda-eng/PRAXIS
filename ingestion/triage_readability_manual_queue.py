@@ -194,6 +194,8 @@ def classify_item(item: dict[str, Any], meta: dict[str, Any]) -> tuple[str, str,
 
     if readability_ai_hold:
         return "human_shortlist", "clinical_rewrite", "AI adjudication already exhausted the automated lane and needs a final editor pass"
+    if readability_ai_pass and reason_codes == {"no_options"}:
+        return "human_shortlist", "clinical_rewrite", "answer adjudication is already settled, but the option text still needs source recovery or editor repair"
     if readability_ai_pass and reason_codes == {"metric_collision"}:
         return "human_shortlist", "clinical_rewrite", "answer adjudication is already settled; the remaining unit collision now needs an editor rewrite pass"
 
