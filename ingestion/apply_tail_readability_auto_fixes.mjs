@@ -11,7 +11,7 @@ const __dirname = dirname(__filename);
 const DATA_FILE = join(__dirname, '..', 'public', 'data', 'compiled_cases.json');
 const REPORT_FILE = join(__dirname, 'output', 'tail_readability_auto_fix_report.json');
 
-const TARGET_CASE_IDS = new Set(['32590', '22700', '994183', '21291']);
+const TARGET_CASE_IDS = new Set(['32590', '22700', '994183', '21291', '29222', '44752']);
 
 function normalizeWhitespace(value) {
   return String(value ?? '')
@@ -237,6 +237,45 @@ function main() {
       }) || changed;
       if (changed) {
         report.modified_cases.push({ _id: 21291, action: 'remove_nonessential_image_dependency_clause' });
+      }
+    }
+
+    if (caseId === '29222') {
+      changed = mutateCasePair(dbCase, jsonCase, (caseRecord) => {
+        const rationale = ensureRationale(caseRecord);
+        const nextRationale = 'Incidental gallbladder adenocarcinoma with invasion into the muscle layer (T1b) needs definitive oncologic re-resection. The next step is wedge hepatic resection with regional lymph node dissection to clear the liver bed and stage nodal spread. Observation, port-site excision alone, or radiotherapy do not address the primary surgical requirement for T1b disease.';
+        if (normalizeWhitespace(rationale.correct) === nextRationale) {
+          return false;
+        }
+        rationale.correct = nextRationale;
+        return true;
+      }) || changed;
+      if (changed) {
+        report.modified_cases.push({ _id: 29222, action: 'ground_hallucinated_rationale' });
+      }
+    }
+
+    if (caseId === '44752') {
+      changed = mutateCasePair(dbCase, jsonCase, (caseRecord) => {
+        const meta = ensureMeta(caseRecord);
+        let localChanged = false;
+        const nextPrompt = 'The upper denture falls when the patient opens his mouth wide. This is due to:';
+        if (normalizeWhitespace(caseRecord.prompt) !== nextPrompt) {
+          caseRecord.prompt = nextPrompt;
+          localChanged = true;
+        }
+        localChanged = setNarrative(caseRecord, nextPrompt) || localChanged;
+        if (!Array.isArray(meta.quality_flags)) {
+          meta.quality_flags = [];
+        }
+        if (!meta.quality_flags.includes('orphan_linebreak_fixed')) {
+          meta.quality_flags.push('orphan_linebreak_fixed');
+          localChanged = true;
+        }
+        return localChanged;
+      }) || changed;
+      if (changed) {
+        report.modified_cases.push({ _id: 44752, action: 'flatten_orphan_linebreak' });
       }
     }
 
