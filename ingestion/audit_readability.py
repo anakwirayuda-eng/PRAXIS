@@ -457,6 +457,26 @@ def correct_count(case_data: dict[str, Any]) -> int:
     return sum(1 for option in (case_data.get("options") or []) if option.get("is_correct") is True)
 
 
+def has_placeholder_option_texts(case_data: dict[str, Any]) -> bool:
+    options = case_data.get("options") or []
+    if not options:
+        return False
+
+    placeholder_count = 0
+    non_empty_count = 0
+    for option in options:
+        text = normalize_whitespace(option.get("text"))
+        if not text:
+            continue
+        non_empty_count += 1
+        option_id = normalize_whitespace(option.get("id")).upper()
+        text_upper = text.upper()
+        if re.fullmatch(r"[A-E]", text_upper) and text_upper != option_id:
+            placeholder_count += 1
+
+    return non_empty_count >= 3 and placeholder_count >= max(3, non_empty_count - 1)
+
+
 def option_lengths(case_data: dict[str, Any]) -> list[int]:
     return [len(text) for text in option_texts(case_data) if text]
 
@@ -591,6 +611,8 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
     current_correct_count = correct_count(case_data)
     if len(case_data.get("options") or []) == 0:
         push_reason(manual_reasons, seen_manual, "no_options", "heuristic")
+    elif has_placeholder_option_texts(case_data):
+        push_reason(manual_reasons, seen_manual, "no_options", "heuristic", "placeholder_option_text")
     elif current_correct_count == 0:
         push_reason(manual_reasons, seen_manual, "no_correct_answer", "heuristic")
     elif current_correct_count > 1:
