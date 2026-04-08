@@ -201,6 +201,8 @@ def classify_item(item: dict[str, Any], meta: dict[str, Any]) -> tuple[str, str,
 
     if needs_review_reason == "source_contamination_detected":
         return "human_shortlist", "contaminated_source_rewrite", "source contamination needs selective salvage or retirement"
+    if needs_review_reason == "duplicate_options":
+        return "human_shortlist", "clinical_rewrite", "duplicate option sets need editor repair before they can return to the publishable pool"
     if "clinical_decay" in reason_codes:
         return "human_shortlist", "clinical_rewrite", "clinical content drift is the limiting risk"
     if "image_dependency" in reason_codes and source in IMAGE_BATCH_SOURCES:

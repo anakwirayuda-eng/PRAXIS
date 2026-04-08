@@ -594,6 +594,8 @@ def build_external_signal_map(
             else:
                 key = entry
                 evidence = None
+            if reason_code == "metric_collision" and not excerpt(evidence, 100):
+                continue
             if key is not None:
                 attach_signal(signal_map, str(key), reason_code, f"watchman:{detail_key}", evidence=excerpt(evidence, 100))
 
@@ -668,13 +670,14 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
     elif current_correct_count > 1:
         push_reason(manual_reasons, seen_manual, "multi_correct", "heuristic")
 
+    option_blob = "\n".join(option_texts(case_data))
+    aota_text = "\n".join(filter(None, [prompt, narrative, option_blob]))
     if IMAGE_DEPENDENT_RE.search(question_text):
         push_reason(manual_reasons, seen_manual, "image_dependency", "heuristic")
-    if AOTA_RE.search(joined_text) and not readability_ai_pass:
+    if AOTA_RE.search(aota_text) and not readability_ai_pass:
         push_reason(manual_reasons, seen_manual, "aota_suspect", "heuristic")
     if NEGATION_RE.search(prompt) and not readability_ai_pass:
         push_reason(advisory_reasons, seen_advisory, "negation_blindspot", "heuristic", excerpt(prompt, 120))
-    option_blob = "\n".join(option_texts(case_data))
     if ABSOLUTE_RE.search(option_blob) and not readability_ai_pass:
         push_reason(advisory_reasons, seen_advisory, "absolute_trap", "heuristic")
     if has_length_bias(case_data) and not readability_ai_pass:
