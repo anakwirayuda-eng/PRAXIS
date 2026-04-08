@@ -227,17 +227,17 @@ function classifyHold(dbCase, jsonCase, raw) {
     };
   }
 
-  const stem = normalizeWhitespace(
-    jsonCase.question
-      || dbCase.question
-      || jsonCase.prompt
-      || dbCase.prompt
-      || getNarrative(jsonCase)
-      || getNarrative(dbCase)
-      || jsonCase.title
-      || dbCase.title,
-  );
-  if (IMAGE_DEPENDENT_RE.test(stem)) {
+  const imageCheckText = normalizeWhitespace([
+    jsonCase.question,
+    dbCase.question,
+    jsonCase.prompt,
+    dbCase.prompt,
+    getNarrative(jsonCase),
+    getNarrative(dbCase),
+    jsonCase.title,
+    dbCase.title,
+  ].filter(Boolean).join('\n'));
+  if (IMAGE_DEPENDENT_RE.test(imageCheckText)) {
     return {
       hold: 'image_dependency',
       basis: 'batch-salvage:image_dependent_medmcqa',
