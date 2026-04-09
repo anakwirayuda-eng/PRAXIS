@@ -240,6 +240,70 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_surgery_consensus');
   });
 
+  it('promotes targeted headqa pharmacology rescues when the content signal clearly beats stale IPD metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'headqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'HQA-IPD-MCQ-00999',
+      title: 'Receptor pharmacology check',
+      prompt: 'Which receptor is targeted by this agonist?',
+      vignette: {
+        narrative: 'Which receptor is targeted by this agonist during pharmacology testing?',
+      },
+      meta: {
+        source: 'headqa',
+      },
+    });
+
+    expect(updated.category).toBe('Farmakologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('medium');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('headqa_targeted_runner1');
+  });
+
+  it('promotes targeted medqa public-health rescues when organ-system evidence is sharp and uncontested', () => {
+    const updated = applyResolvedCategory({
+      source: 'medqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MQA-IPD-MCQ-00998',
+      title: 'Population screening design question',
+      prompt: 'Which of the following best describes this public health study?',
+      vignette: {
+        narrative: 'A population screening program is evaluated to see whether prevention efforts lower community disease burden.',
+      },
+      meta: {
+        source: 'medqa',
+        organ_system: 'public health',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('medium');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_targeted_runner2');
+  });
+
+  it('promotes targeted medmcqa rescues when keyword and narrative consensus narrowly beats stale broad labels', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-GEN-MCQ-00011',
+      title: 'Newborn emergency counseling',
+      prompt: 'A newborn requires counseling during neonatal follow-up.',
+      vignette: {
+        narrative: 'A newborn presents for neonatal follow-up after an uncomplicated delivery.',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Anak');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_targeted_consensus4');
+  });
+
   it('scores meta-only subject/topic fields the same way as top-level fields', () => {
     const topLevel = resolveCaseCategory({
       source: 'medmcqa',

@@ -132,7 +132,12 @@ def write_json(path: Path, value: Any) -> None:
     with temp_path.open("w", encoding="utf-8", newline="\n") as handle:
         json.dump(value, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
-    temp_path.replace(path)
+    try:
+        temp_path.replace(path)
+    except PermissionError:
+        # Windows readers can transiently lock the target file between write and replace.
+        path.write_text(temp_path.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
+        temp_path.unlink(missing_ok=True)
 
 
 def summarize_text(text: str, limit: int = 160) -> str:

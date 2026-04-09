@@ -454,6 +454,26 @@ const HEADQA_BIOCHEM_PROMOTION_MATCHES = new Set(
     .map((term) => normalizeText(term)),
 );
 
+const SAFE_PROMOTION_SIGNAL_SOURCES = new Set([
+  'keyword',
+  'narrative',
+  'organ_system',
+  'topic_keywords',
+  'topic',
+]);
+
+const HEADQA_TARGETED_PROMOTION_MATCHES = {
+  Farmakologi: new Set(['pharmacology', 'receptor', 'agonist', 'antagonist'].map((term) => normalizeText(term))),
+  'Obstetri & Ginekologi': new Set(['gynecology', 'obstetric', 'labor', 'amenorrhea'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Masyarakat': new Set(['public health', 'health promotion', 'community participation', 'prevention'].map((term) => normalizeText(term))),
+  Neurologi: new Set(['neurological', 'seizure'].map((term) => normalizeText(term))),
+  Bedah: new Set(['musculoskeletal', 'surgery', 'surgical', 'trauma', 'postoperative'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Anak': new Set(['pediatric', 'child'].map((term) => normalizeText(term))),
+  Psikiatri: new Set(['psychiatry', 'psychology', 'depression', 'anxiety'].map((term) => normalizeText(term))),
+  'Anestesi & Emergency Medicine': new Set(['anesthesia', 'emergency', 'shock', 'resuscitation'].map((term) => normalizeText(term))),
+  Biokimia: new Set(['dna', 'rna', 'enzyme', 'amino acid', 'glycolysis', 'metabolism'].map((term) => normalizeText(term))),
+};
+
 const MEDQA_PEDIATRICS_PROMOTION_MATCHES = new Set(
   ['newborn', 'infant', 'neonate', 'pediatric', 'paediatric']
     .map((term) => normalizeText(term)),
@@ -463,6 +483,28 @@ const MEDQA_SURGERY_PROMOTION_MATCHES = new Set(
   ['surgery', 'surgical', 'postoperative', 'appendectomy', 'fracture', 'trauma', 'hernia', 'laparotomy']
     .map((term) => normalizeText(term)),
 );
+
+const MEDQA_TARGETED_PROMOTION_MATCHES = {
+  Farmakologi: new Set(['pharmacology', 'receptor', 'agonist', 'antagonist'].map((term) => normalizeText(term))),
+  'Obstetri & Ginekologi': new Set(['gynecology', 'obstetric', 'labor'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Masyarakat': new Set(['public health'].map((term) => normalizeText(term))),
+  Neurologi: new Set(['neurological'].map((term) => normalizeText(term))),
+  Bedah: new Set(['musculoskeletal', 'surgery', 'surgical', 'trauma', 'hernia', 'urology', 'postoperative'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Anak': new Set(['pediatric', 'child', 'infant', 'newborn', 'immunization'].map((term) => normalizeText(term))),
+  Biokimia: new Set(['dna', 'rna', 'enzyme', 'amino acid', 'glycolysis'].map((term) => normalizeText(term))),
+  'Anestesi & Emergency Medicine': new Set(['emergency', 'shock', 'resuscitation', 'anesthesia'].map((term) => normalizeText(term))),
+};
+
+const MEDMCQA_TARGETED_PROMOTION_MATCHES = {
+  Farmakologi: new Set(['pharmacology', 'receptor', 'agonist', 'antagonist', 'kinetics', 'half life', 'metabolism'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Anak': new Set(['pediatric', 'child', 'infant', 'newborn', 'neonate'].map((term) => normalizeText(term))),
+  'Anestesi & Emergency Medicine': new Set(['emergency', 'shock', 'resuscitation', 'airway', 'anesthesia', 'critical care'].map((term) => normalizeText(term))),
+  Biokimia: new Set(['dna', 'rna', 'amino acid', 'enzyme', 'glycolysis', 'metabolism'].map((term) => normalizeText(term))),
+  Bedah: new Set(['surgery', 'surgical', 'musculoskeletal', 'trauma', 'urology', 'orthopedic', 'fracture', 'hernia', 'postoperative'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Masyarakat': new Set(['public health', 'epidemiology', 'biostatistics', 'screening', 'prevention', 'vaccination'].map((term) => normalizeText(term))),
+  Forensik: new Set(['forensic', 'medico legal', 'abrasion', 'contusion', 'bruise', 'black eye'].map((term) => normalizeText(term))),
+  'Obstetri & Ginekologi': new Set(['gynecology', 'obstetric', 'labor', 'pregnancy', 'amenorrhea'].map((term) => normalizeText(term))),
+};
 
 const HIGH_CONFIDENCE_THRESHOLD = 5;
 const HIGH_CONFIDENCE_LEAD = 2;
@@ -601,6 +643,14 @@ function hasPromotionSignal(signals, allowedMatches) {
   return signals.some((signal) => allowedMatches.has(normalizeText(signal?.match)));
 }
 
+function hasPromotionSignalFromSources(signals, allowedMatches, allowedSources = SAFE_PROMOTION_SIGNAL_SOURCES) {
+  if (!Array.isArray(signals) || signals.length === 0) return false;
+  return signals.some((signal) => {
+    const source = normalizeText(signal?.source);
+    return allowedSources.has(source) && allowedMatches.has(normalizeText(signal?.match));
+  });
+}
+
 function getCategoryPromotion(caseData, resolution) {
   const sourceKey = normalizeText(caseData?.source || caseData?.meta?.source || '');
   const signals = Array.isArray(resolution.winning_signals) ? resolution.winning_signals : [];
@@ -622,6 +672,22 @@ function getCategoryPromotion(caseData, resolution) {
       rule: 'headqa_biochemistry_consensus2',
       confidence: 'high',
     };
+  }
+
+  if (
+    sourceKey === 'headqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.runner_up_score <= 1
+    && ['low', 'medium'].includes(resolution.confidence)
+    && !hasOptionsSignal
+  ) {
+    const allowedMatches = HEADQA_TARGETED_PROMOTION_MATCHES[resolution.resolved_category];
+    if (allowedMatches && hasPromotionSignalFromSources(signals, allowedMatches)) {
+      return {
+        rule: 'headqa_targeted_runner1',
+        confidence: 'high',
+      };
+    }
   }
 
   if (resolution.confidence !== 'low') return null;
@@ -659,6 +725,36 @@ function getCategoryPromotion(caseData, resolution) {
       rule: 'medqa_surgery_consensus',
       confidence: 'high',
     };
+  }
+
+  if (
+    sourceKey === 'medqa'
+    && resolution.runner_up_score <= 2
+    && !hasOptionsSignal
+  ) {
+    const allowedMatches = MEDQA_TARGETED_PROMOTION_MATCHES[resolution.resolved_category];
+    if (allowedMatches && hasPromotionSignalFromSources(signals, allowedMatches)) {
+      return {
+        rule: 'medqa_targeted_runner2',
+        confidence: 'high',
+      };
+    }
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(resolution.raw_normalized_category)
+    && resolution.runner_up_score <= 4
+    && hasConsensus
+    && !hasOptionsSignal
+  ) {
+    const allowedMatches = MEDMCQA_TARGETED_PROMOTION_MATCHES[resolution.resolved_category];
+    if (allowedMatches && hasPromotionSignalFromSources(signals, allowedMatches)) {
+      return {
+        rule: 'medmcqa_targeted_consensus4',
+        confidence: 'high',
+      };
+    }
   }
 
   if (sourceKey === 'polish ldek en') {

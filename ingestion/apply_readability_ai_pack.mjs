@@ -3,6 +3,7 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -139,7 +140,21 @@ function writeJsonAtomically(filePath, value, pretty = true) {
     ? `${JSON.stringify(value, null, 2)}\n`
     : JSON.stringify(value);
   writeFileSync(tempFile, payload, 'utf8');
-  renameSync(tempFile, filePath);
+  try {
+    renameSync(tempFile, filePath);
+  } catch (error) {
+    if (!(error instanceof Error) || !('code' in error) || !['EPERM', 'EBUSY'].includes(error.code)) {
+      throw error;
+    }
+
+    // Windows readers can transiently block rename even when overwriting in-place is allowed.
+    writeFileSync(filePath, payload, 'utf8');
+    try {
+      rmSync(tempFile, { force: true });
+    } catch {
+      // Best-effort cleanup only.
+    }
+  }
 }
 
 function decodeMaybeDigitDump(rawText) {

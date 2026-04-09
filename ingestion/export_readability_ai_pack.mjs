@@ -64,6 +64,8 @@ function parseArgs(argv) {
     submitOpenai: false,
     model: DEFAULT_MODEL,
     completionWindow: DEFAULT_COMPLETION_WINDOW,
+    offset: 0,
+    limit: 0,
   };
 
   for (const arg of argv) {
@@ -89,6 +91,16 @@ function parseArgs(argv) {
     }
     if (arg.startsWith('--completion-window=')) {
       options.completionWindow = normalizeWhitespace(arg.slice('--completion-window='.length)) || DEFAULT_COMPLETION_WINDOW;
+      continue;
+    }
+    if (arg.startsWith('--offset=')) {
+      const parsed = Number.parseInt(arg.slice('--offset='.length), 10);
+      options.offset = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+      continue;
+    }
+    if (arg.startsWith('--limit=')) {
+      const parsed = Number.parseInt(arg.slice('--limit='.length), 10);
+      options.limit = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
     }
   }
 
@@ -339,9 +351,12 @@ async function main() {
   const caseMap = loadCaseMap();
   const queue = readJson(QUEUE_FILE, []);
   const sourceFilter = new Set(options.sources);
-  const selected = options.sources.length > 0
+  const filtered = options.sources.length > 0
     ? queue.filter((item) => sourceFilter.has(normalizeWhitespace(item.source)))
     : queue;
+  const selected = options.limit > 0
+    ? filtered.slice(options.offset, options.offset + options.limit)
+    : filtered.slice(options.offset);
 
   const packName = options.packName || (options.sources.length > 0
     ? `${options.sources.map(slugify).join('-')}-ai-adjudication`
@@ -397,6 +412,12 @@ async function main() {
     generated_at: new Date().toISOString(),
     pack_name: packName,
     queue_file: path.relative(ROOT, QUEUE_FILE).replace(/\\/g, '/'),
+    selection: {
+      filtered_total: filtered.length,
+      selected_total: selected.length,
+      offset: options.offset,
+      limit: options.limit || null,
+    },
     total_items: selected.length,
     source_filter: options.sources,
     model: options.model,
