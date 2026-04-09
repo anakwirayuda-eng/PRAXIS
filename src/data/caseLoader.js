@@ -32,6 +32,8 @@ const DEFAULT_RATIONALE = {
   pearl: '',
 };
 const VALID_EXAM_TYPES = new Set(['UKMPPD', 'USMLE', 'BOTH', 'MIR-Spain', 'Academic', 'Research', 'Clinical', 'IgakuQA', 'International']);
+const SEARCH_TEXT_MAX = 240;
+const DEFAULT_PROMPT = 'Review this case and choose the best answer.';
 
 function normalizeOption(option, index) {
   return {
@@ -40,6 +42,35 @@ function normalizeOption(option, index) {
     is_correct: Boolean(option?.is_correct),
     sct_panel_votes: Number.isFinite(option?.sct_panel_votes) ? option.sct_panel_votes : 0,
   };
+}
+
+function compactSearchText(value, maxLength = SEARCH_TEXT_MAX) {
+  return String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLength);
+}
+
+function buildSearchKey({ title, narrative, prompt, options, tags, category, source, caseCode }) {
+  const optionText = Array.isArray(options)
+    ? compactSearchText(options.map((option) => option?.text ?? '').join(' '), SEARCH_TEXT_MAX * 2)
+    : '';
+  const promptText = compactSearchText(prompt);
+  const normalizedDefaultPrompt = DEFAULT_PROMPT.toLowerCase();
+
+  return [
+    compactSearchText(title),
+    compactSearchText(narrative),
+    promptText && promptText.toLowerCase() !== normalizedDefaultPrompt ? promptText : '',
+    optionText,
+    compactSearchText(caseCode, 64),
+    compactSearchText(Array.isArray(tags) ? tags.join(' ') : ''),
+    compactSearchText(category),
+    compactSearchText(source, 64),
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 }
 
 function normalizeCase(rawCase, fallbackId) {
@@ -81,6 +112,10 @@ function normalizeCase(rawCase, fallbackId) {
         correct: rationale.correct ?? DEFAULT_RATIONALE.correct,
         pearl: rationale.pearl ?? DEFAULT_RATIONALE.pearl,
       };
+  const normalizedOptions = Array.isArray(rawCase?.options)
+    ? rawCase.options.map(normalizeOption)
+    : [];
+  const resolvedPrompt = rawCase?.prompt ?? DEFAULT_PROMPT;
 
   return {
     ...rawCase,
@@ -90,12 +125,19 @@ function normalizeCase(rawCase, fallbackId) {
     confidence: Number.isFinite(rawCase?.confidence) ? rawCase.confidence : 0,
     category,
     title,
-    prompt: rawCase?.prompt ?? 'Review this case and choose the best answer.',
-    options: Array.isArray(rawCase?.options)
-      ? rawCase.options.map(normalizeOption)
-      : [],
+    prompt: resolvedPrompt,
+    options: normalizedOptions,
     // Genius Hack 3: Pre-computed flat search key for O(1) search
-    _searchKey: `${title} ${resolvedNarrative.substring(0, 200)} ${tags.join(' ')} ${category} ${meta.source || ''}`.toLowerCase(),
+    _searchKey: buildSearchKey({
+      title,
+      narrative: resolvedNarrative,
+      prompt: resolvedPrompt,
+      options: normalizedOptions,
+      tags,
+      category,
+      source: meta.source || '',
+      caseCode: rawCase?.case_code || '',
+    }),
     vignette: {
       ...DEFAULT_VIGNETTE,
       ...vignette,

@@ -57,7 +57,7 @@ describe('caseLoader runtime contracts', () => {
     expect(normalized).toMatchInlineSnapshot(`
       {
         "_id": 12,
-        "_searchKey": "unknown-category review what finding is most concerning?  unclassified ",
+        "_searchKey": "unknown-category review what finding is most concerning? unclassified",
         "category": "Unclassified",
         "confidence": 0,
         "hash_id": "case_12",
@@ -104,6 +104,30 @@ describe('caseLoader runtime contracts', () => {
         },
       }
     `);
+  });
+
+  it('indexes prompt, answer options, and case codes into the flat search key', async () => {
+    const compiledCases = [
+      {
+        title: 'Indexed Runtime Case',
+        question: '',
+        prompt: 'Which organism is classically urease positive?',
+        case_code: 'MED-SEARCH-0007',
+        options: [
+          { id: 'A', text: 'Helicobacter pylori', is_correct: true },
+          { id: 'B', text: 'Escherichia coli', is_correct: false },
+        ],
+        meta: { source: 'medqa', tags: ['microbiology'] },
+      },
+    ];
+
+    const { handCraftedCount, loader } = await loadFreshCaseLoader(compiledCases);
+    const normalized = loader.getCaseById(handCraftedCount);
+
+    expect(normalized._searchKey).toContain('which organism is classically urease positive?');
+    expect(normalized._searchKey).toContain('helicobacter pylori');
+    expect(normalized._searchKey).toContain('med-search-0007');
+    expect(normalized._searchKey).toContain('microbiology');
   });
 
   it('keeps hand-crafted cases, excludes quarantined compiled cases, and publishes the expected total', async () => {

@@ -43,6 +43,7 @@ function buildCase({
   title,
   category = 'internal-medicine',
   q_type = 'MCQ',
+  prompt = title,
   examType = 'USMLE',
   difficulty = 2,
   narrative = 'Clinical vignette',
@@ -58,7 +59,7 @@ function buildCase({
     category,
     q_type,
     _searchKey: `${title} ${narrative} ${tags.join(' ')}`.toLowerCase(),
-    prompt: title,
+    prompt,
     vignette: {
       demographics: { age: 30, sex: 'M' },
       narrative,
@@ -256,6 +257,34 @@ describe('CaseBrowser quality-aware navigation', () => {
         browserPage: 1,
       }),
     }));
+  });
+
+  it('falls back to the prompt text in case cards when the vignette narrative is empty', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({
+          _id: 220,
+          title: 'Prompt fallback case',
+          narrative: '',
+          prompt: 'What is the most likely diagnosis in this child with stridor?',
+        }),
+      ],
+      totalCases: 1,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.getByText(/most likely diagnosis in this child with stridor/i)).toBeInTheDocument();
+    expect(screen.queryByText(/Clinical vignette preview unavailable/i)).not.toBeInTheDocument();
   });
 
   it('keeps loading-state cards in source order so clicks stay aligned with the previewed case', async () => {

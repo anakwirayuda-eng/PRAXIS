@@ -1,13 +1,13 @@
 /**
- * MedCase Pro — Case Browser Page (Performance Optimized)
+ * MedCase Pro ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Case Browser Page (Performance Optimized)
  * 
  * Genius Hacks applied:
- *  1. DOM Diet — CSS transitions instead of Framer Motion, Unicode stars instead of SVG
- *  2. Invisible Infinite Scroll — IntersectionObserver auto-loads pages
- *  3. O(1) Search — useDeferredValue + pre-computed _searchKey
- *  4. content-visibility: auto — native browser virtualization via CSS
- *  5. Daily Seed Shuffle — different order every day to prevent repetition
- *  6. Unseen First — prioritize cases user hasn't completed
+ *  1. DOM Diet ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â CSS transitions instead of Framer Motion, Unicode stars instead of SVG
+ *  2. Invisible Infinite Scroll ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â IntersectionObserver auto-loads pages
+ *  3. O(1) Search ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â useDeferredValue + pre-computed _searchKey
+ *  4. content-visibility: auto ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â native browser virtualization via CSS
+ *  5. Daily Seed Shuffle ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â different order every day to prevent repetition
+ *  6. Unseen First ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â prioritize cases user hasn't completed
  */
 import { useMemo, useState, useEffect, useRef, useDeferredValue } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -25,7 +25,7 @@ import Camera from 'lucide-react/dist/esm/icons/camera';
 import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
 import SlidersHorizontal from 'lucide-react/dist/esm/icons/sliders-horizontal';
 
-// Genius Hack 5: Seeded PRNG — same shuffle for the whole day (pagination-stable)
+// Genius Hack 5: Seeded PRNG ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â same shuffle for the whole day (pagination-stable)
 function mulberry32(seed) {
   return function() {
     let t = seed += 0x6D2B79F5;
@@ -51,6 +51,7 @@ function seededShuffle(arr, seed) {
 }
 
 const PAGE_SIZE = 50;
+const DEFAULT_PROMPT_PREVIEW = 'Review this case and choose the best answer.';
 const srOnlyStyle = {
   position: 'absolute',
   width: 1,
@@ -91,10 +92,30 @@ function getCaseExamLabel(meta) {
   return examType && examType !== 'BOTH' ? examType : null;
 }
 
-function getNarrativePreview(narrative) {
+function getNarrativePreview(narrative, prompt, title) {
   const text = String(narrative || '').trim();
-  if (!text) return 'Clinical vignette preview unavailable.';
-  return text.length > 120 ? `${text.substring(0, 120)}...` : text;
+  if (text) {
+    return text.length > 120 ? `${text.substring(0, 120)}...` : text;
+  }
+
+  const promptText = String(prompt || '').trim();
+  const titleText = String(title || '').trim();
+  if (
+    promptText
+    && promptText.toLowerCase() !== DEFAULT_PROMPT_PREVIEW.toLowerCase()
+    && promptText.toLowerCase() !== titleText.toLowerCase()
+  ) {
+    return promptText.length > 120 ? `${promptText.substring(0, 120)}...` : promptText;
+  }
+
+  return 'Clinical vignette preview unavailable.';
+}
+
+function getPreviewPrefix(demographics, narrative) {
+  const hasClinicalNarrative = String(narrative || '').trim().length > 0;
+  if (!hasClinicalNarrative) return '';
+  if (demographics.age && demographics.sex) return `${demographics.age}y/${demographics.sex} - `;
+  return '';
 }
 
 export function buildCasePlaylist(cases, currentIndex, maxSize = 2000) {
@@ -116,7 +137,7 @@ export function buildCasePlaylist(cases, currentIndex, maxSize = 2000) {
 function DifficultyStars({ level }) {
   return (
     <span style={{ color: 'var(--accent-warning)', letterSpacing: '2px', fontSize: '0.85rem' }}>
-      {'★'.repeat(level)}{'☆'.repeat(3 - level)}
+      {'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦'.repeat(level)}{'ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â '.repeat(3 - level)}
     </span>
   );
 }
@@ -413,7 +434,7 @@ export default function CaseBrowser() {
       <div style={{ marginBottom: 'var(--sp-6)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
         <div>
           <h1 className="page-title">Case Browser</h1>
-          <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases • Shuffled daily • Unseen first</p>
+          <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Shuffled daily ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ Unseen first</p>
         </div>
         <button
           className="btn btn-primary browser-random-btn"
@@ -429,7 +450,7 @@ export default function CaseBrowser() {
             ...(filteredCases.length === 0 ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
           }}
         >
-          <Shuffle aria-hidden="true" size={16} /> Random Case <span aria-hidden="true">🎲</span>
+          <Shuffle aria-hidden="true" size={16} /> Random Case <span aria-hidden="true">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â½ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â²</span>
         </button>
       </div>
 
@@ -442,7 +463,7 @@ export default function CaseBrowser() {
               ref={searchInputRef}
               id="case-search"
               className="input"
-              placeholder="Search cases, tags, diseases..."
+              placeholder="Search cases, prompts, options, diseases..."
               value={search}
               onChange={(event) => setSearchQuery(event.target.value)}
               style={{ paddingLeft: 36 }}
@@ -498,9 +519,9 @@ export default function CaseBrowser() {
                 onChange={(event) => setFilter('difficulty', event.target.value)}
               >
                 <option value="all">All Levels</option>
-                <option value="1">★ Easy</option>
-                <option value="2">★★ Medium</option>
-                <option value="3">★★★ Hard</option>
+                <option value="1">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ Easy</option>
+                <option value="2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ Medium</option>
+                <option value="3">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã¢â‚¬Â¹Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦ Hard</option>
               </select>
 
               <label htmlFor="case-type-filter" style={srOnlyStyle}>Filter by question type</label>
@@ -526,14 +547,14 @@ export default function CaseBrowser() {
                 onChange={(event) => setFilter('exam', event.target.value)}
               >
                 <option value="all">All Exams</option>
-                <option value="UKMPPD">🇮🇩 UKMPPD</option>
-                <option value="USMLE">🇺🇸 USMLE</option>
-                <option value="MIR-Spain">🇪🇸 MIR-Spain</option>
-                <option value="IgakuQA">🇯🇵 IgakuQA</option>
-                <option value="International">🌍 International</option>
-                <option value="Academic">📚 Academic</option>
-                <option value="Research">🔬 Research</option>
-                <option value="Clinical">🏥 Clinical</option>
+                <option value="UKMPPD">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â®ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© UKMPPD</option>
+                <option value="USMLE">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ USMLE</option>
+                <option value="MIR-Spain">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂªÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¸ MIR-Spain</option>
+                <option value="IgakuQA">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âµ IgakuQA</option>
+                <option value="International">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Â¦ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â International</option>
+                <option value="Academic">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ Academic</option>
+                <option value="Research">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ Research</option>
+                <option value="Clinical">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¥ Clinical</option>
               </select>
 
               <div className="filter-chips-row" style={{ display: 'flex', gap: 'var(--sp-2)', overflowX: 'auto', paddingBottom: 'var(--sp-2)', marginTop: 'var(--sp-2)' }}>
@@ -558,7 +579,7 @@ export default function CaseBrowser() {
                     ? { background: 'rgba(168,85,247,0.15)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }
                     : {}}
                 >
-                  <Camera size={14} /> Has Image 📷
+                  <Camera size={14} /> Has Image ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â°ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¸ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
                 </button>
 
                 <button
@@ -729,8 +750,8 @@ export default function CaseBrowser() {
               <h3 style={{ fontSize: 'var(--fs-md)', fontWeight: 600, marginBottom: 'var(--sp-2)' }}>{caseData.title}</h3>
 
               <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--sp-3)', lineHeight: 1.5 }}>
-                {demographics.age && demographics.sex ? `${demographics.age}y/${demographics.sex} - ` : ''}
-                {getNarrativePreview(narrative)}
+                {getPreviewPrefix(demographics, narrative)}
+                {getNarrativePreview(narrative, caseData.prompt, caseData.title)}
               </p>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
