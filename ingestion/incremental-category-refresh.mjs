@@ -20,6 +20,10 @@ const MANAGED_PROMOTION_RULES = new Set([
   'headqa_targeted_runner1',
   'medqa_targeted_runner2',
   'medmcqa_targeted_consensus4',
+  'medmcqa_bedah_confirm_consensus',
+  'medmcqa_pediatrics_consensus10',
+  'medmcqa_surgery_consensus10',
+  'medmcqa_obgyn_consensus11',
 ]);
 
 function safeJsonParse(text) {

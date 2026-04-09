@@ -261,6 +261,87 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_resolution.promotion_rule).toBe('headqa_targeted_runner1');
   });
 
+  it('promotes medmcqa pediatric rescues when breast-milk wording beats stale IPD metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-00755',
+      title: 'Fatty acid found exclusively in breast milk is:-',
+      prompt: 'Fatty acid found exclusively in breast milk is:-',
+      vignette: {
+        narrative: 'The question asks about a nutrient that is found in breast milk and is specific to infant feeding.',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Anak');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pediatrics_consensus10');
+  });
+
+  it('promotes medmcqa surgery rescues when fracture-heavy wording narrowly beats stale IPD metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77777',
+      title: 'Fracture management question',
+      prompt: 'Which nerve is injured in supracondylar fracture?',
+      vignette: {
+        narrative: 'A trauma patient has a fracture around the elbow.',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Bedah');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_surgery_consensus10');
+  });
+
+  it('promotes medmcqa obstetric rescues when placenta wording narrowly beats stale IPD metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77778',
+      title: 'Placenta question',
+      prompt: 'Which placental exchange is most important?',
+      vignette: {
+        narrative: 'This pregnancy question asks about placenta physiology.',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Obstetri & Ginekologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_obgyn_consensus11');
+  });
+
+  it('keeps medmcqa surgery confirmations stable when raw and resolved surgery metadata already agree cleanly', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Bedah',
+      case_code: 'MMC-BDH-MCQ-00109',
+      title: 'Surgical decision check',
+      prompt: 'Which surgical option is most appropriate for this patient?',
+      vignette: {
+        narrative: 'This surgery question concerns postoperative management after an orthopaedic procedure.',
+      },
+      meta: {
+        source: 'medmcqa',
+        tags: ['surgery'],
+      },
+    });
+
+    expect(updated.category).toBe('Bedah');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Bedah');
+  });
+
   it('promotes targeted medqa public-health rescues when organ-system evidence is sharp and uncontested', () => {
     const updated = applyResolvedCategory({
       source: 'medqa',
@@ -279,8 +360,8 @@ describe('categoryResolution', () => {
 
     expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
     expect(updated.meta.category_review_needed).toBe(false);
-    expect(updated.meta.category_resolution.base_confidence).toBe('medium');
-    expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_targeted_runner2');
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+    expect(updated.meta.category_resolution.promotion_rule).toBe(null);
   });
 
   it('promotes targeted medmcqa rescues when keyword and narrative consensus narrowly beats stale broad labels', () => {
@@ -301,7 +382,7 @@ describe('categoryResolution', () => {
     expect(updated.category).toBe('Ilmu Kesehatan Anak');
     expect(updated.meta.category_review_needed).toBe(false);
     expect(updated.meta.category_resolution.base_confidence).toBe('low');
-    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_targeted_consensus4');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pediatrics_consensus10');
   });
 
   it('scores meta-only subject/topic fields the same way as top-level fields', () => {

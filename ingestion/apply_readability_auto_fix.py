@@ -18,7 +18,10 @@ QUEUE_FILE = ROOT / "ingestion" / "output" / "readability_auto_fix_queue.json"
 REPORT_FILE = ROOT / "ingestion" / "output" / "readability_auto_fix_apply_report.json"
 
 DEFAULT_SOURCES = ("fdi-tryout", "medqa", "pedmedqa")
-GENERIC_PROMPT_RE = re.compile(r"^(?:pilih jawaban yang paling tepat\.?|review this case and choose the best answer\.?)$", re.IGNORECASE)
+GENERIC_PROMPT_RE = re.compile(
+    r"^(?:pilih jawaban yang paling tepat\.?|review this case and choose the best answer\.?|choose the single best answer\.?|choose the correct answer\.?)$",
+    re.IGNORECASE,
+)
 QUESTIONISH_RE = re.compile(
     r"\b(apakah|diagnosis|terapi|tatalaksana|komplikasi|gambaran|pemeriksaan|temuan|penanganan|penyebab|patofisiologi|definitif|which of the following|what is|what should|what would|what best|most likely|next step|causal organism|diagnosis|management)\b",
     re.IGNORECASE,
@@ -459,7 +462,7 @@ def apply_fdi_fix(case_data: dict[str, Any], reason_codes: set[str]) -> tuple[di
         with_quality_flag(updated["meta"], "readability_watermark_removed")
         fix_kinds.append("watermark_removed")
 
-    if "generic_prompt_candidate" in reason_codes:
+    if "generic_prompt_candidate" in reason_codes or is_generic_prompt(updated.get("prompt") or ""):
         leaked = find_leaked_prompt_option(updated)
         if leaked:
             leaked_text = leaked["text"]
@@ -758,7 +761,7 @@ def apply_case_fix(case_data: dict[str, Any], queue_item: dict[str, Any]) -> tup
         return apply_fdi_fix(case_data, reason_codes)
     if source in {"medqa", "pedmedqa"}:
         return apply_medqa_family_fix(case_data, source, reason_codes)
-    if source in {"greek-mcqa", "ukmppd-rekapan-2021-ocr"}:
+    if source in {"greek-mcqa", "ukmppd-rekapan-2021-ocr", "polish-ldek-en"}:
         return apply_generic_prompt_source_fix(case_data, remove_watermark=True)
     if source == "headqa":
         return apply_headqa_fix(case_data)

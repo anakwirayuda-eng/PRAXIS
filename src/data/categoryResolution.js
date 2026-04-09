@@ -506,6 +506,26 @@ const MEDMCQA_TARGETED_PROMOTION_MATCHES = {
   'Obstetri & Ginekologi': new Set(['gynecology', 'obstetric', 'labor', 'pregnancy', 'amenorrhea'].map((term) => normalizeText(term))),
 };
 
+const MEDMCQA_BEDAH_CONFIRM_MATCHES = new Set(
+  ['surgery', 'surgical', 'orthopedic', 'orthopaedics', 'fracture', 'trauma', 'musculoskeletal', 'urology', 'hernia', 'postoperative']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PEDIATRICS_STRONG_PROMOTION_MATCHES = new Set(
+  ['breast milk', 'colostrum', 'newborn', 'neonate', 'neonatal', 'infant']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_SURGERY_STRONG_PROMOTION_MATCHES = new Set(
+  ['fracture', 'trauma', 'musculoskeletal', 'orthopedic', 'orthopaedics', 'surgery', 'surgical', 'urology', 'hernia', 'postoperative']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_OBGYN_STRONG_PROMOTION_MATCHES = new Set(
+  ['placenta', 'ectopic pregnancy', 'labor', 'obstetric', 'gynecology', 'pregnancy', 'amenorrhea']
+    .map((term) => normalizeText(term)),
+);
+
 const HIGH_CONFIDENCE_THRESHOLD = 5;
 const HIGH_CONFIDENCE_LEAD = 2;
 const MEDIUM_CONFIDENCE_THRESHOLD = 3;
@@ -739,6 +759,68 @@ function getCategoryPromotion(caseData, resolution) {
         confidence: 'high',
       };
     }
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Bedah'
+    && resolution.resolved_category === 'Bedah'
+    && hasConsensus
+    && !hasOptionsSignal
+    && hasPromotionSignal(signals, MEDMCQA_BEDAH_CONFIRM_MATCHES)
+    && signals.some((signal) => signal?.source === 'subject')
+    && signals.some((signal) => signal?.source === 'tags')
+    && signals.some((signal) => signal?.source === 'keyword')
+  ) {
+    return {
+      rule: 'medmcqa_bedah_confirm_consensus',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(resolution.raw_normalized_category)
+    && resolution.resolved_category === 'Ilmu Kesehatan Anak'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && !hasOptionsSignal
+    && hasPromotionSignalFromSources(signals, MEDMCQA_PEDIATRICS_STRONG_PROMOTION_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_pediatrics_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Bedah'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && !hasOptionsSignal
+    && hasPromotionSignalFromSources(signals, MEDMCQA_SURGERY_STRONG_PROMOTION_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_surgery_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Obstetri & Ginekologi'
+    && resolution.runner_up_score <= 11
+    && hasConsensus
+    && !hasOptionsSignal
+    && hasPromotionSignalFromSources(signals, MEDMCQA_OBGYN_STRONG_PROMOTION_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_obgyn_consensus11',
+      confidence: 'high',
+    };
   }
 
   if (
