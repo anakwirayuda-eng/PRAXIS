@@ -24,7 +24,7 @@ const PRESETS = [
   { label: 'USMLE Mini Block', questions: 20, time: 30, exam: 'USMLE', icon: 'US' },
   { label: 'Full Mock Mixed', questions: 50, time: 60, exam: 'all', icon: 'ALL' },
   { label: 'Hard Cases Only', questions: 10, time: 25, exam: 'all', icon: 'HARD', difficulty: '3' },
-  { label: 'Flashcard Sprint', questions: 20, time: 10, exam: 'all', icon: 'âš¡', questionMode: 'rapid_recall' },
+  { label: 'Flashcard Sprint', questions: 20, time: 10, exam: 'all', icon: 'FAST', questionMode: 'rapid_recall' },
 ];
 
 const QUESTION_COUNT_LIMITS = { min: 1, max: 100, fallback: 10 };
@@ -587,14 +587,14 @@ export default function ExamMode() {
             </label>
             <select id="exam-type-filter" className="input" value={config.examType} onChange={(event) => updateConfig({ examType: event.target.value })}>
               <option value="all">All</option>
-              <option value="UKMPPD">ðŸ‡®ðŸ‡© UKMPPD</option>
-              <option value="USMLE">ðŸ‡ºðŸ‡¸ USMLE</option>
-              <option value="MIR-Spain">ðŸ‡ªðŸ‡¸ MIR-Spain</option>
-              <option value="IgakuQA">ðŸ‡¯ðŸ‡µ IgakuQA</option>
-              <option value="International">ðŸŒ International</option>
-              <option value="Academic">ðŸ“š Academic</option>
-              <option value="Research">ðŸ”¬ Research</option>
-              <option value="Clinical">ðŸ¥ Clinical</option>
+              <option value="UKMPPD">ID - UKMPPD</option>
+              <option value="USMLE">US - USMLE</option>
+              <option value="MIR-Spain">ES - MIR-Spain</option>
+              <option value="IgakuQA">JP - IgakuQA</option>
+              <option value="International">INTL - International</option>
+              <option value="Academic">ACA - Academic</option>
+              <option value="Research">RES - Research</option>
+              <option value="Clinical">CLIN - Clinical</option>
             </select>
           </div>
         </div>

@@ -147,7 +147,14 @@ export default function CaseBrowser() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { completedCases, bookmarks } = useStore();
-  const { cases: caseBank, totalCases, status, isLoading } = useCaseBank();
+  const {
+    cases: caseBank,
+    totalCases,
+    handCraftedCount = 0,
+    compiledCount = 0,
+    status,
+    isLoading,
+  } = useCaseBank();
 
   const searchQuery = searchParams.get('q') || '';
   const [search, setSearch] = useState(searchQuery);
@@ -209,6 +216,9 @@ export default function CaseBrowser() {
   const hideUnreviewed = reviewMode === 'hide';
   const showOnlyReviewed = reviewMode === 'reviewed';
   const canFilterReviewed = reviewedCaseCount > 0;
+  const expectedTotalCases = handCraftedCount + compiledCount;
+  const hasDeferredLibrary = status !== 'ready' && expectedTotalCases > totalCases;
+  const subtitleCount = hasDeferredLibrary ? expectedTotalCases : totalCases;
 
   // Genius Hack 3: O(1) feeling search using pre-computed _searchKey
   const filteredCases = useMemo(() => {
@@ -434,7 +444,11 @@ export default function CaseBrowser() {
       <div style={{ marginBottom: 'var(--sp-6)', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
         <div>
           <h1 className="page-title">Case Browser</h1>
-          <p className="page-subtitle">{totalCases.toLocaleString()} clinical cases | Shuffled daily | Unseen first</p>
+          <p className="page-subtitle">
+            {subtitleCount.toLocaleString()} clinical cases
+            {hasDeferredLibrary ? ` loading (${totalCases.toLocaleString()} visible now)` : ''}
+            {' | Shuffled daily | Unseen first'}
+          </p>
         </div>
         <button
           className="btn btn-primary browser-random-btn"
@@ -676,7 +690,9 @@ export default function CaseBrowser() {
         {status !== 'ready' && (
           <div style={{ marginTop: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
             {isLoading
-              ? 'Loading the full case library in the background. Case order is temporarily locked until loading finishes.'
+              ? hasDeferredLibrary
+                ? `Loading the full case library in the background. ${totalCases.toLocaleString()} cases are visible now while ${expectedTotalCases.toLocaleString()} total cases continue streaming in.`
+                : 'Loading the full case library in the background. Case order is temporarily locked until loading finishes.'
               : 'Compiled case library is unavailable. Showing the starter library only.'}
           </div>
         )}

@@ -67,6 +67,7 @@ fix-rt-bug.cjs
 dist-codex-verify/
 temp-build-fdi/
 temp-vite.err
+.runtime/
 
 # Dossier files (internal docs)
 *_DOSSIER.md

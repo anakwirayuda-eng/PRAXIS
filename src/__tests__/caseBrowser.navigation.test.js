@@ -12,6 +12,8 @@ const mockCategories = {
 let mockSnapshot = {
   cases: [],
   totalCases: 0,
+  handCraftedCount: 0,
+  compiledCount: 0,
   status: 'ready',
   isLoading: false,
 };
@@ -90,6 +92,8 @@ describe('CaseBrowser quality-aware navigation', () => {
     mockSnapshot = {
       cases: [],
       totalCases: 0,
+      handCraftedCount: 0,
+      compiledCount: 0,
       status: 'ready',
       isLoading: false,
     };
@@ -473,5 +477,32 @@ describe('CaseBrowser quality-aware navigation', () => {
     await waitFor(() => {
       expect(screen.getByLabelText(/search cases/i)).toHaveFocus();
     });
+  });
+
+  it('shows the eventual library size while compiled cases are still streaming in', async () => {
+    mockSnapshot = {
+      ...mockSnapshot,
+      cases: [
+        buildCase({ _id: 311, title: 'Starter case' }),
+      ],
+      totalCases: 1,
+      handCraftedCount: 1,
+      compiledCount: 62530,
+      status: 'loading',
+      isLoading: true,
+    };
+
+    const { default: CaseBrowser } = await import('../pages/CaseBrowser.jsx');
+
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ['/cases'] },
+        React.createElement(CaseBrowser),
+      ),
+    );
+
+    expect(screen.getByText(/62[.,]531 clinical cases loading \(1 visible now\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 cases are visible now while 62[.,]531 total cases continue streaming in/i)).toBeInTheDocument();
   });
 });

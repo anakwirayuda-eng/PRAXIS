@@ -10,19 +10,26 @@ import X from 'lucide-react/dist/esm/icons/x';
 import Send from 'lucide-react/dist/esm/icons/send';
 import Check from 'lucide-react/dist/esm/icons/check';
 import Stethoscope from 'lucide-react/dist/esm/icons/stethoscope';
+import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import CircleHelp from 'lucide-react/dist/esm/icons/circle-help';
+import FileWarning from 'lucide-react/dist/esm/icons/file-warning';
+import ListX from 'lucide-react/dist/esm/icons/list-x';
+import BookText from 'lucide-react/dist/esm/icons/book-text';
+import CopyCheck from 'lucide-react/dist/esm/icons/copy-check';
+import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
 import { HealCaseModal } from './HealCaseModal';
 
 // API bridge: empty for dev (Vite proxy), VITE_API_URL for production (Cloudflare Workers)
 const API_BASE = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL || '');
 
 const FEEDBACK_TAGS = [
-  { id: 'wrong_answer',  emoji: '❌', label: 'Kunci Salah',       color: '#ef4444' },
-  { id: 'unclear',       emoji: '😵', label: 'Soal Membingungkan', color: '#f59e0b' },
-  { id: 'incomplete',    emoji: '📝', label: 'Tidak Lengkap',      color: '#f97316' },
-  { id: 'bad_options',   emoji: '🤷', label: 'Opsi Buruk',         color: '#a855f7' },
-  { id: 'bad_rationale', emoji: '📖', label: 'Penjelasan Kurang',  color: '#6366f1' },
-  { id: 'duplicate',     emoji: '♊', label: 'Duplikat',            color: '#64748b' },
-  { id: 'excellent',     emoji: '🌟', label: 'Soal Bagus!',        color: '#10b981' },
+  { id: 'wrong_answer', Icon: XCircle, label: 'Kunci Salah', color: '#ef4444' },
+  { id: 'unclear', Icon: CircleHelp, label: 'Soal Membingungkan', color: '#f59e0b' },
+  { id: 'incomplete', Icon: FileWarning, label: 'Tidak Lengkap', color: '#f97316' },
+  { id: 'bad_options', Icon: ListX, label: 'Opsi Buruk', color: '#a855f7' },
+  { id: 'bad_rationale', Icon: BookText, label: 'Penjelasan Kurang', color: '#6366f1' },
+  { id: 'duplicate', Icon: CopyCheck, label: 'Duplikat', color: '#64748b' },
+  { id: 'excellent', Icon: Sparkles, label: 'Soal Bagus!', color: '#10b981' },
 ];
 
 const STORAGE_KEY = 'mc_feedback';
@@ -180,7 +187,7 @@ export function QuestionFeedback({ caseId, caseData }) {
     setIsSubmitting(true);
 
     try {
-      // Sync to backend first — only persist locally on success
+      // Sync to backend first - only persist locally on success
       const ok = await syncToServer(caseId, selectedTags, trimmedComment);
       setFeedbackError(ok ? '' : 'Tidak bisa mengirim ke server. Feedback disimpan lokal dulu.');
 
@@ -307,7 +314,10 @@ export function QuestionFeedback({ caseId, caseData }) {
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
                 }}>
-                  📋 Feedback Kualitas Soal
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <MessageSquare size={12} />
+                    Feedback Kualitas Soal
+                  </span>
                 </span>
                 <button
                   type="button"
@@ -338,7 +348,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                   fontSize: 'var(--fs-xs)',
                 }}
                 >
-                  {isRetrying ? 'Menyinkronkan feedback lokal…' : feedbackError}
+                  {isRetrying ? 'Menyinkronkan feedback lokal...' : feedbackError}
                 </div>
               )}
 
@@ -355,11 +365,11 @@ export function QuestionFeedback({ caseId, caseData }) {
                 >
                   <Check size={32} style={{ marginBottom: 8 }} />
                   <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
-                    {existingFeedback?.synced === false ? 'Tersimpan lokal ✓' : 'Feedback Terkirim! 🎉'}
+                    {existingFeedback?.synced === false ? 'Tersimpan lokal' : 'Feedback terkirim'}
                   </div>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: 4 }}>
                     {existingFeedback?.synced === false
-                      ? 'Offline — akan disinkron saat koneksi tersedia'
+                      ? 'Offline - akan disinkron saat koneksi tersedia'
                       : 'Terima kasih atas kontribusinya'}
                   </div>
                 </Motion.div>
@@ -374,6 +384,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                   }}>
                     {FEEDBACK_TAGS.map(tag => {
                       const active = selectedTags.includes(tag.id);
+                      const TagIcon = tag.Icon;
                       return (
                         <button
                           key={tag.id}
@@ -397,7 +408,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                             transform: active ? 'scale(1.03)' : 'scale(1)',
                           }}
                         >
-                          <span style={{ fontSize: '14px' }}>{tag.emoji}</span>
+                          <TagIcon size={14} aria-hidden="true" />
                           {tag.label}
                         </button>
                       );
@@ -489,7 +500,7 @@ export function QuestionFeedback({ caseId, caseData }) {
                       }}
                     >
                       <Send size={12} />
-                      {isSubmitting ? 'Menyimpan…' : 'Simpan'}
+                      {isSubmitting ? 'Menyimpan...' : 'Simpan'}
                     </button>
                   </div>
                 </>
@@ -515,7 +526,7 @@ export function QuestionFeedback({ caseId, caseData }) {
         }}
       >
         <Stethoscope size={13} />
-        Heal this Case — Usulkan Perbaikan
+        Heal this Case - Usulkan Perbaikan
       </button>
 
       {/* Heal Modal */}
