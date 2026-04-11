@@ -1,83 +1,89 @@
 /**
- * PRAXIS — Aegis Runtime Decoder
- * Domain-bound XOR decryption for obfuscated case data.
- * 
- * Only decrypts correctly when running on authorized domains.
- * On pirated domains, rationale/answers become gibberish.
+ * PRAXIS Aegis runtime decoder.
+ *
+ * Sensitive rationale fields are XOR-obfuscated in production builds and
+ * transparently restored on approved PRAXIS Pages hosts.
  */
 
-// Authorized domains — "Bloodline Regex" (only PRAXIS lineage allowed)
-const AUTHORIZED_DOMAINS_EXACT = new Set(['localhost']);
+const AUTHORIZED_DOMAINS_EXACT = new Set([
+  'localhost',
+  '127.0.0.1',
+  '::1',
+]);
 
-// Regex: praxis.pages.dev OR praxis-[random].pages.dev — nothing else!
-const BLOODLINE_REGEX = /^praxis(?:-[a-z0-9]+)?\.pages\.dev$/;
+// Allow both the project host and hashed deployment subdomains, for example:
+// - praxis.pages.dev
+// - praxis-el6.pages.dev
+// - 66b90ea7.praxis-el6.pages.dev
+const BLOODLINE_REGEX = /^(?:[a-z0-9-]+\.)?praxis(?:-[a-z0-9]+)?\.pages\.dev$/;
+
+export function isAuthorizedAegisHost(host) {
+  if (typeof host !== 'string') return false;
+  const normalizedHost = host.trim().toLowerCase();
+  if (!normalizedHost) return false;
+  return AUTHORIZED_DOMAINS_EXACT.has(normalizedHost) || BLOODLINE_REGEX.test(normalizedHost);
+}
+
+function getRuntimeHost() {
+  try {
+    return window.location.hostname;
+  } catch {
+    return '';
+  }
+}
 
 function getDecryptionKey() {
-  try {
-    const host = window.location.hostname;
-    if (AUTHORIZED_DOMAINS_EXACT.has(host) || BLOODLINE_REGEX.test(host)) {
-      return 'PRAXIS_AEGIS_2026_SEAL'; // Must match obfuscate-cases.js
-    }
-  } catch { /* SSR/test environment */ }
-  console.warn('💀 [AEGIS] Dimensi Ilegal Terdeteksi. Menghancurkan data klinis...');
-  return 'MALING_DETECTED_DEBU_KOSMIK'; // Wrong key = gibberish output
+  if (isAuthorizedAegisHost(getRuntimeHost())) {
+    return 'PRAXIS_AEGIS_2026_SEAL';
+  }
+
+  console.warn('[AEGIS] Unauthorized host detected. Returning decoy key.');
+  return 'MALING_DETECTED_DEBU_KOSMIK';
 }
 
 function xorDecode(encoded, key) {
   if (!encoded || typeof encoded !== 'string') return '';
+
   try {
-    // Decode base64 → binary → XOR with key
     const bytes = atob(encoded);
     const result = [];
-    for (let i = 0; i < bytes.length; i++) {
-      result.push(String.fromCharCode(bytes.charCodeAt(i) ^ key.charCodeAt(i % key.length)));
+
+    for (let index = 0; index < bytes.length; index += 1) {
+      result.push(String.fromCharCode(bytes.charCodeAt(index) ^ key.charCodeAt(index % key.length)));
     }
+
     return result.join('');
   } catch {
     return '[Decryption failed]';
   }
 }
 
-/**
- * Decode obfuscated fields on a single case object.
- * Called during normalization in caseLoader.js.
- * 
- * Encrypted fields:
- *   _xc  → rationale.correct
- *   _xp  → rationale.pearl  
- *   _xbm → options[].is_correct (bitmap string "01001")
- */
 export function deobfuscateCase(rawCase) {
   if (!rawCase) return rawCase;
-  
+
   const key = getDecryptionKey();
-  
-  // Decode rationale
+
   if (rawCase.rationale?._xc) {
     rawCase.rationale.correct = xorDecode(rawCase.rationale._xc, key);
     delete rawCase.rationale._xc;
   }
+
   if (rawCase.rationale?._xp) {
     rawCase.rationale.pearl = xorDecode(rawCase.rationale._xp, key);
     delete rawCase.rationale._xp;
   }
-  
-  // Decode answer bitmap
+
   if (rawCase._xbm && Array.isArray(rawCase.options)) {
     const bitmap = xorDecode(rawCase._xbm, key);
-    rawCase.options.forEach((opt, i) => {
-      opt.is_correct = bitmap[i] === '1';
+    rawCase.options.forEach((option, index) => {
+      option.is_correct = bitmap[index] === '1';
     });
     delete rawCase._xbm;
   }
-  
+
   return rawCase;
 }
 
-/**
- * Check if case data is obfuscated (has _xc or _xbm fields).
- * Used to decide whether to run deobfuscation pass.
- */
 export function isObfuscated(sampleCase) {
-  return !!(sampleCase?.rationale?._xc || sampleCase?._xbm);
+  return Boolean(sampleCase?.rationale?._xc || sampleCase?._xbm);
 }
