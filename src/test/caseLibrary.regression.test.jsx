@@ -200,6 +200,56 @@ describe('case library split regression coverage', () => {
     });
   });
 
+  it('reloads once when the manifest version is newer than the running bundle', async () => {
+    const originalLocation = window.location;
+    const reload = vi.fn();
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...originalLocation, reload },
+    });
+
+    const fetchMock = vi.fn((url) => {
+      const value = String(url);
+      if (value.includes('manifest.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            chunks: ['cases_part_1.json'],
+            totalCases: 1,
+            version: 'stale-refresh-test',
+          }),
+        });
+      }
+      if (value.includes('cases_part_1.json')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => [buildCompiledCase({ title: 'Version Refresh Case' })],
+        });
+      }
+      if (value.includes('quarantine_manifest.json')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+        });
+      }
+      throw new Error(`Unexpected fetch URL: ${value}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const loader = await import('../data/caseLoader.js');
+
+    await loader.ensureCaseBankLoaded();
+    await loader.retryCaseBankLoad();
+
+    expect(reload).toHaveBeenCalledTimes(1);
+
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
+  });
+
   it('keeps the data quality dashboard subscribed while the compiled library streams in', async () => {
     const deferred = createDeferred();
     const fetchMock = vi.fn().mockResolvedValue({

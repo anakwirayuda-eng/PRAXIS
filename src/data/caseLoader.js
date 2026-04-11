@@ -34,6 +34,7 @@ const DEFAULT_RATIONALE = {
 const VALID_EXAM_TYPES = new Set(['UKMPPD', 'USMLE', 'BOTH', 'MIR-Spain', 'Academic', 'Research', 'Clinical', 'IgakuQA', 'International']);
 const SEARCH_TEXT_MAX = 240;
 const DEFAULT_PROMPT = 'Review this case and choose the best answer.';
+const VERSION_REFRESH_FLAG_PREFIX = 'praxis-version-refresh';
 
 function normalizeOption(option, index) {
   return {
@@ -71,6 +72,27 @@ function buildSearchKey({ title, narrative, prompt, options, tags, category, sou
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
+}
+
+function maybeRefreshForVersionSkew(remoteVersion) {
+  const normalizedRemote = String(remoteVersion ?? '').trim();
+  if (!normalizedRemote || normalizedRemote === APP_VER) {
+    return false;
+  }
+
+  try {
+    const refreshFlag = `${VERSION_REFRESH_FLAG_PREFIX}:${APP_VER}->${normalizedRemote}`;
+    if (sessionStorage.getItem(refreshFlag) === '1') {
+      return false;
+    }
+
+    sessionStorage.setItem(refreshFlag, '1');
+    console.warn(`[MedCase] Detected stale client bundle ${APP_VER}; refreshing to ${normalizedRemote}.`);
+    window.location.reload();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function normalizeDistractorMap(distractors, options) {
@@ -383,6 +405,7 @@ export async function ensureCaseBankLoaded() {
       const manifestResp = await fetch(manifestPath, { cache: 'default' });
       if (manifestResp.ok) {
         const manifest = await manifestResp.json();
+        maybeRefreshForVersionSkew(manifest.version);
         if (Array.isArray(manifest.chunks) && manifest.chunks.length > 0) {
           compiledCount = manifest.totalCases || 0;
           // Sequential streaming: one chunk at a time (RAM stays < 20MB)
