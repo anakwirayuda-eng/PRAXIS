@@ -20,11 +20,12 @@ const OBFUSCATION_KEY = process.env.PRAXIS_OBF_KEY || 'PRAXIS_AEGIS_2026_SEAL';
 
 function xorEncode(text, key) {
   if (!text || typeof text !== 'string') return text;
-  const result = [];
-  for (let i = 0; i < text.length; i++) {
-    result.push(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  const payload = new TextEncoder().encode(text);
+  const keyBytes = new TextEncoder().encode(key);
+  const result = new Uint8Array(payload.length);
+  for (let i = 0; i < payload.length; i++) {
+    result[i] = payload[i] ^ keyBytes[i % keyBytes.length];
   }
-  // Encode as base64 to preserve binary XOR output in JSON
   return Buffer.from(result).toString('base64');
 }
 

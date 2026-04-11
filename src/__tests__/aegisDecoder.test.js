@@ -5,10 +5,12 @@ import { deobfuscateCase, isAuthorizedAegisHost, isObfuscated } from '../lib/aeg
 const KEY = 'PRAXIS_AEGIS_2026_SEAL';
 
 function xorEncode(text, key = KEY) {
-  const bytes = [];
+  const payload = new TextEncoder().encode(text);
+  const keyBytes = new TextEncoder().encode(key);
+  const bytes = new Uint8Array(payload.length);
 
-  for (let index = 0; index < text.length; index += 1) {
-    bytes.push(text.charCodeAt(index) ^ key.charCodeAt(index % key.length));
+  for (let index = 0; index < payload.length; index += 1) {
+    bytes[index] = payload[index] ^ keyBytes[index % keyBytes.length];
   }
 
   return Buffer.from(bytes).toString('base64');
@@ -34,7 +36,7 @@ describe('aegisDecoder payload restoration', () => {
     const rawCase = {
       rationale: {
         _xc: xorEncode('Chymotrypsinogen is the inactive zymogen precursor of chymotrypsin.'),
-        _xp: xorEncode('Remember the -ogen suffix often marks an inactive precursor.'),
+        _xp: xorEncode('Remember the -ogen suffix often marks an inactive precursor – before activation.'),
       },
       options: [
         { id: 'A', text: 'Transaminase' },
@@ -54,7 +56,7 @@ describe('aegisDecoder payload restoration', () => {
     const decoded = deobfuscateCase(rawCase);
 
     expect(decoded.rationale.correct).toContain('inactive zymogen precursor');
-    expect(decoded.rationale.pearl).toContain('-ogen suffix');
+    expect(decoded.rationale.pearl).toContain('inactive precursor – before activation');
     expect(decoded.options.map((option) => option.is_correct)).toEqual([false, true, false]);
     expect(decoded.rationale._xc).toBeUndefined();
     expect(decoded.rationale._xp).toBeUndefined();

@@ -45,14 +45,15 @@ function xorDecode(encoded, key) {
   if (!encoded || typeof encoded !== 'string') return '';
 
   try {
-    const bytes = atob(encoded);
-    const result = [];
+    const payload = Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0));
+    const keyBytes = new TextEncoder().encode(key);
+    const result = new Uint8Array(payload.length);
 
-    for (let index = 0; index < bytes.length; index += 1) {
-      result.push(String.fromCharCode(bytes.charCodeAt(index) ^ key.charCodeAt(index % key.length)));
+    for (let index = 0; index < payload.length; index += 1) {
+      result[index] = payload[index] ^ keyBytes[index % keyBytes.length];
     }
 
-    return result.join('');
+    return new TextDecoder().decode(result);
   } catch {
     return '[Decryption failed]';
   }
