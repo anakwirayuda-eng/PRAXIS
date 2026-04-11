@@ -130,6 +130,41 @@ describe('caseLoader runtime contracts', () => {
     expect(normalized._searchKey).toContain('microbiology');
   });
 
+  it('remaps distractor explanations that were keyed to the correct answer id', async () => {
+    const compiledCases = [
+      {
+        title: 'Distractor key conflict',
+        prompt: 'Chymotrypsinogen is a:',
+        question: 'Chymotrypsinogen is a:',
+        options: [
+          { id: 'A', text: 'Transaminase', is_correct: false },
+          { id: 'B', text: 'Carboxypeptidase', is_correct: false },
+          { id: 'C', text: 'Clot lysing protein', is_correct: false },
+          { id: 'D', text: 'Zymogen', is_correct: true },
+        ],
+        rationale: {
+          correct: 'Chymotrypsinogen is the inactive precursor of chymotrypsin.',
+          distractors: {
+            A: 'Transaminases transfer amino groups and are unrelated here.',
+            B: 'Carboxypeptidase is an active enzyme, not an inactive precursor.',
+            D: 'A clot-lysing protein would be fibrinolytic, not a digestive zymogen.',
+          },
+          pearl: 'The -ogen suffix often signals an inactive enzyme precursor.',
+        },
+        meta: { source: 'medmcqa' },
+      },
+    ];
+
+    const { handCraftedCount, loader } = await loadFreshCaseLoader(compiledCases);
+    const normalized = loader.getCaseById(handCraftedCount);
+
+    expect(normalized.rationale.distractors).toEqual({
+      A: 'Transaminases transfer amino groups and are unrelated here.',
+      B: 'Carboxypeptidase is an active enzyme, not an inactive precursor.',
+      C: 'A clot-lysing protein would be fibrinolytic, not a digestive zymogen.',
+    });
+  });
+
   it('keeps hand-crafted cases, excludes quarantined compiled cases, and publishes the expected total', async () => {
     const compiledCases = [
       {

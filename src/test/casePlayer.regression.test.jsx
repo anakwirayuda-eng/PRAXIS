@@ -190,6 +190,59 @@ describe('case player FSRS regression coverage', () => {
     expect(feedback?.textContent).not.toContain('correct-id');
   }, 15000);
 
+  it('hides blank distractor copy and never renders the correct option as a wrong heading', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const caseData = buildCase({
+      _id: 22,
+      options: [
+        { id: 'A', text: 'Alpha option', is_correct: false, sct_panel_votes: 0 },
+        { id: 'B', text: 'Beta option', is_correct: false, sct_panel_votes: 0 },
+        { id: 'C', text: 'Gamma option', is_correct: false, sct_panel_votes: 0 },
+        { id: 'D', text: 'Delta option', is_correct: true, sct_panel_votes: 0 },
+      ],
+      rationale: {
+        correct: 'Delta option is correct because it fits the vignette.',
+        distractors: {
+          A: 'Alpha option misses the defining clue.',
+          B: '   ',
+          D: 'This text should never render as a distractor because D is correct.',
+        },
+        pearl: '',
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={caseData}
+          caseBank={[caseData]}
+          navigate={vi.fn()}
+          machineState="REVIEWING"
+          selectedAnswer="A"
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Show Explanation/i }));
+
+    const correctLetter = document.querySelector('.option-card.correct .option-letter')?.textContent;
+
+    expect(screen.getByText(/Why [A-Z] is wrong/i)).toHaveTextContent('Why');
+    expect(screen.queryByText(new RegExp(`Why ${correctLetter} is wrong`, 'i'))).not.toBeInTheDocument();
+    expect(screen.queryByText(/This text should never render as a distractor/i)).not.toBeInTheDocument();
+  }, 15000);
+
   it('resets per-case timer state when the session receives a new case', async () => {
     vi.useFakeTimers();
     vi.doMock('../components/QuestionFeedback.jsx', () => ({

@@ -73,6 +73,51 @@ function buildSearchKey({ title, narrative, prompt, options, tags, category, sou
     .toLowerCase();
 }
 
+function normalizeDistractorMap(distractors, options) {
+  if (!distractors || typeof distractors !== 'object' || Array.isArray(distractors)) {
+    return DEFAULT_RATIONALE.distractors;
+  }
+
+  const normalized = Object.fromEntries(
+    Object.entries(distractors)
+      .map(([key, value]) => [String(key ?? '').trim(), typeof value === 'string' ? value : ''])
+      .filter(([key]) => key),
+  );
+
+  if (!Array.isArray(options) || options.length === 0) {
+    return normalized;
+  }
+
+  const correctOption = options.find((option) => option?.is_correct);
+  if (!correctOption) {
+    return normalized;
+  }
+
+  const correctId = String(correctOption.id);
+  const keys = Object.keys(normalized);
+  const optionIds = new Set(options.map((option) => String(option?.id ?? '')).filter(Boolean));
+  const wrongIds = options
+    .filter((option) => !option?.is_correct)
+    .map((option) => String(option.id));
+  const invalidKeys = keys.filter((key) => !optionIds.has(key));
+  const missingWrongIds = wrongIds.filter((id) => !keys.includes(id));
+
+  // Some imported batches stored one distractor explanation under the correct option id.
+  // When exactly one wrong option is missing, move that explanation to the missing distractor.
+  if (
+    keys.includes(correctId)
+    && invalidKeys.length === 0
+    && missingWrongIds.length === 1
+    && keys.length === wrongIds.length
+    && !Object.prototype.hasOwnProperty.call(normalized, missingWrongIds[0])
+  ) {
+    normalized[missingWrongIds[0]] = normalized[correctId];
+    delete normalized[correctId];
+  }
+
+  return normalized;
+}
+
 function normalizeCase(rawCase, fallbackId) {
   rawCase = sanitizeFdiTryoutCase(rawCase ?? {});
   const normalizedId = Number.isInteger(rawCase?._id) ? rawCase._id : fallbackId;
@@ -92,6 +137,9 @@ function normalizeCase(rawCase, fallbackId) {
         ? meta.category_resolution.resolved_category
         : FALLBACK_CATEGORY);
   const qType = rawCase?.q_type === 'SCT' ? 'SCT' : (rawCase?.q_type === 'CLINICAL_DISCUSSION' ? 'CLINICAL_DISCUSSION' : 'MCQ');
+  const normalizedOptions = Array.isArray(rawCase?.options)
+    ? rawCase.options.map(normalizeOption)
+    : [];
 
   // Resolve narrative: support rawCase.question, rawCase.vignette (string), or vignette.narrative (object)
   const resolvedNarrative = rawCase?.question
@@ -107,14 +155,11 @@ function normalizeCase(rawCase, fallbackId) {
         ...rationale,
         distractors:
           rationale.distractors && typeof rationale.distractors === 'object'
-            ? rationale.distractors
+            ? normalizeDistractorMap(rationale.distractors, normalizedOptions)
             : DEFAULT_RATIONALE.distractors,
         correct: rationale.correct ?? DEFAULT_RATIONALE.correct,
         pearl: rationale.pearl ?? DEFAULT_RATIONALE.pearl,
       };
-  const normalizedOptions = Array.isArray(rawCase?.options)
-    ? rawCase.options.map(normalizeOption)
-    : [];
   const resolvedPrompt = rawCase?.prompt ?? DEFAULT_PROMPT;
 
   return {

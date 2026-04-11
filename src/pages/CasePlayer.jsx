@@ -457,11 +457,18 @@ export function CasePlayerSession({
     ? (displayOptionById.get(correctOption.id)?.displayLetter ?? correctOption.id)
     : null;
   const distractors = useMemo(
-    () => Object.entries(rationale.distractors ?? {}).map(([optionId, text]) => ([
-      displayOptionById.get(optionId)?.displayLetter ?? optionId,
-      text,
-    ])),
-    [displayOptionById, rationale.distractors],
+    () => Object.entries(rationale.distractors ?? {})
+      .filter(([optionId, text]) =>
+        displayOptionById.has(optionId)
+        && optionId !== correctOption?.id
+        && typeof text === 'string'
+        && text.trim().length > 0
+      )
+      .map(([optionId, text]) => ([
+        displayOptionById.get(optionId)?.displayLetter ?? optionId,
+        text,
+      ])),
+    [correctOption?.id, displayOptionById, rationale.distractors],
   );
 
   useEffect(() => {
