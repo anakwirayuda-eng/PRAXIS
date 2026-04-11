@@ -213,8 +213,8 @@ describe('categoryResolution', () => {
 
     expect(updated.category).toBe('Ilmu Kesehatan Anak');
     expect(updated.meta.category_review_needed).toBe(false);
-    expect(updated.meta.category_resolution.base_confidence).toBe('low');
-    expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_pediatrics_consensus');
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+    expect(updated.meta.category_resolution.promotion_rule).toBe(null);
   });
 
   it('promotes medqa surgery cases when raw category and surgical context stay aligned', () => {
@@ -236,8 +236,8 @@ describe('categoryResolution', () => {
 
     expect(updated.category).toBe('Bedah');
     expect(updated.meta.category_review_needed).toBe(false);
-    expect(updated.meta.category_resolution.base_confidence).toBe('low');
-    expect(updated.meta.category_resolution.promotion_rule).toBe('medqa_surgery_consensus');
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+    expect(updated.meta.category_resolution.promotion_rule).toBe(null);
   });
 
   it('promotes targeted headqa pharmacology rescues when the content signal clearly beats stale IPD metadata', () => {
@@ -301,6 +301,29 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_surgery_consensus10');
   });
 
+  it('promotes medmcqa medicine-tagged pediatrics questions when pediatric metadata and child cues fully agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77805',
+      prompt: 'Parents of a child with bronchiectasis may give a past history of:',
+      vignette: {
+        narrative: 'A medicine-tagged child presents with bronchiectasis and the question asks about prior history.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine', 'bronchiectasis'],
+        organ_system: 'pediatrics',
+        topic_keywords: ['child'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Anak');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pediatrics_medicine_consensus10');
+  });
+
   it('promotes medmcqa obstetric rescues when placenta wording narrowly beats stale IPD metadata', () => {
     const updated = applyResolvedCategory({
       source: 'medmcqa',
@@ -319,6 +342,1230 @@ describe('categoryResolution', () => {
     expect(updated.category).toBe('Obstetri & Ginekologi');
     expect(updated.meta.category_review_needed).toBe(false);
     expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_obgyn_consensus11');
+  });
+
+  it('promotes medmcqa forensic rescues when medicolegal subject metadata cleanly beats stale IPD labels', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77779',
+      title: 'IPC 314 deals with?',
+      prompt: 'IPC 314 deals with?',
+      vignette: {
+        narrative: 'A legal question asks about IPC 314 and its implications.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Forensic Medicine',
+        tags: ['forensic medicine'],
+        organ_system: 'obstetrics',
+        topic_keywords: ['placenta'],
+      },
+    });
+
+    expect(updated.category).toBe('Forensik');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_forensic_subject_tag_consensus9');
+  });
+
+  it('promotes medmcqa pharmacology rescues when drug-subject metadata edges out stale broad labels', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77780',
+      title: 'All are true about hydroquinone',
+      prompt: 'Which of the following is not true about hydroquinone?',
+      vignette: {
+        narrative: 'This item reviews hydroquinone use and adverse effects.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pharmacology',
+        tags: ['pharmacology'],
+        organ_system: 'obstetrics',
+        topic_keywords: ['placenta'],
+      },
+    });
+
+    expect(updated.category).toBe('Farmakologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pharmacology_subject_tag_consensus9');
+  });
+
+  it('promotes medmcqa biochemistry exact subject-tag matches when broad IPD labels lag behind clear biochemistry metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77806',
+      prompt: 'With help of the drug shown below, serotonin is synthesized from which precursor amino acid?',
+      vignette: {
+        narrative: 'A drug-related stem asks which precursor amino acid is used to synthesize serotonin.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Biochemistry',
+        tags: ['biochemistry', 'all india exam'],
+        organ_system: 'pharmacology',
+        topic_keywords: ['drug'],
+      },
+    });
+
+    expect(updated.category).toBe('Biokimia');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_biochemistry_subject_tag_consensus11');
+  });
+
+  it('promotes medmcqa radiology rescues when imaging metadata beats stale IPD labels but remains low confidence by score alone', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77781',
+      title: 'Radiation dose safe in pregnancy',
+      prompt: 'Radiation dose safe in pregnancy is',
+      vignette: {
+        narrative: 'The question asks about the safe radiation dose threshold during pregnancy.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Radiology',
+        tags: ['radiology'],
+        organ_system: 'obstetrics',
+        topic_keywords: ['placenta'],
+      },
+    });
+
+    expect(updated.category).toBe('Radiologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_radiology_subject_tag_consensus9');
+  });
+
+  it('promotes medmcqa anaesthesia exact subject-tag matches when broad IPD labels lag behind clear anaesthesia metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77797',
+      prompt: 'For anesthesiology mild systemic disease included in ASA grade-',
+      vignette: {
+        narrative: 'For anesthesiology mild systemic disease included in ASA grade-',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Anaesthesia',
+        tags: ['anaesthesia', 'anaesthesia for special situations'],
+      },
+    });
+
+    expect(updated.category).toBe('Anestesi & Emergency Medicine');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_anaesthesia_subject_tag_consensus7');
+  });
+
+  it('promotes medmcqa radiology exact subject-tag matches when x-ray wording keeps imaging ahead of a close surgical runner-up', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77791',
+      prompt: 'Which of the following is true regarding the central beam in this x-ray?',
+      vignette: {
+        narrative: 'The question asks about central beam placement in an x ray projection.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Radiology',
+        tags: ['radiology'],
+        organ_system: 'musculoskeletal',
+      },
+    });
+
+    expect(updated.category).toBe('Radiologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+    expect(updated.meta.category_resolution.resolved_category).toBe('Radiologi');
+  });
+
+  it('promotes medmcqa public-health rescues when screening wording backs social medicine metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77782',
+      title: 'Community screening question',
+      prompt: 'Screening is done because of all except:',
+      vignette: {
+        narrative: 'A screening program is evaluated as part of public health prevention work.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Social & Preventive Medicine',
+        topic_keywords: ['renal'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_public_health_subject_consensus7');
+  });
+
+  it('does not treat a generic medicine tag as community medicine when only screening metadata points there', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77807',
+      prompt: 'Which of the following is the most specific and sensitive screening test for renovascular hypertension?',
+      vignette: {
+        narrative: 'The stem asks for the most specific and sensitive screening test for renovascular hypertension.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine', 'all india exam'],
+        organ_system: 'public_health',
+        topic_keywords: ['screening'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('keeps strong epidemiology/public-health wording eligible for public-health resolution even with a generic medicine tag', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77808',
+      prompt: 'The true statement about the epidemiology of H. pylori is:',
+      vignette: {
+        narrative: 'A medicine-tagged item asks about epidemiology and prevalence as a public health question.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine'],
+        organ_system: 'public_health',
+        topic_keywords: ['epidemiology', 'prevalence'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Kesehatan Masyarakat');
+  });
+
+  it('promotes medmcqa pharmacology exact subject-tag matches when drug wording keeps a broad IPD label only narrowly behind', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77792',
+      prompt: 'What should be the dose rate of drug X in this patient?',
+      vignette: {
+        narrative: 'The clinician asks about the appropriate dose rate of a drug in this patient.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pharmacology',
+        tags: ['pharmacology'],
+        organ_system: 'gastrointestinal',
+      },
+    });
+
+    expect(updated.category).toBe('Farmakologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+    expect(updated.meta.category_resolution.resolved_category).toBe('Farmakologi');
+  });
+
+  it('promotes medmcqa medicine-tagged drug questions when pharmacology organ metadata and textual drug cues fully agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77795',
+      prompt: 'Drug of choice for treatment of CML is:',
+      vignette: {
+        narrative: 'Drug of choice for treatment of CML is:',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine'],
+        organ_system: 'pharmacology',
+        topic_keywords: ['drug'],
+      },
+    });
+
+    expect(updated.category).toBe('Farmakologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pharmacology_medicine_consensus10');
+  });
+
+  it('promotes medmcqa medicine-tagged neuro questions when neurological organ metadata and sharp neuro cues fully agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77796',
+      prompt: 'Window period for thrombolysis in a stroke patient is:',
+      vignette: {
+        narrative: 'Window period for thrombolysis in a stroke patient is:',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine'],
+        organ_system: 'neurological',
+        topic_keywords: ['stroke'],
+      },
+    });
+
+    expect(updated.category).toBe('Neurologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_neurology_medicine_consensus10');
+  });
+
+  it('promotes medmcqa medicine-tagged ent questions when ent metadata and nasal wording fully agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77800',
+      prompt: 'In acute rhinitis, nasal drainage normally is:',
+      vignette: {
+        narrative: 'A medicine-tagged patient with acute rhinitis has nasal drainage findings that guide diagnosis.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine'],
+        organ_system: 'ENT',
+        topic_keywords: ['nasal'],
+      },
+    });
+
+    expect(updated.category).toBe('THT');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_ent_medicine_consensus10');
+  });
+
+  it('promotes medmcqa medicine-tagged psychiatry questions when psychiatry metadata and sharp psych cues fully agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77802',
+      prompt: 'Characteristic feature of korsakoff psychosis is',
+      vignette: {
+        narrative: 'A medicine-tagged patient presents with psychosis features characteristic of Korsakoff syndrome.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine'],
+        organ_system: 'psychiatry',
+        topic_keywords: ['psychosis'],
+      },
+    });
+
+    expect(updated.category).toBe('Psikiatri');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_psychiatry_medicine_consensus10');
+  });
+
+  it('promotes medmcqa medicine-tagged ophthalmology questions when eye metadata and sharp eye cues fully agree', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77803',
+      prompt: 'The eye movements are normal and she experiences no double vision.',
+      vignette: {
+        narrative: 'A medicine-tagged patient has an eye complaint with pupillary abnormality and preserved vision.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine', 'c.n.s.'],
+        organ_system: 'ophthalmology',
+        topic_keywords: ['eye', 'vision'],
+      },
+    });
+
+    expect(updated.category).toBe('Mata');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_ophthalmology_medicine_consensus10');
+  });
+
+  it('promotes medmcqa ophthalmology exact subject-tag matches when broad IPD labels lag behind clean eye metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77804',
+      prompt: 'The only cranial nerve which supplies a contralateral muscle is-',
+      vignette: {
+        narrative: 'This item asks which cranial nerve supplies a contralateral muscle.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Ophthalmology',
+        tags: ['ophthalmology'],
+        organ_system: 'musculoskeletal',
+      },
+    });
+
+    expect(updated.category).toBe('Mata');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_ophthalmology_subject_tag_consensus7');
+  });
+
+  it('keeps radiology-tagged sinus x-ray questions in review instead of forcing them into ent auto-fixes', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77801',
+      prompt: 'If the patient’s mouth is open during x-ray, the sphenoid sinus is seen superimposed over-',
+      vignette: {
+        narrative: 'A radiology question asks about an x ray view where the sphenoid sinus is superimposed.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Radiology',
+        tags: ['radiology'],
+        organ_system: 'ENT',
+        topic_keywords: ['sinusitis', 'nasal'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(true);
+    expect(updated.meta.category_resolution.promotion_rule).toBe(null);
+  });
+
+  it('promotes medmcqa public-health exact subject-tag matches even when broad raw metadata still says IPD', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77786',
+      prompt: 'Function of PHC are-',
+      vignette: {
+        narrative: 'Function of PHC are-',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Social & Preventive Medicine',
+        tags: ['social & preventive medicine', 'health care of community & international health'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_public_health_subject_tag_consensus7');
+  });
+
+  it('promotes medmcqa dental exact subject-tag matches over noisy pediatric signals in pediatric dentistry items', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Bedah',
+      case_code: 'MMC-BDH-MCQ-77787',
+      prompt: '1st dental visit of the child should be at the age of:',
+      vignette: {
+        narrative: 'A pediatric dentistry question asks the ideal age of the first dental visit for a child.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Dental',
+        tags: ['dental'],
+        organ_system: 'pediatrics',
+        topic_keywords: ['child'],
+      },
+    });
+
+    expect(updated.category).toBe('Kedokteran Gigi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_dental_subject_tag_consensus12');
+  });
+
+  it('promotes medmcqa dental exact subject-tag matches even when the last supporting cue sits inside answer options', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Bedah',
+      case_code: 'MMC-BDH-MCQ-77788',
+      prompt: 'All of the following are true for light cure composite except:',
+      options: [
+        { option_text: 'Tooth discoloration is avoided by careful finishing.' },
+        { option_text: 'Composite curing is unaffected by visible light.' },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Dental',
+        tags: ['dental'],
+        organ_system: 'ophthalmology',
+      },
+    });
+
+    expect(updated.category).toBe('Kedokteran Gigi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+    expect(updated.meta.category_resolution.resolved_category).toBe('Kedokteran Gigi');
+  });
+
+  it('promotes medmcqa public-health exact subject-tag matches up to the broader surveillance runner-up band', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77789',
+      prompt: 'WHO surveillance is done in all except',
+      vignette: {
+        narrative: 'WHO surveillance is done in all except.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Social & Preventive Medicine',
+        tags: ['social & preventive medicine'],
+        organ_system: 'infectious',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.base_confidence).toBe('low');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_public_health_subject_tag_consensus7');
+  });
+
+  it('does not misread accidental as a dental signal inside broader words', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77783',
+      prompt: 'The industry with the highest accidental death rate is',
+      vignette: {
+        narrative: 'The industry with the highest accidental death rate is asked here.',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('does not misread incidental skin wording as a dermatology category rescue', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77790',
+      prompt: 'Deposition of Anti ds DNA Ab in kidney, skin, choroid plexus and joints is seen in:',
+      vignette: {
+        narrative: 'Deposition of Anti ds DNA Ab in kidney, skin, choroid plexus and joints is seen in.',
+      },
+      meta: {
+        source: 'medmcqa',
+        organ_system: 'dermatology',
+        subject: 'Medicine',
+        tags: ['medicine'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('does not misread carotid sinus anatomy as an ent rescue', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77791',
+      prompt: 'Carotid sinus/baroreceptor is located at the origin of',
+      vignette: {
+        narrative: 'Carotid sinus baroreceptor is located at the origin of which vessel?',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('does not misread year-old OCR splits as an ear ent rescue', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77792',
+      prompt: 'A 6-y ear-old girl presented with abdominal pain after admission.',
+      vignette: {
+        narrative: 'A 6-y ear-old girl presented with abdominal pain after admission.',
+      },
+      meta: {
+        source: 'medmcqa',
+        organ_system: 'ENT',
+        topic_keywords: ['ear'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('does not misread osmolarity as a molar-tooth keyword', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77784',
+      prompt: 'Maximum contribution of plasma osmolarity is by',
+      vignette: {
+        narrative: 'Maximum contribution of plasma osmolarity is by.',
+      },
+      meta: {
+        source: 'medmcqa',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('does not route multidrug-resistant epidemiology questions into pharmacology just because they contain the word drug', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77793',
+      prompt: "Over 60% of the world's Multi Drug Resistant TB cases are seen in which of the following countries?",
+      vignette: {
+        narrative: "Over 60% of the world's Multi Drug Resistant TB cases are seen in which of the following countries?",
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Medicine',
+        tags: ['medicine'],
+        organ_system: 'pharmacology',
+        topic_keywords: ['drug'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('lets microbiology dose questions escape noisy medmcqa pharmacology metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77794',
+      prompt: 'Infective dose of salmonella typhi ?',
+      vignette: {
+        narrative: 'Infective dose of salmonella typhi ?',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Microbiology',
+        tags: ['microbiology'],
+        organ_system: 'pharmacology',
+        topic_keywords: ['dose'],
+      },
+    });
+
+    expect(updated.category).toBe('Mikrobiologi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Mikrobiologi');
+  });
+
+  it('does not expand generic ectopic topic keywords into obstetric category matches', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77795',
+      prompt: 'Most common site for ectopic salivary gland tumour is:',
+      vignette: {
+        narrative: 'Most common site for ectopic salivary gland tumour is:',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'obstetrics',
+        topic_keywords: ['ectopic'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+  });
+
+  it('does not expand generic pregnancy topic keywords into ectopic pregnancy category matches', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77796',
+      prompt: 'Highest LAP score is seen in -',
+      vignette: {
+        narrative: 'Highest leukocyte alkaline phosphatase score is seen in which condition?',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'obstetrics',
+        topic_keywords: ['pregnancy'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+  });
+
+  it('does not expand generic dose topic keywords into pharmacology category matches', () => {
+    const resolved = resolveCaseCategory({
+      source: 'medqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MQA-IPD-MCQ-77797',
+      prompt: 'Radiation exposure varies with cumulative dose over time.',
+      vignette: {
+        narrative: 'The discussion focuses on epidemiologic radiation exposure and cumulative dose.',
+      },
+      meta: {
+        source: 'medqa',
+        topic_keywords: ['dose'],
+      },
+    });
+
+    expect(resolved.resolved_category).toBe('Ilmu Penyakit Dalam');
+    expect(resolved.category_conflict).toBe(false);
+  });
+
+  it('suppresses noisy medmcqa anatomy metadata when a broad raw label lacks real anatomy evidence', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77785',
+      prompt: 'Pharmacodynamics includes',
+      vignette: {
+        narrative: 'Pharmacodynamics includes.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Anatomy',
+        tags: ['anatomy'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when dental wording is the real signal', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77798',
+      prompt: 'Critical pH for initiation of caries:',
+      vignette: {
+        narrative: 'Critical pH for initiation of caries is being asked in this dental item.',
+      },
+      options: [
+        { id: 'A', text: 'The saliva stays supersaturated', is_correct: true },
+        { id: 'B', text: 'The enamel dissolves after plaque acidification', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Kedokteran Gigi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Kedokteran Gigi');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when surgery wording is the real signal', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77799',
+      prompt: 'In cleft lip surgery rule of 10 says',
+      vignette: {
+        narrative: 'This surgery item asks about the cleft lip rule of 10 before operation.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Bedah');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Bedah');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when the item is really a basic biochemistry cue', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77800',
+      prompt: 'Enzyme-deficient in Alkaptonuria',
+      vignette: {
+        narrative: 'The question asks which enzyme is deficient in alkaptonuria.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Biokimia');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Biokimia');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when pap-smear screening context is public-health driven', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77801',
+      prompt: 'For diagnosis of carcinoma cervix, PAP smear screening is done to',
+      vignette: {
+        narrative: 'The screening program aims to prevent progression of cervical disease.',
+      },
+      options: [
+        { id: 'A', text: '100% informative', is_correct: false },
+        { id: 'B', text: 'Prevents progress of the disease', is_correct: true },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'gynecology',
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Kesehatan Masyarakat');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Kesehatan Masyarakat');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when emergency-priority wording is the real signal', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77808',
+      prompt: 'A patient arrives at the emergency department complaining of midsternal chest pain. Which of the following nursing action should take priority?',
+      vignette: {
+        narrative: 'A patient arrives at the emergency department complaining of midsternal chest pain. Which of the following nursing action should take priority?',
+      },
+      options: [
+        { id: 'A', text: 'A complete history with emphasis on preceding events.', is_correct: false },
+        { id: 'B', text: 'An electrocardiogram', is_correct: false },
+        { id: 'C', text: 'Careful assessment of vital signs', is_correct: true },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Anestesi & Emergency Medicine');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Anestesi & Emergency Medicine');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_targeted_consensus4');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when std wording really belongs to derm-venereology', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77809',
+      prompt: 'All of the following are STD except:',
+      vignette: {
+        narrative: 'This derm-venereology question asks which infection is not an STD.',
+      },
+      options: [
+        { id: 'A', text: 'Herpes', is_correct: false },
+        { id: 'B', text: 'Scabies', is_correct: false },
+        { id: 'C', text: 'Candida', is_correct: false },
+        { id: 'D', text: 'Leprosy', is_correct: true },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Kulit & Kelamin');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Kulit & Kelamin');
+  });
+
+  it('suppresses broad medmcqa pathology metadata when corneal anatomy clearly points to ophthalmology', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77810',
+      prompt: 'In which layer of cornea is copper deposited to form a Kayser-Fleischer ring?',
+      vignette: {
+        narrative: 'Kayser-Fleischer ring in Wilson disease is seen at Descemet membrane in the cornea.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Mata');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Mata');
+  });
+
+  it('suppresses broad medmcqa pathology metadata for paul-bunnell internal-medicine items', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77811',
+      prompt: 'Paul-Bunnell test is positive in:',
+      vignette: {
+        narrative: 'Paul-Bunnell test is positive in infectious mononucleosis.',
+      },
+      options: [
+        { id: 'A', text: 'Infectious mononucleosis', is_correct: true },
+        { id: 'B', text: 'Multiple myeloma', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+  });
+
+  it('promotes biopsy-led medmcqa pathology items even without pathology subject metadata', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77802',
+      prompt: 'Skin biopsy in leprosy is characterized by:',
+      vignette: {
+        narrative: 'A skin biopsy in leprosy is characterized by granulomatous change.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Skin',
+        tags: ['skin'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pathology_text_runner4');
+  });
+
+  it('promotes onion-skin renal biopsy cases into pathology even when ipd clues are strong', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77812',
+      prompt: 'The most likely diagnosis is',
+      vignette: {
+        narrative: 'In a 60-year-old hypertensive male with renal failure, renal biopsy shows onion skin appearance. The most likely diagnosis is',
+      },
+      options: [
+        { id: 'A', text: 'Hyaline arteriosclerosis', is_correct: false },
+        { id: 'B', text: 'Hyperplastic arteriosclerosis', is_correct: true },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'dermatology',
+        topic_keywords: ['skin'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_resolution.confidence).toBe('high');
+  });
+
+  it('promotes peutz-jeghers style pathology syndromes when the item points to colonic polyps', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77813',
+      prompt: 'Which of the following additional findings would most likely be present?',
+      vignette: {
+        narrative: 'A child presents with freckles all over the body, including the buccal mucosa, lips, palms, soles, and skin not exposed to the sun. Which additional finding would most likely be present?',
+      },
+      options: [
+        { id: 'A', text: 'Colonic polyps', is_correct: true },
+        { id: 'B', text: 'Desmoid tumors', is_correct: false },
+        { id: 'C', text: 'Epidermoid cysts', is_correct: false },
+        { id: 'D', text: 'Osteomas of the jaw', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'dermatology',
+        topic_keywords: ['skin'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_resolution.confidence).toBe('high');
+  });
+
+  it('promotes hypophosphatasia pathology items when phosphoethanolamine is explicitly present', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77814',
+      prompt: 'The child is suffering from.',
+      vignette: {
+        narrative: 'A 9-year-old child has horizontal anterior bone loss, reduced cementum, and urinary phosphoethanolamine excretion. The child is suffering from.',
+      },
+      options: [
+        { id: 'A', text: 'Hypophosphatasia', is_correct: true },
+        { id: 'B', text: 'Vitamin D resistant rickets', is_correct: false },
+        { id: 'C', text: 'Juvenile periodontitis', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'musculoskeletal',
+        topic_keywords: ['bone'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_resolution.confidence).toBe('high');
+  });
+
+  it('promotes explicit medmcqa histopathology prompts over broad ipd raw labels', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77803',
+      title: '16-year-old female presents with primary amenorrhea and raised FSH',
+      prompt: 'What would be the histopathological finding in the ovary?',
+      vignette: {
+        narrative: 'A 16-year-old female presents with primary amenorrhea and raised FSH. On examination, her height was 58 inches. What would be the histopathological finding in the ovary?',
+      },
+      options: [
+        { id: 'A', text: 'Absence of oocytes in the ovaries (streak ovaries)', is_correct: true },
+        { id: 'B', text: 'Mucinous cystadenoma', is_correct: false },
+        { id: 'C', text: 'Psamomma bodies', is_correct: false },
+        { id: 'D', text: 'Hemorrhagic Corpus Leuteum', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology', 'genetics'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_pathology_subject_tag_consensus5');
+  });
+
+  it('promotes histologically worded medmcqa morphology items into pathology', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77805',
+      prompt: 'Histologically, this lesion is most likely composed of a proliferation of which tissue component?',
+      vignette: {
+        narrative: 'A child has a large port-wine stain since birth. Histologically, this lesion is composed of a proliferation of capillaries.',
+      },
+      options: [
+        { id: 'A', text: 'Capillaries', is_correct: true },
+        { id: 'B', text: 'Fibroblasts', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology', 'disease of infancy & childhood'],
+        organ_system: 'dermatology',
+        topic_keywords: ['lesion'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_resolution.base_confidence).toBe('high');
+  });
+
+  it('does not let atherosclerotic plaque wording create a dental plaque false positive', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77806',
+      prompt: 'The presence of which feature in an atherosclerotic plaque indicates a complicated lesion?',
+      vignette: {
+        narrative: 'The presence of lines of Zahn in an atherosclerotic plaque indicates a complicated lesion.',
+      },
+      options: [
+        { id: 'A', text: 'Cholesterol crystals', is_correct: false },
+        { id: 'B', text: 'Lines of Zahn', is_correct: true },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+        organ_system: 'dermatology',
+        topic_keywords: ['lesion'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+  });
+
+  it('suppresses broad medmcqa pathology metadata for basic enzyme metabolism questions', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77807',
+      prompt: 'Cyclo-oxygenase pathway of arachidonic acid metabolism does not give rise to:',
+      vignette: {
+        narrative: 'This basic metabolism item asks which product is not generated by the cyclo-oxygenase pathway.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Biokimia');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Biokimia');
+  });
+
+  it('does not let endodermal sinus wording create an ent false positive in pathology items', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77804',
+      prompt: 'Endodermal sinus tumour is characterized by ?',
+      vignette: {
+        narrative: 'An endodermal sinus tumour is characterized by Schiller-Duval bodies.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology'],
+      },
+    });
+
+    expect(updated.category).toBe('Patologi Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Patologi Anatomi');
+  });
+
+  it('rescues streptococcus host-receptor medmcqa items back to internal medicine when pathology metadata is just stale noise', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77808',
+      title: 'Host receptor for streptococcus pyogenes is',
+      prompt: 'Host receptor for streptococcus pyogenes is?',
+      vignette: {
+        narrative: 'Host receptor for streptococcus pyogenes is?',
+      },
+      options: [
+        { id: 'A', text: 'CD4', is_correct: false },
+        { id: 'B', text: 'CD21', is_correct: false },
+        { id: 'C', text: 'CD44', is_correct: false },
+        { id: 'D', text: 'CD46', is_correct: true },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology', 'misc. (w.b.c)'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_medicine_streptococcus_host_receptor_consensus5');
+  });
+
+  it('rescues peripheral-smear plus spine-xray sickle-pattern medmcqa items back to internal medicine', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77809',
+      title: 'Which will the patient with following peripheral smear and X-ray spine present with?',
+      prompt: 'Which will the patient with following peripheral smear and X-ray spine present with?',
+      vignette: {
+        narrative: 'The question shows a peripheral smear and X-ray spine and asks the likely clinical presentation.',
+      },
+      options: [
+        { id: 'A', text: 'Hand Foot syndrome', is_correct: true },
+        { id: 'B', text: 'Black urine', is_correct: false },
+        { id: 'C', text: 'Elevated haptoglobin', is_correct: false },
+        { id: 'D', text: 'Splenomegaly with gall stones', is_correct: false },
+      ],
+      meta: {
+        source: 'medmcqa',
+        subject: 'Pathology',
+        tags: ['pathology', 'blood'],
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_medicine_peripheral_smear_xray_handfoot_consensus5');
+  });
+
+  it('promotes sharp anatomy subject-tag medmcqa items when artery-vein-foramen cues are explicit', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-77810',
+      title: 'Artery of anatomical snuffbox',
+      prompt: 'Artery of anatomical snuffbox is:',
+      vignette: {
+        narrative: 'Artery of anatomical snuffbox is radial artery.',
+      },
+      meta: {
+        source: 'medmcqa',
+        subject: 'Anatomy',
+        tags: ['anatomy'],
+      },
+    });
+
+    expect(updated.category).toBe('Anatomi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.resolved_category).toBe('Anatomi');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('medmcqa_anatomy_subject_tag_consensus4');
   });
 
   it('keeps medmcqa surgery confirmations stable when raw and resolved surgery metadata already agree cleanly', () => {

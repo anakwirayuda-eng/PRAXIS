@@ -339,7 +339,7 @@ const CATEGORY_KEYWORDS = {
     'nasal', 'throat', 'otitis', 'tympanic', 'hearing', 'ENT',
   ],
   'Kulit & Kelamin': [
-    'dermatology', 'skin', 'venereology', 'dermatitis', 'psoriasis', 'urticaria',
+    'dermatology', 'venereology', 'dermatitis', 'psoriasis', 'urticaria',
     'pemphigus', 'std', 'sti', 'dermatological',
   ],
   Forensik: [
@@ -351,7 +351,7 @@ const CATEGORY_KEYWORDS = {
     'half life', 'bioavailability',
   ],
   Anatomi: [
-    'anatomy', 'artery', 'vein', 'nerve', 'bone', 'muscle', 'ligament',
+    'anatomy', 'artery', 'vein', 'ligament',
     'sacrum', 'foramen',
   ],
   'Kedokteran Gigi': [
@@ -359,7 +359,9 @@ const CATEGORY_KEYWORDS = {
     'orthodont', 'endodont', 'prosthodont', 'cej', 'tmj', 'plaque', 'enamel',
     'dentin', 'pulp', 'malocclusion', 'steiner', 'maxilla', 'maxillary',
     'mandible', 'mandibular', 'molar', 'incisor', 'canine', 'premolar',
-    'occlusal', 'root canal', 'rubber dam', 'caries', 'alveolar', 'pulpitis',
+    'occlusal', 'root canal', 'rubber dam', 'caries',
+    'alveolar ridge', 'alveolar socket', 'alveolar bone', 'alveolar process',
+    'pulpitis',
     'periodontal pocket', 'oral cavity', 'orthodontic band',
   ],
   Biokimia: [
@@ -462,6 +464,35 @@ const SAFE_PROMOTION_SIGNAL_SOURCES = new Set([
   'topic',
 ]);
 
+const TEXT_ONLY_PROMOTION_SIGNAL_SOURCES = new Set([
+  'keyword',
+  'narrative',
+]);
+
+const CONTENT_CONSENSUS_SOURCES = new Set([
+  'subject',
+  'tags',
+  'keyword',
+  'narrative',
+  'options',
+  'organ_system',
+  'topic_keywords',
+  'topic',
+]);
+
+const TEXTUAL_CONSENSUS_SOURCES = new Set([
+  'keyword',
+  'narrative',
+  'options',
+]);
+
+const PREFIX_KEYWORD_MATCHES = new Set([
+  'periodont',
+  'orthodont',
+  'endodont',
+  'prosthodont',
+].map((term) => normalizeText(term)));
+
 const HEADQA_TARGETED_PROMOTION_MATCHES = {
   Farmakologi: new Set(['pharmacology', 'receptor', 'agonist', 'antagonist'].map((term) => normalizeText(term))),
   'Obstetri & Ginekologi': new Set(['gynecology', 'obstetric', 'labor', 'amenorrhea'].map((term) => normalizeText(term))),
@@ -501,9 +532,11 @@ const MEDMCQA_TARGETED_PROMOTION_MATCHES = {
   'Anestesi & Emergency Medicine': new Set(['emergency', 'shock', 'resuscitation', 'airway', 'anesthesia', 'critical care'].map((term) => normalizeText(term))),
   Biokimia: new Set(['dna', 'rna', 'amino acid', 'enzyme', 'glycolysis', 'metabolism'].map((term) => normalizeText(term))),
   Bedah: new Set(['surgery', 'surgical', 'musculoskeletal', 'trauma', 'urology', 'orthopedic', 'fracture', 'hernia', 'postoperative'].map((term) => normalizeText(term))),
-  'Ilmu Kesehatan Masyarakat': new Set(['public health', 'epidemiology', 'biostatistics', 'screening', 'prevention', 'vaccination'].map((term) => normalizeText(term))),
+  'Ilmu Kesehatan Masyarakat': new Set(['public health', 'epidemiology', 'biostatistics', 'screening', 'prevention', 'vaccination', 'surveillance'].map((term) => normalizeText(term))),
   Forensik: new Set(['forensic', 'medico legal', 'abrasion', 'contusion', 'bruise', 'black eye'].map((term) => normalizeText(term))),
   'Obstetri & Ginekologi': new Set(['gynecology', 'obstetric', 'labor', 'pregnancy', 'amenorrhea'].map((term) => normalizeText(term))),
+  'Kulit & Kelamin': new Set(['dermatology', 'venereology', 'std', 'sti', 'herpes', 'candida', 'scabies'].map((term) => normalizeText(term))),
+  Mata: new Set(['cornea', 'corneal', 'descemet', 'kayser fleischer', 'retina', 'glaucoma', 'cataract'].map((term) => normalizeText(term))),
 };
 
 const MEDMCQA_BEDAH_CONFIRM_MATCHES = new Set(
@@ -516,8 +549,68 @@ const MEDMCQA_PEDIATRICS_STRONG_PROMOTION_MATCHES = new Set(
     .map((term) => normalizeText(term)),
 );
 
+const MEDMCQA_PEDIATRICS_MEDICINE_PROMOTION_MATCHES = new Set(
+  ['child', 'pediatric']
+    .map((term) => normalizeText(term)),
+);
+
 const MEDMCQA_SURGERY_STRONG_PROMOTION_MATCHES = new Set(
   ['fracture', 'trauma', 'musculoskeletal', 'orthopedic', 'orthopaedics', 'surgery', 'surgical', 'urology', 'hernia', 'postoperative']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PHARMACOLOGY_STRONG_PROMOTION_MATCHES = new Set(
+  ['drug', 'agonist', 'antagonist']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_NEUROLOGY_STRONG_PROMOTION_MATCHES = new Set(
+  ['stroke', 'seizure', 'epilepsy', 'migraine', 'cranial nerve']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PSYCHIATRY_STRONG_PROMOTION_MATCHES = new Set(
+  ['psychosis', 'depression', 'schizophrenia', 'bipolar']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_ENT_STRONG_PROMOTION_MATCHES = new Set(
+  ['nasal', 'rhinitis', 'otitis', 'hearing', 'tympanic']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_OPHTHALMOLOGY_STRONG_PROMOTION_MATCHES = new Set(
+  ['eye', 'vision', 'glaucoma', 'cornea', 'retina', 'cataract', 'pupil', 'pupillary']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_RADIOLOGY_STRONG_PROMOTION_MATCHES = new Set(
+  ['x ray', 'ct scan', 'mri', 'ultrasound', 'imaging']
+    .map((term) => normalizeText(term)),
+);
+
+const PHARMACOLOGY_DRUG_FALSE_POSITIVE_PATTERNS = new Set(
+  ['drug resistant', 'drug resistance', 'multi drug resistant', 'multi drug resistance']
+    .map((term) => normalizeText(term)),
+);
+
+const THT_SINUS_FALSE_POSITIVE_PATTERNS = new Set(
+  ['cavernous sinus', 'carotid sinus', 'coronary sinus', 'endodermal sinus']
+    .map((term) => normalizeText(term)),
+);
+
+const THT_EAR_FALSE_POSITIVE_PATTERNS = new Set(
+  ['year old', 'y ear old']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_ENT_TEXTUAL_SUPPORT_MATCHES = new Set(
+  ['nasal', 'rhinitis', 'sinusitis', 'otitis', 'hearing', 'throat', 'tonsil', 'larynx', 'tinnitus']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_MICROBIOLOGY_PHARMACOLOGY_SUPPRESSION_PATTERNS = new Set(
+  ['infective dose', 'vaccine']
     .map((term) => normalizeText(term)),
 );
 
@@ -525,6 +618,253 @@ const MEDMCQA_OBGYN_STRONG_PROMOTION_MATCHES = new Set(
   ['placenta', 'ectopic pregnancy', 'labor', 'obstetric', 'gynecology', 'pregnancy', 'amenorrhea']
     .map((term) => normalizeText(term)),
 );
+
+const MEDMCQA_INTERNAL_MEDICINE_STREP_HOST_PROMOTION_MATCHES = new Set(
+  ['streptococcus pyogenes', 'host receptor', 'cd46', 'cd44']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_INTERNAL_MEDICINE_HEMATOLOGY_RESCUE_MATCHES = new Set(
+  ['peripheral smear', 'x ray spine', 'x-ray spine', 'hand foot syndrome', 'hand-foot syndrome']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_ANATOMY_STRONG_PROMOTION_MATCHES = new Set(
+  [
+    'artery',
+    'vein',
+    'nerve',
+    'foramen',
+    'tributary',
+    'branch',
+    'branches',
+    'jugular',
+    'carotid',
+    'saphenous',
+    'sciatic',
+    'vertebral',
+    'snuffbox',
+    'venesection',
+    'pterygopalatine',
+    'brachial',
+    'umbilical vein',
+    'portal vein',
+  ].map((term) => normalizeText(term)),
+);
+
+const PUBLIC_HEALTH_STRONG_CONTEXT_MATCHES = new Set(
+  ['epidemiology', 'prevalence', 'public health', 'biostatistics', 'surveillance', 'health promotion', 'outbreak', 'prevention']
+    .map((term) => normalizeText(term)),
+);
+
+const DENTAL_PLAQUE_FALSE_POSITIVE_PATTERNS = new Set(
+  ['atherosclerotic plaque', 'fibroblast plaque']
+    .map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_TEXTUAL_SUPPORT_MATCHES = new Set(
+  [
+    'biopsy',
+    'histopathology',
+    'histopathological',
+    'histology',
+    'histological',
+    'histologically',
+    'gross evaluation',
+    'gross specimen',
+    'frozen section',
+    'electron microscopy',
+    'microscopically',
+    'colonic polyps',
+    'intestinal polyps',
+    'hamartomatous',
+    'peutz jeghers',
+    'stk11',
+    'lkb1',
+    'hypophosphatasia',
+    'phosphoethanolamine',
+    'morphologic changes',
+    'necrosis',
+    'necrotic',
+    'onion skin',
+    'azzopardi effect',
+    'desmoplastic',
+    'desmoglein',
+    'acantholysis',
+    'calcification',
+    'dna nick end labeling',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_DENTAL_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'dental',
+    'dentistry',
+    'tooth',
+    'teeth',
+    'gingiva',
+    'gingival',
+    'enamel',
+    'dentin',
+    'caries',
+    'saliva',
+    'eruption',
+    'oral cavity',
+    'mandible',
+    'maxilla',
+    'maxillary',
+    'odontogenic',
+    'dental lamina',
+    'tooth surface',
+    'tooth germs',
+    'incisor',
+    'tmj',
+    'pterygoid',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_BIOCHEM_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'enzyme',
+    'enzyme deficient',
+    'deficiency of enzyme',
+    'amino acid',
+    'genomic imprinting',
+    'karyotype',
+    'karyotyping',
+    'inheritance',
+    'half life',
+    'hormone',
+    'glycoprotein',
+    'protein',
+    'hexosaminidase',
+    'metabolism',
+    'iron metabolism',
+    'cyclo oxygenase',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_SURGERY_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'surgery',
+    'surgical',
+    'postoperative',
+    'post operative',
+    'laparotomy',
+    'sterilization',
+    'neurosurgery',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_OBGYN_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'amenorrhea',
+    'ovary',
+    'ovarian',
+    'cervix',
+    'cervical',
+    'pap smear',
+    'quadruple test',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_PUBLIC_HEALTH_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'screening',
+    'prevention',
+    'sexually active women',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_AEM_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'emergency',
+    'shock',
+    'hypovolemic',
+    'vital signs',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_DERM_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'std',
+    'sti',
+    'scabies',
+    'candida',
+    'herpes',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_OPHTHALMOLOGY_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'cornea',
+    'corneal',
+    'descemet',
+    'bowman',
+    'kayser fleischer',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_PATHOLOGY_INTERNAL_MEDICINE_FALSE_POSITIVE_MATCHES = new Set(
+  [
+    'paul bunnell',
+    'infectious mononucleosis',
+    'psgn',
+    'glomerulonephritis',
+    'complement',
+  ].map((term) => normalizeText(term)),
+);
+
+const MEDMCQA_SUBJECT_TAG_TRUSTED_PROMOTIONS = {
+  Forensik: {
+    subject: normalizeText('Forensic Medicine'),
+    tag: normalizeText('forensic'),
+    maxRunnerUp: 9,
+    rule: 'medmcqa_forensic_subject_tag_consensus9',
+  },
+  Farmakologi: {
+    subject: normalizeText('Pharmacology'),
+    tag: normalizeText('pharmacology'),
+    maxRunnerUp: 9,
+    rule: 'medmcqa_pharmacology_subject_tag_consensus9',
+  },
+  Biokimia: {
+    subject: normalizeText('Biochemistry'),
+    tag: normalizeText('biochemistry'),
+    maxRunnerUp: 11,
+    rule: 'medmcqa_biochemistry_subject_tag_consensus11',
+  },
+  Radiologi: {
+    subject: normalizeText('Radiology'),
+    tag: normalizeText('radiology'),
+    maxRunnerUp: 9,
+    rule: 'medmcqa_radiology_subject_tag_consensus9',
+  },
+  'Anestesi & Emergency Medicine': {
+    subject: normalizeText('Anaesthesia'),
+    tag: normalizeText('anaesthesia'),
+    maxRunnerUp: 7,
+    rule: 'medmcqa_anaesthesia_subject_tag_consensus7',
+  },
+  Mata: {
+    subject: normalizeText('Ophthalmology'),
+    tag: normalizeText('ophthalmology'),
+    maxRunnerUp: 7,
+    rule: 'medmcqa_ophthalmology_subject_tag_consensus7',
+  },
+  'Ilmu Kesehatan Masyarakat': {
+    subject: normalizeText('Social & Preventive Medicine'),
+    tag: normalizeText('social & preventive medicine'),
+    maxRunnerUp: 7,
+    rule: 'medmcqa_public_health_subject_tag_consensus7',
+  },
+  'Kedokteran Gigi': {
+    subject: normalizeText('Dental'),
+    tag: normalizeText('dental'),
+    maxRunnerUp: 12,
+    rule: 'medmcqa_dental_subject_tag_consensus12',
+  },
+};
 
 const HIGH_CONFIDENCE_THRESHOLD = 5;
 const HIGH_CONFIDENCE_LEAD = 2;
@@ -564,13 +904,54 @@ function escapeRegExp(value) {
 
 function keywordMatches(normalizedText, normalizedKeyword) {
   if (!normalizedText || !normalizedKeyword) return false;
+  const basePattern = PREFIX_KEYWORD_MATCHES.has(normalizedKeyword)
+    ? `(?:^| )${escapeRegExp(normalizedKeyword)}[\\p{L}\\p{N}]*(?:$| )`
+    : `(?:^| )${escapeRegExp(normalizedKeyword)}(?:$| )`;
+  const pattern = new RegExp(basePattern, 'u');
+  return pattern.test(normalizedText);
+}
 
-  if (normalizedKeyword.includes(' ') || normalizedKeyword.length <= 4) {
-    const pattern = new RegExp(`(?:^| )${escapeRegExp(normalizedKeyword)}(?:$| )`);
-    return pattern.test(normalizedText);
+function hasAnyKeywordMatch(normalizedText, normalizedKeywords) {
+  if (!normalizedText) return false;
+  return [...normalizedKeywords].some((keyword) => keywordMatches(normalizedText, keyword));
+}
+
+function shouldSuppressKeywordSignal(category, normalizedText, normalizedKeyword) {
+  if (
+    category === 'Farmakologi'
+    && normalizedKeyword === 'drug'
+    && hasAnyKeywordMatch(normalizedText, PHARMACOLOGY_DRUG_FALSE_POSITIVE_PATTERNS)
+  ) {
+    return true;
   }
 
-  return normalizedText.includes(normalizedKeyword);
+  if (
+    category === 'Kedokteran Gigi'
+    && normalizedKeyword === 'plaque'
+    && hasAnyKeywordMatch(normalizedText, DENTAL_PLAQUE_FALSE_POSITIVE_PATTERNS)
+  ) {
+    return true;
+  }
+
+  if (
+    category === 'THT'
+    && normalizedKeyword === 'sinus'
+    && hasAnyKeywordMatch(normalizedText, THT_SINUS_FALSE_POSITIVE_PATTERNS)
+  ) {
+    return true;
+  }
+
+  return category === 'THT'
+    && normalizedKeyword === 'ear'
+    && hasAnyKeywordMatch(normalizedText, THT_EAR_FALSE_POSITIVE_PATTERNS);
+}
+
+function shouldSuppressTagSignal(category, normalizedTag, normalizedKeyword, source, normalizedContext = '') {
+  return source === 'tags'
+    && category === 'Ilmu Kesehatan Masyarakat'
+    && normalizedTag === 'medicine'
+    && normalizedKeyword === 'community medicine'
+    && !hasAnyKeywordMatch(normalizedContext, PUBLIC_HEALTH_STRONG_CONTEXT_MATCHES);
 }
 
 function addSignal(scoreMap, signalMap, category, weight, source, match) {
@@ -588,14 +969,20 @@ function collectKeywordSignals(text, source, weight, scoreMap, signalMap) {
   if (!normalized) return;
 
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    const match = keywords.find((keyword) => keywordMatches(normalized, normalizeText(keyword)));
+    const match = keywords.find((keyword) => {
+      const normalizedKeyword = normalizeText(keyword);
+      if (shouldSuppressKeywordSignal(category, normalized, normalizedKeyword)) {
+        return false;
+      }
+      return keywordMatches(normalized, normalizedKeyword);
+    });
     if (match) {
       addSignal(scoreMap, signalMap, category, weight, source, match);
     }
   }
 }
 
-function collectTagSignals(tags, scoreMap, signalMap, weight = 3, source = 'tags') {
+function collectTagSignals(tags, scoreMap, signalMap, weight = 3, source = 'tags', allowReverseMatch = true, normalizedContext = '') {
   if (!Array.isArray(tags)) return;
   const normalizedTags = tags
     .map((tag) => normalizeText(tag))
@@ -605,7 +992,13 @@ function collectTagSignals(tags, scoreMap, signalMap, weight = 3, source = 'tags
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
     const match = keywords.find((keyword) => {
       const normalizedKeyword = normalizeText(keyword);
-      return normalizedTags.some((tag) => keywordMatches(tag, normalizedKeyword) || keywordMatches(normalizedKeyword, tag));
+      return normalizedTags.some((tag) => {
+        if (shouldSuppressTagSignal(category, tag, normalizedKeyword, source, normalizedContext)) {
+          return false;
+        }
+        return keywordMatches(tag, normalizedKeyword)
+          || (allowReverseMatch && keywordMatches(normalizedKeyword, tag));
+      });
     });
     if (match) {
       addSignal(scoreMap, signalMap, category, weight, source, match);
@@ -671,11 +1064,42 @@ function hasPromotionSignalFromSources(signals, allowedMatches, allowedSources =
   });
 }
 
+function hasExactSignal(signals, source, match) {
+  if (!Array.isArray(signals) || signals.length === 0) return false;
+  const normalizedSource = normalizeText(source);
+  const normalizedMatch = normalizeText(match);
+  return signals.some((signal) =>
+    normalizeText(signal?.source) === normalizedSource
+    && normalizeText(signal?.match) === normalizedMatch);
+}
+
 function getCategoryPromotion(caseData, resolution) {
   const sourceKey = normalizeText(caseData?.source || caseData?.meta?.source || '');
   const signals = Array.isArray(resolution.winning_signals) ? resolution.winning_signals : [];
+  const normalizedSubject = normalizeText(
+    caseData?.subject_name
+    || caseData?.subject
+    || caseData?.meta?.subject
+    || caseData?.meta?.subject_name
+    || '',
+  );
+  const normalizedTags = Array.isArray(caseData?.meta?.tags)
+    ? caseData.meta.tags.map((tag) => normalizeText(tag)).filter(Boolean)
+    : [];
   const hasConsensus = signals.some((signal) => signal?.source === 'content-consensus');
   const hasOptionsSignal = signals.some((signal) => signal?.source === 'options');
+  const normalizedContextCorpus = normalizeText(
+    [
+      caseData?.title,
+      caseData?.prompt,
+      caseData?.topic,
+      caseData?.meta?.topic,
+      getNarrative(caseData),
+      getOptionCorpus(caseData),
+    ]
+      .filter(Boolean)
+      .join(' '),
+  );
 
   if (
     sourceKey === 'headqa'
@@ -796,6 +1220,26 @@ function getCategoryPromotion(caseData, resolution) {
   if (
     sourceKey === 'medmcqa'
     && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Ilmu Kesehatan Anak'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && normalizedSubject === normalizeText('Medicine')
+    && hasExactSignal(signals, 'organ_system', 'pediatrics')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_PEDIATRICS_MEDICINE_PROMOTION_MATCHES,
+      new Set(['topic_keywords', 'keyword', 'narrative', 'options'].map((term) => normalizeText(term))),
+    )
+  ) {
+    return {
+      rule: 'medmcqa_pediatrics_medicine_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
     && resolution.resolved_category === 'Bedah'
     && resolution.runner_up_score <= 10
     && hasConsensus
@@ -819,6 +1263,278 @@ function getCategoryPromotion(caseData, resolution) {
   ) {
     return {
       rule: 'medmcqa_obgyn_consensus11',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Patologi Anatomi'
+    && resolution.runner_up_score <= 9
+    && hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('biopsy')]))
+    && hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('onion skin')]))
+  ) {
+    return {
+      rule: 'medmcqa_pathology_biopsy_onion_skin_consensus9',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Patologi Anatomi'
+    && resolution.runner_up_score <= 4
+    && hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_TEXTUAL_SUPPORT_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_pathology_text_runner4',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Patologi Anatomi'
+    && resolution.runner_up_score <= 5
+    && hasExactSignal(signals, 'subject', 'Pathology')
+    && hasExactSignal(signals, 'tags', 'pathology')
+    && hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_TEXTUAL_SUPPORT_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_pathology_subject_tag_consensus5',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Patologi Anatomi'
+    && resolution.runner_up_score <= 5
+    && hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('streptococcus pyogenes')]))
+    && hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('host receptor')]))
+    && hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_INTERNAL_MEDICINE_STREP_HOST_PROMOTION_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_medicine_streptococcus_host_receptor_consensus5',
+      confidence: 'high',
+      resolved_category: 'Ilmu Penyakit Dalam',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Patologi Anatomi'
+    && resolution.runner_up_score <= 5
+    && hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('peripheral smear')]))
+    && (
+      hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('x ray spine')]))
+      || hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('x-ray spine')]))
+    )
+    && hasAnyKeywordMatch(normalizedContextCorpus, new Set([normalizeText('hand foot syndrome'), normalizeText('hand-foot syndrome')]))
+    && hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_INTERNAL_MEDICINE_HEMATOLOGY_RESCUE_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_medicine_peripheral_smear_xray_handfoot_consensus5',
+      confidence: 'high',
+      resolved_category: 'Ilmu Penyakit Dalam',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Anatomi'
+    && resolution.runner_up_score <= 4
+    && normalizedSubject === normalizeText('Anatomy')
+    && normalizedTags.some((tag) => keywordMatches(tag, normalizeText('anatomy')))
+    && hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_ANATOMY_STRONG_PROMOTION_MATCHES)
+  ) {
+    return {
+      rule: 'medmcqa_anatomy_subject_tag_consensus4',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(resolution.raw_normalized_category)
+  ) {
+    for (const [category, trustedPromotion] of Object.entries(MEDMCQA_SUBJECT_TAG_TRUSTED_PROMOTIONS)) {
+      if (
+        resolution.runner_up_score <= trustedPromotion.maxRunnerUp
+        && normalizedSubject === trustedPromotion.subject
+        && normalizedTags.some((tag) => keywordMatches(tag, trustedPromotion.tag))
+      ) {
+        return {
+          rule: trustedPromotion.rule,
+          confidence: 'high',
+          resolved_category: category,
+        };
+      }
+    }
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Farmakologi'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && normalizedSubject === normalizeText('Medicine')
+    && hasExactSignal(signals, 'organ_system', 'pharmacology')
+    && hasPromotionSignalFromSources(
+      signals,
+      new Set([normalizeText('drug')]),
+      new Set(['topic_keywords', 'keyword', 'narrative'].map((term) => normalizeText(term))),
+    )
+  ) {
+    return {
+      rule: 'medmcqa_pharmacology_medicine_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Neurologi'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && normalizedSubject === normalizeText('Medicine')
+    && hasExactSignal(signals, 'organ_system', 'neurological')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_NEUROLOGY_STRONG_PROMOTION_MATCHES,
+      new Set(['tags', 'topic_keywords', 'keyword', 'narrative', 'options'].map((term) => normalizeText(term))),
+    )
+  ) {
+    return {
+      rule: 'medmcqa_neurology_medicine_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Psikiatri'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && normalizedSubject === normalizeText('Medicine')
+    && hasExactSignal(signals, 'organ_system', 'psychiatry')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_PSYCHIATRY_STRONG_PROMOTION_MATCHES,
+      new Set(['topic_keywords', 'keyword', 'narrative', 'options'].map((term) => normalizeText(term))),
+    )
+  ) {
+    return {
+      rule: 'medmcqa_psychiatry_medicine_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'THT'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && normalizedSubject === normalizeText('Medicine')
+    && hasExactSignal(signals, 'organ_system', 'ent')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_ENT_STRONG_PROMOTION_MATCHES,
+      new Set(['topic_keywords', 'keyword', 'narrative', 'options'].map((term) => normalizeText(term))),
+    )
+  ) {
+    return {
+      rule: 'medmcqa_ent_medicine_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Mata'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && normalizedSubject === normalizeText('Medicine')
+    && hasExactSignal(signals, 'organ_system', 'ophthalmology')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_OPHTHALMOLOGY_STRONG_PROMOTION_MATCHES,
+      new Set(['topic_keywords', 'keyword', 'narrative', 'options'].map((term) => normalizeText(term))),
+    )
+  ) {
+    return {
+      rule: 'medmcqa_ophthalmology_medicine_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Farmakologi'
+    && resolution.runner_up_score <= 11
+    && hasConsensus
+    && hasExactSignal(signals, 'subject', 'Pharmacology')
+    && hasExactSignal(signals, 'tags', 'pharmacology')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_PHARMACOLOGY_STRONG_PROMOTION_MATCHES,
+      TEXT_ONLY_PROMOTION_SIGNAL_SOURCES,
+    )
+  ) {
+    return {
+      rule: 'medmcqa_pharmacology_subject_tag_consensus11',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Radiologi'
+    && resolution.runner_up_score <= 10
+    && hasConsensus
+    && hasExactSignal(signals, 'subject', 'Radiology')
+    && hasExactSignal(signals, 'tags', 'radiology')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_RADIOLOGY_STRONG_PROMOTION_MATCHES,
+      TEXT_ONLY_PROMOTION_SIGNAL_SOURCES,
+    )
+  ) {
+    return {
+      rule: 'medmcqa_radiology_subject_tag_consensus10',
+      confidence: 'high',
+    };
+  }
+
+  if (
+    sourceKey === 'medmcqa'
+    && resolution.raw_normalized_category === 'Ilmu Penyakit Dalam'
+    && resolution.resolved_category === 'Ilmu Kesehatan Masyarakat'
+    && resolution.runner_up_score <= 7
+    && hasConsensus
+    && !hasOptionsSignal
+    && hasExactSignal(signals, 'subject', 'Social & Preventive Medicine')
+    && hasPromotionSignalFromSources(
+      signals,
+      MEDMCQA_TARGETED_PROMOTION_MATCHES['Ilmu Kesehatan Masyarakat'],
+      TEXT_ONLY_PROMOTION_SIGNAL_SOURCES,
+    )
+  ) {
+    return {
+      rule: 'medmcqa_public_health_subject_consensus7',
       confidence: 'high',
     };
   }
@@ -900,9 +1616,29 @@ export function resolveCaseCategory(caseData) {
   const rawCategory = existingResolution?.raw_category ?? caseData?.category ?? null;
   const rawNormalized = normalizeCategoryExact(rawCategory);
   const source = caseData?.source || caseData?.meta?.source || null;
+  const sourceKey = normalizeText(source);
   const profile = getSourceProfile(source);
   const scoreMap = new Map();
   const signalMap = new Map();
+  const titlePromptCorpus = [
+    caseData?.title,
+    caseData?.prompt,
+    caseData?.topic,
+    caseData?.meta?.topic,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const narrativeCorpus = getNarrative(caseData);
+  const optionCorpus = getOptionCorpus(caseData);
+  const normalizedContextCorpus = normalizeText(
+    [
+      titlePromptCorpus,
+      narrativeCorpus,
+      optionCorpus,
+    ]
+      .filter(Boolean)
+      .join(' '),
+  );
 
   const rawWeight = getRawWeight(source, rawNormalized, profile);
   if (rawNormalized && rawWeight > 0) {
@@ -910,17 +1646,132 @@ export function resolveCaseCategory(caseData) {
   }
 
   const subject = caseData?.subject_name || caseData?.subject || caseData?.meta?.subject || caseData?.meta?.subject_name || null;
+  const normalizedSubjectText = normalizeText(subject);
   const normalizedSubject = normalizeCategoryExact(subject);
-  if (normalizedSubject) {
+  const normalizedMetaTags = Array.isArray(caseData?.meta?.tags)
+    ? caseData.meta.tags.map((tag) => normalizeText(tag)).filter(Boolean)
+    : [];
+  const hasBroadMedmcqaPathologyMetadata = (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(rawNormalized)
+    && (
+      normalizedSubject === 'Patologi Anatomi'
+      || normalizedMetaTags.some((tag) => keywordMatches(tag, normalizeText('pathology')))
+    )
+  );
+  const suppressBroadMedmcqaPathologyMetadata = (
+    hasBroadMedmcqaPathologyMetadata
+    && !hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_TEXTUAL_SUPPORT_MATCHES)
+    && (
+      hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_DENTAL_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_BIOCHEM_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_SURGERY_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_OBGYN_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_PUBLIC_HEALTH_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_AEM_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_DERM_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_OPHTHALMOLOGY_FALSE_POSITIVE_MATCHES)
+      || hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_PATHOLOGY_INTERNAL_MEDICINE_FALSE_POSITIVE_MATCHES)
+    )
+  );
+  const suppressBroadMedmcqaAnatomyMetadata = (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(rawNormalized)
+    && normalizedSubject === 'Anatomi'
+  );
+  if (
+    normalizedSubject
+    && !suppressBroadMedmcqaAnatomyMetadata
+    && !(suppressBroadMedmcqaPathologyMetadata && normalizedSubject === 'Patologi Anatomi')
+  ) {
     addSignal(scoreMap, signalMap, normalizedSubject, profile.subject, 'subject', subject);
-  } else {
+  } else if (!normalizedSubject) {
     collectKeywordSignals(subject, 'subject', profile.subject, scoreMap, signalMap);
   }
 
-  collectTagSignals(caseData?.meta?.tags, scoreMap, signalMap, profile.tags, 'tags');
-  collectTagSignals(caseData?.meta?.topic_keywords, scoreMap, signalMap, profile.topic, 'topic_keywords');
-  if (caseData?.meta?.organ_system) {
-    collectTagSignals([caseData.meta.organ_system], scoreMap, signalMap, profile.organ, 'organ_system');
+  const hasMicrobiologyMetadata = normalizedSubject === 'Mikrobiologi'
+    || normalizedMetaTags.some((tag) => keywordMatches(tag, normalizeText('microbiology')));
+  const suppressBroadMedmcqaPharmacologyMetadata = (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(rawNormalized)
+    && normalizeText(caseData?.meta?.organ_system) === 'pharmacology'
+    && (
+      hasAnyKeywordMatch(normalizedContextCorpus, PHARMACOLOGY_DRUG_FALSE_POSITIVE_PATTERNS)
+      || (
+        hasMicrobiologyMetadata
+        && hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_MICROBIOLOGY_PHARMACOLOGY_SUPPRESSION_PATTERNS)
+      )
+    )
+  );
+  const suppressBroadMedmcqaEntMetadata = (
+    sourceKey === 'medmcqa'
+    && BROAD_RAW_CATEGORIES.has(rawNormalized)
+    && normalizeText(caseData?.meta?.organ_system) === 'ent'
+    && hasAnyKeywordMatch(normalizedContextCorpus, THT_EAR_FALSE_POSITIVE_PATTERNS)
+    && !hasAnyKeywordMatch(normalizedContextCorpus, MEDMCQA_ENT_TEXTUAL_SUPPORT_MATCHES)
+  );
+  const filteredTags = Array.isArray(caseData?.meta?.tags)
+    ? caseData.meta.tags.filter((tag) => {
+      const normalizedTag = normalizeText(tag);
+      if (suppressBroadMedmcqaAnatomyMetadata && normalizedTag === 'anatomy') {
+        return false;
+      }
+      return !(
+        suppressBroadMedmcqaPathologyMetadata
+        && keywordMatches(normalizedTag, normalizeText('pathology'))
+      );
+    })
+    : caseData?.meta?.tags;
+  collectTagSignals(filteredTags, scoreMap, signalMap, profile.tags, 'tags', true, normalizedContextCorpus);
+  const filteredTopicKeywords = Array.isArray(caseData?.meta?.topic_keywords)
+    ? caseData.meta.topic_keywords.filter((keyword) => {
+      const normalizedKeyword = normalizeText(keyword);
+      if (
+        sourceKey === 'medmcqa'
+        && BROAD_RAW_CATEGORIES.has(rawNormalized)
+        && normalizedSubjectText === normalizeText('Medicine')
+        && normalizeText(caseData?.meta?.organ_system) === 'public health'
+        && normalizedKeyword === 'screening'
+        && !hasAnyKeywordMatch(normalizedContextCorpus, PUBLIC_HEALTH_STRONG_CONTEXT_MATCHES)
+      ) {
+        return false;
+      }
+      if (
+        suppressBroadMedmcqaPharmacologyMetadata
+        && normalizedKeyword === 'dose'
+      ) {
+        return false;
+      }
+      if (
+        sourceKey === 'medmcqa'
+        && BROAD_RAW_CATEGORIES.has(rawNormalized)
+        && normalizedKeyword === 'drug'
+        && hasAnyKeywordMatch(normalizedContextCorpus, PHARMACOLOGY_DRUG_FALSE_POSITIVE_PATTERNS)
+      ) {
+        return false;
+      }
+      if (
+        normalizedKeyword === 'sinus'
+        && hasAnyKeywordMatch(normalizedContextCorpus, THT_SINUS_FALSE_POSITIVE_PATTERNS)
+      ) {
+        return false;
+      }
+      if (
+        normalizedKeyword === 'ear'
+        && hasAnyKeywordMatch(normalizedContextCorpus, THT_EAR_FALSE_POSITIVE_PATTERNS)
+      ) {
+        return false;
+      }
+      return true;
+    })
+    : caseData?.meta?.topic_keywords;
+  collectTagSignals(filteredTopicKeywords, scoreMap, signalMap, profile.topic, 'topic_keywords', false, normalizedContextCorpus);
+  if (
+    caseData?.meta?.organ_system
+    && !suppressBroadMedmcqaPharmacologyMetadata
+    && !suppressBroadMedmcqaEntMetadata
+  ) {
+    collectTagSignals([caseData.meta.organ_system], scoreMap, signalMap, profile.organ, 'organ_system', false, normalizedContextCorpus);
   }
 
   const prefix = extractCaseCodePrefix(caseData?.case_code);
@@ -929,33 +1780,18 @@ export function resolveCaseCategory(caseData) {
     addSignal(scoreMap, signalMap, prefixCategory, profile.prefix, 'prefix', prefix);
   }
 
-  const titlePromptCorpus = [
-    caseData?.title,
-    caseData?.prompt,
-    caseData?.topic,
-    caseData?.meta?.topic,
-    caseData?.subject_name,
-    caseData?.subject,
-    caseData?.meta?.subject_name,
-    caseData?.meta?.subject,
-  ]
-    .filter(Boolean)
-    .join(' ');
   collectKeywordSignals(titlePromptCorpus, 'keyword', profile.keyword, scoreMap, signalMap);
-
-  const narrativeCorpus = getNarrative(caseData);
   collectKeywordSignals(narrativeCorpus, 'narrative', profile.narrative, scoreMap, signalMap);
-
-  const optionCorpus = getOptionCorpus(caseData);
   collectKeywordSignals(optionCorpus, 'options', profile.options, scoreMap, signalMap);
 
   for (const [category, signals] of signalMap.entries()) {
     const contentSources = new Set(
       signals
         .map((signal) => signal.source)
-        .filter((source) => source !== 'raw' && source !== 'prefix'),
+        .filter((source) => CONTENT_CONSENSUS_SOURCES.has(source)),
     );
-    if (contentSources.size >= 2) {
+    const hasTextualConsensusSignal = [...contentSources].some((source) => TEXTUAL_CONSENSUS_SOURCES.has(source));
+    if (contentSources.size >= 2 && hasTextualConsensusSignal) {
       addSignal(scoreMap, signalMap, category, 2, 'content-consensus', [...contentSources].join('+'));
     }
   }
@@ -994,6 +1830,7 @@ export function applyResolvedCategory(caseData) {
   const resolution = resolveCaseCategory(caseData);
   const promotion = getCategoryPromotion(caseData, resolution);
   const effectiveConfidence = promotion?.confidence || resolution.confidence;
+  const effectiveResolvedCategory = promotion?.resolved_category || resolution.resolved_category;
   const existingResolution = caseData?.meta?.category_resolution && typeof caseData.meta.category_resolution === 'object'
     ? caseData.meta.category_resolution
     : null;
@@ -1003,7 +1840,7 @@ export function applyResolvedCategory(caseData) {
   let finalCategory = validRaw || UNCLASSIFIED_CATEGORY;
 
   if (effectiveConfidence === 'high') {
-    finalCategory = resolution.resolved_category || finalCategory;
+    finalCategory = effectiveResolvedCategory || finalCategory;
   } else if (!validRaw) {
     finalCategory = UNCLASSIFIED_CATEGORY;
   }
@@ -1020,7 +1857,7 @@ export function applyResolvedCategory(caseData) {
       category_resolution: {
         raw_category: preservedRawCategory,
         raw_normalized_category: preservedRawNormalized,
-        resolved_category: resolution.resolved_category,
+        resolved_category: effectiveResolvedCategory,
         confidence: effectiveConfidence,
         base_confidence: resolution.confidence,
         category_conflict: resolution.category_conflict,
