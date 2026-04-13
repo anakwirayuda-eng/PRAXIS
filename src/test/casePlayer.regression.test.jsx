@@ -104,6 +104,46 @@ describe('case player FSRS regression coverage', () => {
     expect(submitAnswer).toHaveBeenCalledWith({ skipFsrsUpdate: true });
   }, 15000);
 
+  it('keeps rapid recall cases inside the normal app shell outside exam sprint', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const rapidRecallCase = buildCase({
+      _id: 14,
+      meta: {
+        source: 'medmcqa',
+        provenance: [],
+        difficulty: 2,
+        questionMode: 'rapid_recall',
+      },
+    });
+
+    const { container } = render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={rapidRecallCase}
+          caseBank={[rapidRecallCase]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer={null}
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(container.firstChild).toHaveClass('rapid-recall-mode');
+    expect(container.firstChild).not.toHaveClass('flashcard-mode-immersive');
+    expect(screen.getByText(/Rapid Recall/i)).toBeInTheDocument();
+  }, 15000);
+
   it('selects focused answer cards with Enter and Space', async () => {
     vi.doMock('../components/QuestionFeedback.jsx', () => ({
       QuestionFeedback: () => null,

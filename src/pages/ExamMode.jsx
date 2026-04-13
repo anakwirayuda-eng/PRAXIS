@@ -362,7 +362,7 @@ export default function ExamMode() {
     const isFlashcardSprint = config.questionMode === 'rapid_recall';
 
     return (
-      <div className={isFlashcardSprint ? 'flashcard-mode' : ''} style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div className={isFlashcardSprint ? 'rapid-recall-mode flashcard-mode-immersive' : ''} style={{ maxWidth: 900, margin: '0 auto' }}>
         <div className="exam-runbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--sp-4)', flexWrap: 'wrap', gap: 'var(--sp-2)' }}>
           <div className="exam-runbar-meta" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
             <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>Q{examIdx + 1}/{examQueue.length}</span>

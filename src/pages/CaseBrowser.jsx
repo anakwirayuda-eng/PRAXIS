@@ -684,8 +684,13 @@ export default function CaseBrowser() {
         )}
 
         <div style={{ marginTop: 'var(--sp-3)', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
-          Showing {paginatedCases.length} of {filteredCases.length} cases
-          {filteredCases.length < totalCases && ` (filtered from ${totalCases})`}
+          Showing {paginatedCases.length} of {filteredCases.length}
+          {hasDeferredLibrary ? ' visible cases' : ' cases'}
+          {hasDeferredLibrary
+            ? ` (streaming toward ${subtitleCount.toLocaleString()} total)`
+            : filteredCases.length < totalCases
+              ? ` (filtered from ${totalCases})`
+              : ''}
         </div>
         {status !== 'ready' && (
           <div style={{ marginTop: 'var(--sp-2)', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>

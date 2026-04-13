@@ -161,8 +161,8 @@ export default function Layout({ children }) {
 
   // Close sidebar on mobile navigation
   useEffect(() => {
-    if (isMobile && sidebarOpen) setSidebarOpen(false);
-  }, [isMobile, location.pathname, setSidebarOpen, sidebarOpen]);
+    if (isMobile) setSidebarOpen(false);
+  }, [isMobile, location.pathname, setSidebarOpen]);
 
   // Click outside settings
   useEffect(() => {

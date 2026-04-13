@@ -597,7 +597,7 @@ export function CasePlayerSession({
   };
 
   return (
-    <div className={isRapidRecall ? 'flashcard-mode' : ''} style={{ maxWidth: 1400, margin: '0 auto' }}>
+    <div className={isRapidRecall ? 'rapid-recall-mode' : ''} style={{ maxWidth: 1400, margin: '0 auto' }}>
       <div className="case-player-topbar" style={{
         display: 'flex',
         alignItems: isTouchDevice ? 'stretch' : 'center',

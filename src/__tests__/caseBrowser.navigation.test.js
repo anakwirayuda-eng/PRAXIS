@@ -504,5 +504,6 @@ describe('CaseBrowser quality-aware navigation', () => {
 
     expect(screen.getByText(/62[.,]531 clinical cases loading \(1 visible now\)/i)).toBeInTheDocument();
     expect(screen.getByText(/1 cases are visible now while 62[.,]531 total cases continue streaming in/i)).toBeInTheDocument();
+    expect(screen.getByText(/Showing 1 of 1 visible cases \(streaming toward 62[.,]531 total\)/i)).toBeInTheDocument();
   });
 });

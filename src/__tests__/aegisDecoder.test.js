@@ -21,7 +21,9 @@ describe('aegisDecoder host authorization', () => {
     expect(isAuthorizedAegisHost('localhost')).toBe(true);
     expect(isAuthorizedAegisHost('praxis.pages.dev')).toBe(true);
     expect(isAuthorizedAegisHost('praxis-el6.pages.dev')).toBe(true);
+    expect(isAuthorizedAegisHost('praxis-el6-e4n.pages.dev')).toBe(true);
     expect(isAuthorizedAegisHost('66b90ea7.praxis-el6.pages.dev')).toBe(true);
+    expect(isAuthorizedAegisHost('66b90ea7.praxis-el6-e4n.pages.dev')).toBe(true);
   });
 
   it('rejects unrelated hosts', () => {

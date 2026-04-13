@@ -83,4 +83,35 @@ describe('layout accessibility regressions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('/cases', { state: { focusSearch: true } });
   }, 15000);
+
+  it('opens the mobile sidebar from the header menu without closing it immediately', async () => {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 390,
+      writable: true,
+    });
+    window.matchMedia = vi.fn().mockImplementation(() => ({
+      matches: true,
+      media: '(max-width: 768px)',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    const { MemoryRouter } = await import('react-router-dom');
+    const { default: Layout } = await import('../components/Layout.jsx');
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/cases']}>
+        <Layout>
+          <main id="main-content">Body</main>
+        </Layout>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Toggle navigation/i }));
+
+    expect(container.querySelector('.sidebar')).toHaveClass('open');
+    expect(screen.getByRole('button', { name: /Close nav/i })).toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('hidden');
+  }, 15000);
 });

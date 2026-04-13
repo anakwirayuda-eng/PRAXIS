@@ -14,8 +14,10 @@ const AUTHORIZED_DOMAINS_EXACT = new Set([
 // Allow both the project host and hashed deployment subdomains, for example:
 // - praxis.pages.dev
 // - praxis-el6.pages.dev
+// - praxis-el6-e4n.pages.dev
 // - 66b90ea7.praxis-el6.pages.dev
-const BLOODLINE_REGEX = /^(?:[a-z0-9-]+\.)?praxis(?:-[a-z0-9]+)?\.pages\.dev$/;
+// - 66b90ea7.praxis-el6-e4n.pages.dev
+const BLOODLINE_REGEX = /^(?:[a-z0-9-]+\.)?praxis(?:-[a-z0-9]+)*\.pages\.dev$/;
 
 export function isAuthorizedAegisHost(host) {
   if (typeof host !== 'string') return false;

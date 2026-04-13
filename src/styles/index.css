@@ -504,7 +504,7 @@ h1, h2, h3, h4, h5, h6 {
   border-right: var(--border-subtle);
   display: flex;
   flex-direction: column;
-  z-index: 120;
+  z-index: 180;
   transform: translateX(0);
   transition:
     width var(--duration-slow) var(--ease-out),
@@ -699,7 +699,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 0;
   background: rgba(2, 6, 23, 0.55);
   backdrop-filter: blur(2px);
-  z-index: 90;
+  z-index: 170;
 }
 
 .page-content {
@@ -913,14 +913,14 @@ h1, h2, h3, h4, h5, h6 {
 .stagger > *:nth-child(8) { animation-delay: 420ms; }
 
 /* ── Flashcard / Rapid Recall Mode ── */
-.flashcard-mode {
+.rapid-recall-mode {
   --_rapid: #0d9488;
   --_rapid-glow: rgba(13, 148, 136, 0.25);
   position: relative;
 }
 
 /* Teal-tinted background overlay for flashcard mode */
-.flashcard-mode::before {
+.rapid-recall-mode::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -983,16 +983,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Flashcard-specific option card accent */
-.flashcard-mode .option-card:hover {
+.rapid-recall-mode .option-card:hover {
   border-color: rgba(13, 148, 136, 0.3);
   background: rgba(13, 148, 136, 0.06);
 }
-.flashcard-mode .option-card.selected {
+.rapid-recall-mode .option-card.selected {
   border-color: #0d9488;
   background: rgba(13, 148, 136, 0.1);
   box-shadow: 0 0 0 1px #0d9488;
 }
-.flashcard-mode .option-card.selected .option-letter {
+.rapid-recall-mode .option-card.selected .option-letter {
   background: #0d9488;
   color: white;
 }
@@ -1395,31 +1395,31 @@ html {
 
 
 /* ═══════════════════════════════════════════
-   THE ABSOLUTE ZEN TUNNEL (RAPID RECALL FOCUS)
-   CSS :has() detects flashcard-mode and hides chrome
+   THE ABSOLUTE ZEN TUNNEL (FLASHCARD SPRINT FOCUS)
+   CSS :has() detects flashcard-mode-immersive and hides chrome
    ═══════════════════════════════════════════ */
-body:has(.flashcard-mode) {
+body:has(.flashcard-mode-immersive) {
   overflow-y: auto;
   background: #020617;
 }
-body:has(.flashcard-mode)::before {
+body:has(.flashcard-mode-immersive)::before {
   opacity: 0.15;
 }
-body:has(.flashcard-mode) .sidebar {
+body:has(.flashcard-mode-immersive) .sidebar {
   transform: translateX(-100%) !important;
 }
-body:has(.flashcard-mode) .header {
+body:has(.flashcard-mode-immersive) .header {
   transform: translateY(-100%) !important;
   opacity: 0;
 }
-body:has(.flashcard-mode) .main-content {
+body:has(.flashcard-mode-immersive) .main-content {
   margin-left: 0 !important;
   min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-body:has(.flashcard-mode) .page-content {
+body:has(.flashcard-mode-immersive) .page-content {
   max-width: 800px;
   transform: scale(1.05);
   transition: transform 0.4s var(--ease-spring);
