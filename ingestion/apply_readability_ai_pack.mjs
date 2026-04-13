@@ -240,6 +240,71 @@ function setNarrative(caseRecord, nextNarrative) {
   return true;
 }
 
+function snapshotStemFields(caseRecord) {
+  return {
+    title: normalizeWhitespace(caseRecord?.title),
+    prompt: normalizeWhitespace(caseRecord?.prompt),
+    question: normalizeWhitespace(caseRecord?.question),
+    narrative: getNarrative(caseRecord),
+  };
+}
+
+function shouldSyncMirroredField(currentValue, previousSnapshot) {
+  const currentComparable = normalizeComparable(currentValue);
+  if (!currentComparable) {
+    return false;
+  }
+
+  const previousComparables = Object.values(previousSnapshot)
+    .map((value) => normalizeComparable(value))
+    .filter(Boolean);
+  if (previousComparables.includes(currentComparable)) {
+    return true;
+  }
+
+  const trimmedComparable = normalizeComparable(String(currentValue ?? '').replace(/\.\.\.$/, ''));
+  if (!trimmedComparable) {
+    return false;
+  }
+
+  return previousComparables.some((value) => value.startsWith(trimmedComparable));
+}
+
+function syncMirroredStemFields(caseRecord, previousSnapshot, rewrittenPrompt, rewrittenNarrative, stats, countStats = true) {
+  let changed = false;
+
+  if (rewrittenPrompt) {
+    for (const field of ['title', 'question']) {
+      const currentValue = normalizeWhitespace(caseRecord?.[field]);
+      if (!shouldSyncMirroredField(currentValue, previousSnapshot) || currentValue === rewrittenPrompt) {
+        continue;
+      }
+
+      caseRecord[field] = rewrittenPrompt;
+      if (countStats) {
+        stats.mirrored_field_syncs += 1;
+      }
+      changed = true;
+    }
+  }
+
+  const narrativeFallback = rewrittenNarrative || rewrittenPrompt;
+  const currentNarrative = getNarrative(caseRecord);
+  if (
+    narrativeFallback
+    && shouldSyncMirroredField(currentNarrative, previousSnapshot)
+    && currentNarrative !== narrativeFallback
+    && setNarrative(caseRecord, narrativeFallback)
+  ) {
+    if (countStats) {
+      stats.mirrored_field_syncs += 1;
+    }
+    changed = true;
+  }
+
+  return changed;
+}
+
 function resolveOptionIndex(options, rawAnswer) {
   if (!Array.isArray(options) || options.length === 0) {
     return -1;
@@ -353,6 +418,24 @@ function refreshRationaleIfNeeded(caseRecord, candidateText, meta, stats, source
   return true;
 }
 
+function applyRationaleRewrite(caseRecord, rewrittenRationale, stats, countStats = true) {
+  const normalized = normalizeWhitespace(rewrittenRationale);
+  if (!normalized) {
+    return false;
+  }
+
+  const rationale = ensureRationale(caseRecord);
+  if (normalizeWhitespace(rationale.correct) === normalized) {
+    return false;
+  }
+
+  rationale.correct = normalized;
+  if (countStats) {
+    stats.rationale_rewrites += 1;
+  }
+  return true;
+}
+
 function setReadabilityPass(meta, basis, now) {
   let changed = false;
   if (meta.readability_ai_pass !== true) {
@@ -462,6 +545,8 @@ function determineHoldType(result) {
 
 function applyRewrite(caseRecord, result, stats, countStats = true) {
   let changed = false;
+  const previousSnapshot = snapshotStemFields(caseRecord);
+
   const rewrittenPrompt = normalizeWhitespace(result.rewritten_prompt);
   if (rewrittenPrompt && normalizeWhitespace(caseRecord.prompt) !== rewrittenPrompt) {
     caseRecord.prompt = rewrittenPrompt;
@@ -480,6 +565,15 @@ function applyRewrite(caseRecord, result, stats, countStats = true) {
       changed = true;
     }
   }
+
+  changed = syncMirroredStemFields(
+    caseRecord,
+    previousSnapshot,
+    rewrittenPrompt,
+    rewrittenNarrative,
+    stats,
+    countStats,
+  ) || changed;
 
   return changed;
 }
@@ -549,6 +643,7 @@ function normalizeResultEntry(entry, fileName, targetSources) {
     reasoning: normalizeWhitespace(payload.reasoning),
     rewritten_prompt: normalizeWhitespace(payload.rewritten_prompt),
     rewritten_narrative: normalizeWhitespace(payload.rewritten_narrative),
+    rewritten_rationale: normalizeWhitespace(payload.rewritten_rationale),
     rewrite_notes: normalizeWhitespace(payload.rewrite_notes),
     source_file: fileName,
   };
@@ -646,6 +741,8 @@ function main() {
     answer_fixes: 0,
     prompt_rewrites: 0,
     narrative_rewrites: 0,
+    rationale_rewrites: 0,
+    mirrored_field_syncs: 0,
     rationales_refreshed: 0,
     pass_applied: 0,
     hold_marked: 0,
@@ -726,6 +823,7 @@ function main() {
         changed = touchReviewMeta(meta, result, options.packName, now) || changed;
         changed = setReadabilityPass(meta, buildBasis(result, options.packName), now) || changed;
         changed = applyRewrite(caseRecord, result, stats, countStats) || changed;
+        changed = applyRationaleRewrite(caseRecord, result.rewritten_rationale, stats, countStats) || changed;
         changed = refreshRationaleIfNeeded(caseRecord, result.reasoning, meta, stats, `openai-batch:${options.packName}`, countStats) || changed;
         return changed;
       }) || caseChanged;
@@ -808,6 +906,8 @@ function main() {
   console.log(`  Answer fixes:          ${stats.answer_fixes}`);
   console.log(`  Prompt rewrites:       ${stats.prompt_rewrites}`);
   console.log(`  Narrative rewrites:    ${stats.narrative_rewrites}`);
+  console.log(`  Rationale rewrites:    ${stats.rationale_rewrites}`);
+  console.log(`  Mirrored field syncs:  ${stats.mirrored_field_syncs}`);
   console.log(`  Rationales refreshed:  ${stats.rationales_refreshed}`);
   console.log(`  Invalid option IDs:    ${stats.invalid_option_ids}`);
   console.log(`  Missing cases:         ${stats.missing_cases}`);

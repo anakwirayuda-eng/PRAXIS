@@ -165,6 +165,38 @@ describe('caseLoader runtime contracts', () => {
     });
   });
 
+  it('repairs broken entity artifacts in display text during normalization', async () => {
+    const compiledCases = [
+      {
+        title: 'Lombard&;s test is used in diagnosis of',
+        prompt: 'Lines of Blaschko&;s are along &;five cleans&;',
+        question: 'Dercum&;s disease doesn&;t involve &;skeletal basis&; only.',
+        options: [
+          { id: 'A', text: 'Babies&; teeth' },
+        ],
+        rationale: {
+          correct: 'Bailey & Love&;s says the patient&;s result doesn&;t require surgery.',
+          distractors: {
+            A: 'This is the &;wrong option&; for today.',
+          },
+          pearl: 'Temperature may rise to 38&deg;C.',
+        },
+        meta: { source: 'medmcqa' },
+      },
+    ];
+
+    const { handCraftedCount, loader } = await loadFreshCaseLoader(compiledCases);
+    const normalized = loader.getCaseById(handCraftedCount);
+
+    expect(normalized.title).toBe("Lombard's test is used in diagnosis of");
+    expect(normalized.prompt).toBe('Lines of Blaschko\'s are along "five cleans"');
+    expect(normalized.question).toBe('Dercum\'s disease doesn\'t involve "skeletal basis" only.');
+    expect(normalized.options[0].text).toBe("Babies' teeth");
+    expect(normalized.rationale.correct).toBe("Bailey & Love's says the patient's result doesn't require surgery.");
+    expect(normalized.rationale.distractors.A).toBe('This is the "wrong option" for today.');
+    expect(normalized.rationale.pearl).toBe('Temperature may rise to 38°C.');
+  });
+
   it('keeps hand-crafted cases, excludes quarantined compiled cases, and publishes the expected total', async () => {
     const compiledCases = [
       {

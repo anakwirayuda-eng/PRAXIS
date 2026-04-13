@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ROOT = path.join(__dirname, '..');
-const QUEUE_FILE = path.join(__dirname, 'output', 'readability_ai_adjudication_queue.json');
+const DEFAULT_QUEUE_FILE = path.join(__dirname, 'output', 'readability_ai_adjudication_queue.json');
 const DATA_FILE = path.join(ROOT, 'public', 'data', 'compiled_cases.json');
 const OUTPUT_ROOT = path.join(__dirname, 'output', 'readability_ai_packs');
 const ENV_FILE = path.join(ROOT, '.env');
@@ -17,6 +17,7 @@ const PLAYBOOK_ORDER = [
   'answer_key_adjudication',
   'needs_review_adjudication',
   'ambiguity_rewrite',
+  'clinical_rewrite',
 ];
 const RESPONSE_SCHEMA_HINT = {
   _id: 'string case id',
@@ -26,6 +27,7 @@ const RESPONSE_SCHEMA_HINT = {
   reasoning: 'short explanation',
   rewritten_prompt: 'empty string if no rewrite is needed',
   rewritten_narrative: 'empty string if unchanged',
+  rewritten_rationale: 'empty string if unchanged',
   rewrite_notes: 'empty string if none',
 };
 const PLAYBOOK_PROMPTS = {
@@ -47,6 +49,12 @@ const PLAYBOOK_PROMPTS = {
     focus:
       'If the item can be salvaged, return PASS with the best answer and provide a concise rewrite for the prompt and/or narrative only when needed to remove ambiguity.',
   },
+  clinical_rewrite: {
+    system:
+      'You are a senior medical exam clinician-editor. Repair degraded or partially broken single-best-answer items while preserving clinical intent and factual correctness. Return strict JSON only.',
+    focus:
+      'For truncated, quarantined, semantically decayed, image-dependent, or OCR-damaged items, prefer a concise self-contained rewrite of the prompt, narrative, and/or rationale when the case can be safely salvaged. Use HOLD instead of guessing when core clinical meaning is unrecoverable.',
+  },
 };
 
 function normalizeWhitespace(value) {
@@ -66,6 +74,8 @@ function parseArgs(argv) {
     completionWindow: DEFAULT_COMPLETION_WINDOW,
     offset: 0,
     limit: 0,
+    queueFile: DEFAULT_QUEUE_FILE,
+    excludeReasonCodes: [],
   };
 
   for (const arg of argv) {
@@ -91,6 +101,21 @@ function parseArgs(argv) {
     }
     if (arg.startsWith('--completion-window=')) {
       options.completionWindow = normalizeWhitespace(arg.slice('--completion-window='.length)) || DEFAULT_COMPLETION_WINDOW;
+      continue;
+    }
+    if (arg.startsWith('--queue-file=')) {
+      const rawPath = normalizeWhitespace(arg.slice('--queue-file='.length));
+      options.queueFile = rawPath
+        ? (path.isAbsolute(rawPath) ? rawPath : path.join(ROOT, rawPath))
+        : DEFAULT_QUEUE_FILE;
+      continue;
+    }
+    if (arg.startsWith('--exclude-reason-codes=')) {
+      options.excludeReasonCodes = arg
+        .slice('--exclude-reason-codes='.length)
+        .split(',')
+        .map((part) => normalizeWhitespace(part))
+        .filter(Boolean);
       continue;
     }
     if (arg.startsWith('--offset=')) {
@@ -226,7 +251,17 @@ function buildCasePayload(queueItem, caseRecord) {
     q_type: caseRecord?.q_type ?? '',
     playbook: queueItem.playbook,
     lane_rationale: queueItem.lane_rationale ?? '',
+    priority: Number.isFinite(queueItem.priority) ? queueItem.priority : null,
     reason_codes: Array.isArray(queueItem.reason_codes) ? queueItem.reason_codes : [],
+    reasons: Array.isArray(queueItem.reasons)
+      ? queueItem.reasons.map((reason) => ({
+        code: normalizeWhitespace(reason?.code),
+        label: normalizeWhitespace(reason?.label),
+        origin: normalizeWhitespace(reason?.origin),
+        evidence: normalizeWhitespace(reason?.evidence),
+        action: normalizeWhitespace(reason?.action),
+      }))
+      : [],
     prompt: getPrompt(caseRecord, queueItem),
     narrative: getNarrative(caseRecord) || normalizeWhitespace(queueItem?.preview?.narrative),
     options,
@@ -349,11 +384,19 @@ async function uploadOpenAiBatch(jsonlPath, metadata, apiKey, completionWindow) 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const caseMap = loadCaseMap();
-  const queue = readJson(QUEUE_FILE, []);
+  const queueFile = options.queueFile || DEFAULT_QUEUE_FILE;
+  const queue = readJson(queueFile, []);
   const sourceFilter = new Set(options.sources);
-  const filtered = options.sources.length > 0
+  const excludedReasonCodes = new Set(options.excludeReasonCodes.map((value) => normalizeWhitespace(value)));
+  const sourceSelected = options.sources.length > 0
     ? queue.filter((item) => sourceFilter.has(normalizeWhitespace(item.source)))
     : queue;
+  const filtered = excludedReasonCodes.size > 0
+    ? sourceSelected.filter((item) => {
+      const reasonCodes = Array.isArray(item?.reason_codes) ? item.reason_codes : [];
+      return !reasonCodes.some((code) => excludedReasonCodes.has(normalizeWhitespace(code)));
+    })
+    : sourceSelected;
   const selected = options.limit > 0
     ? filtered.slice(options.offset, options.offset + options.limit)
     : filtered.slice(options.offset);
@@ -411,8 +454,9 @@ async function main() {
   const manifest = {
     generated_at: new Date().toISOString(),
     pack_name: packName,
-    queue_file: path.relative(ROOT, QUEUE_FILE).replace(/\\/g, '/'),
+    queue_file: path.relative(ROOT, queueFile).replace(/\\/g, '/'),
     selection: {
+      source_selected_total: sourceSelected.length,
       filtered_total: filtered.length,
       selected_total: selected.length,
       offset: options.offset,
@@ -420,6 +464,7 @@ async function main() {
     },
     total_items: selected.length,
     source_filter: options.sources,
+    excluded_reason_codes: options.excludeReasonCodes,
     model: options.model,
     response_schema_hint: RESPONSE_SCHEMA_HINT,
     counts: {
@@ -434,7 +479,7 @@ async function main() {
     notes: [
       'OpenAI files are ready for /v1/batches submission.',
       'Gemini files are prompt packs with system_instruction and user_prompt payloads.',
-      'Only playbooks present in readability_ai_adjudication_queue are exported.',
+      'Only playbooks known to the exporter are emitted into JSONL files.',
     ],
   };
   writeJson(path.join(packDir, 'manifest.json'), manifest);

@@ -8,6 +8,7 @@ import { normalizeCategoryExact } from './categoryResolution';
 import { sanitizeFdiTryoutCase } from './fdiTryoutSanitizer';
 import { captureException, fetchJsonWithWatchdog } from '../lib/runtimeWatchdog';
 import { deobfuscateCase, isObfuscated } from '../lib/aegisDecoder';
+import { normalizeDisplayText } from '../lib/displayTextNormalization';
 
 // Fix #1: Version-busted path preserves offline-first (no-cache killed offline mode)
 const APP_VER = import.meta.env.VITE_APP_VERSION || '1.0.0';
@@ -35,11 +36,10 @@ const VALID_EXAM_TYPES = new Set(['UKMPPD', 'USMLE', 'BOTH', 'MIR-Spain', 'Acade
 const SEARCH_TEXT_MAX = 240;
 const DEFAULT_PROMPT = 'Review this case and choose the best answer.';
 const VERSION_REFRESH_FLAG_PREFIX = 'praxis-version-refresh';
-
 function normalizeOption(option, index) {
   return {
     id: String(option?.id ?? String.fromCharCode(65 + index)),
-    text: option?.text ?? 'Option unavailable.',
+    text: normalizeDisplayText(option?.text ?? 'Option unavailable.'),
     is_correct: Boolean(option?.is_correct),
     sct_panel_votes: Number.isFinite(option?.sct_panel_votes) ? option.sct_panel_votes : 0,
   };
@@ -102,7 +102,7 @@ function normalizeDistractorMap(distractors, options) {
 
   const normalized = Object.fromEntries(
     Object.entries(distractors)
-      .map(([key, value]) => [String(key ?? '').trim(), typeof value === 'string' ? value : ''])
+      .map(([key, value]) => [String(key ?? '').trim(), normalizeDisplayText(typeof value === 'string' ? value : '')])
       .filter(([key]) => key),
   );
 
@@ -147,11 +147,13 @@ function normalizeCase(rawCase, fallbackId) {
   const vignette = (typeof rawCase?.vignette === 'string') ? {} : (rawCase?.vignette ?? {});
   const demographics = vignette.demographics ?? {};
   const rationale = rawCase?.rationale ?? {};
-  const tags = Array.isArray(meta.tags) ? meta.tags : DEFAULT_META.tags;
-  const title = rawCase?.title
+  const tags = Array.isArray(meta.tags) ? meta.tags.map((tag) => normalizeDisplayText(String(tag ?? ''))).filter(Boolean) : DEFAULT_META.tags;
+  const title = normalizeDisplayText(
+    rawCase?.title
     || rawCase?.topic
     || rawCase?.subject_name
-    || (rawCase?.case_code ? `Case ${rawCase.case_code}` : `${rawCase?.category || 'Clinical'} Review`);
+    || (rawCase?.case_code ? `Case ${rawCase.case_code}` : `${rawCase?.category || 'Clinical'} Review`),
+  );
   const normalizedRawCategory = normalizeCategoryExact(rawCase?.category);
   const category = CATEGORIES[normalizedRawCategory]
     ? normalizedRawCategory
@@ -168,10 +170,11 @@ function normalizeCase(rawCase, fallbackId) {
     || (typeof rawCase?.vignette === 'string' ? rawCase.vignette : '')
     || vignette.narrative
     || DEFAULT_VIGNETTE.narrative;
+  const sanitizedNarrative = normalizeDisplayText(resolvedNarrative);
 
   // Resolve rationale: support string rationale (MedExpQA/PubMedQA) or object rationale
   const resolvedRationale = typeof rationale === 'string'
-    ? { ...DEFAULT_RATIONALE, correct: rationale || DEFAULT_RATIONALE.correct }
+    ? { ...DEFAULT_RATIONALE, correct: normalizeDisplayText(rationale || DEFAULT_RATIONALE.correct) }
     : {
         ...DEFAULT_RATIONALE,
         ...rationale,
@@ -179,10 +182,10 @@ function normalizeCase(rawCase, fallbackId) {
           rationale.distractors && typeof rationale.distractors === 'object'
             ? normalizeDistractorMap(rationale.distractors, normalizedOptions)
             : DEFAULT_RATIONALE.distractors,
-        correct: rationale.correct ?? DEFAULT_RATIONALE.correct,
-        pearl: rationale.pearl ?? DEFAULT_RATIONALE.pearl,
+        correct: normalizeDisplayText(rationale.correct ?? DEFAULT_RATIONALE.correct),
+        pearl: normalizeDisplayText(rationale.pearl ?? DEFAULT_RATIONALE.pearl),
       };
-  const resolvedPrompt = rawCase?.prompt ?? DEFAULT_PROMPT;
+  const resolvedPrompt = normalizeDisplayText(rawCase?.prompt ?? DEFAULT_PROMPT);
 
   return {
     ...rawCase,
@@ -192,12 +195,13 @@ function normalizeCase(rawCase, fallbackId) {
     confidence: Number.isFinite(rawCase?.confidence) ? rawCase.confidence : 0,
     category,
     title,
+    question: sanitizedNarrative,
     prompt: resolvedPrompt,
     options: normalizedOptions,
     // Genius Hack 3: Pre-computed flat search key for O(1) search
     _searchKey: buildSearchKey({
       title,
-      narrative: resolvedNarrative,
+      narrative: sanitizedNarrative,
       prompt: resolvedPrompt,
       options: normalizedOptions,
       tags,
@@ -212,9 +216,9 @@ function normalizeCase(rawCase, fallbackId) {
         age: demographics.age ?? null,
         sex: demographics.sex ?? null,
       },
-      narrative: resolvedNarrative,
+      narrative: sanitizedNarrative,
       vitalSigns: vignette.vitalSigns ?? DEFAULT_VIGNETTE.vitalSigns,
-      labFindings: vignette.labFindings ?? DEFAULT_VIGNETTE.labFindings,
+      labFindings: normalizeDisplayText(vignette.labFindings ?? DEFAULT_VIGNETTE.labFindings),
     },
     rationale: resolvedRationale,
     meta: {
