@@ -6,7 +6,7 @@ const ROOT = process.cwd();
 const DB_PATH = path.join(ROOT, 'server', 'data', 'casebank.db');
 const OUTPUT_ROOT = path.join(ROOT, 'ingestion', 'output', 'category_ai_packs');
 const DEFAULT_PACK_NAME = 'medmcqa-category-adjudication-wave1';
-const DEFAULT_MODEL = 'gpt-5.1-mini';
+const DEFAULT_MODEL = 'gpt-4.1-mini';
 
 const RESPONSE_SCHEMA_HINT = {
   _id: 'numeric case id copied from payload',
