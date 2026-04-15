@@ -98,6 +98,7 @@ function normalizeMeta(caseRow, options, publicCase = null) {
 function main() {
   const db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
+  db.pragma('busy_timeout = 30000');
   const publicCasesById = loadPublicCaseMap();
 
   const caseRows = db.prepare(`

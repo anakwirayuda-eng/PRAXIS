@@ -2530,11 +2530,76 @@ export function resolveCaseCategory(caseData) {
   };
 }
 
+function getAppliedCategoryAdjudication(caseData, resolution) {
+  const adjudication = caseData?.meta?.category_adjudication;
+  if (!adjudication || typeof adjudication !== 'object') {
+    return null;
+  }
+
+  if (normalizeText(adjudication.status) !== 'applied') {
+    return null;
+  }
+
+  const decision = String(adjudication.decision || '').trim().toUpperCase();
+  const recommendedCategory = normalizeCategoryExact(adjudication.recommended_category);
+  const currentCategory = normalizeCategoryExact(
+    adjudication.current_category
+      || resolution.raw_normalized_category
+      || resolution.raw_category
+      || caseData?.category,
+  );
+  const targetCategory = normalizeCategoryExact(
+    adjudication.target_category
+      || resolution.resolved_category,
+  );
+  const runnerUpCategory = normalizeCategoryExact(
+    adjudication.runner_up_category
+      || resolution.runner_up_category,
+  );
+
+  if (!recommendedCategory) {
+    return null;
+  }
+
+  if (decision === 'KEEP_CURRENT' && currentCategory && recommendedCategory === currentCategory) {
+    return {
+      resolved_category: recommendedCategory,
+      confidence: 'high',
+      adjudication_confidence: String(adjudication.confidence || '').trim().toUpperCase() || null,
+      decision,
+      rule: 'ai_category_adjudication_keep_current',
+    };
+  }
+
+  if (decision === 'PROMOTE_RUNNER_UP' && runnerUpCategory && recommendedCategory === runnerUpCategory) {
+    return {
+      resolved_category: recommendedCategory,
+      confidence: 'high',
+      adjudication_confidence: String(adjudication.confidence || '').trim().toUpperCase() || null,
+      decision,
+      rule: 'ai_category_adjudication_promote_runner_up',
+    };
+  }
+
+  if (decision === 'PROMOTE_RUNNER_UP' && targetCategory && recommendedCategory === targetCategory) {
+    return {
+      resolved_category: recommendedCategory,
+      confidence: 'high',
+      adjudication_confidence: String(adjudication.confidence || '').trim().toUpperCase() || null,
+      decision,
+      rule: 'ai_category_adjudication_promote_target',
+    };
+  }
+
+  return null;
+}
+
 export function applyResolvedCategory(caseData) {
   const resolution = resolveCaseCategory(caseData);
+  const adjudication = getAppliedCategoryAdjudication(caseData, resolution);
   const promotion = getCategoryPromotion(caseData, resolution);
-  const effectiveConfidence = promotion?.confidence || resolution.confidence;
-  const effectiveResolvedCategory = promotion?.resolved_category || resolution.resolved_category;
+  const effectiveConfidence = adjudication?.confidence || promotion?.confidence || resolution.confidence;
+  const effectiveResolvedCategory = adjudication?.resolved_category || promotion?.resolved_category || resolution.resolved_category;
   const existingResolution = caseData?.meta?.category_resolution && typeof caseData.meta.category_resolution === 'object'
     ? caseData.meta.category_resolution
     : null;
@@ -2564,12 +2629,18 @@ export function applyResolvedCategory(caseData) {
         resolved_category: effectiveResolvedCategory,
         confidence: effectiveConfidence,
         base_confidence: resolution.confidence,
+        ...(adjudication?.adjudication_confidence
+          ? { adjudication_confidence: adjudication.adjudication_confidence }
+          : {}),
+        ...(adjudication?.decision
+          ? { adjudication_decision: adjudication.decision }
+          : {}),
         category_conflict: resolution.category_conflict,
         winning_signals: resolution.winning_signals,
         runner_up_category: resolution.runner_up_category,
         runner_up_score: resolution.runner_up_score,
         prefix: resolution.prefix,
-        promotion_rule: promotion?.rule || null,
+        promotion_rule: adjudication?.rule || promotion?.rule || null,
       },
     },
   };

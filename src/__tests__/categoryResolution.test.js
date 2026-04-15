@@ -240,6 +240,124 @@ describe('categoryResolution', () => {
     expect(updated.meta.category_resolution.promotion_rule).toBe(null);
   });
 
+  it('honors applied AI adjudication when the item should stay in the current category', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-01001',
+      title: 'Which fibrous joint is classified as a syndesmosis?',
+      meta: {
+        source: 'medmcqa',
+        category_review_needed: true,
+        category_resolution: {
+          raw_category: 'Ilmu Penyakit Dalam',
+          raw_normalized_category: 'Ilmu Penyakit Dalam',
+          resolved_category: 'Ilmu Penyakit Dalam',
+          confidence: 'low',
+          category_conflict: true,
+          winning_signals: [],
+          runner_up_category: 'Bedah',
+          runner_up_score: 3,
+          prefix: 'IPD',
+          promotion_rule: null,
+        },
+        category_adjudication: {
+          status: 'applied',
+          playbook: 'category_adjudication',
+          decision: 'KEEP_CURRENT',
+          recommended_category: 'Ilmu Penyakit Dalam',
+          current_category: 'Ilmu Penyakit Dalam',
+          runner_up_category: 'Bedah',
+          confidence: 'MEDIUM',
+        },
+      },
+    });
+
+    expect(updated.category).toBe('Ilmu Penyakit Dalam');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.adjudication_decision).toBe('KEEP_CURRENT');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('ai_category_adjudication_keep_current');
+  });
+
+  it('honors applied AI adjudication when the item should promote to the runner-up category', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-01002',
+      title: 'Unlocker of the knee joint',
+      meta: {
+        source: 'medmcqa',
+        category_review_needed: true,
+        category_resolution: {
+          raw_category: 'Ilmu Penyakit Dalam',
+          raw_normalized_category: 'Ilmu Penyakit Dalam',
+          resolved_category: 'Ilmu Penyakit Dalam',
+          confidence: 'low',
+          category_conflict: true,
+          winning_signals: [],
+          runner_up_category: 'Bedah',
+          runner_up_score: 3,
+          prefix: 'IPD',
+          promotion_rule: null,
+        },
+        category_adjudication: {
+          status: 'applied',
+          playbook: 'category_adjudication',
+          decision: 'PROMOTE_RUNNER_UP',
+          recommended_category: 'Bedah',
+          current_category: 'Ilmu Penyakit Dalam',
+          runner_up_category: 'Bedah',
+          confidence: 'MEDIUM',
+        },
+      },
+    });
+
+    expect(updated.category).toBe('Bedah');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.adjudication_decision).toBe('PROMOTE_RUNNER_UP');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('ai_category_adjudication_promote_runner_up');
+  });
+
+  it('honors applied AI adjudication when a stale runner-up should promote to a distinct target category', () => {
+    const updated = applyResolvedCategory({
+      source: 'medmcqa',
+      category: 'Ilmu Penyakit Dalam',
+      case_code: 'MMC-IPD-MCQ-00107',
+      title: 'Mandibular nerve does not supply:',
+      meta: {
+        source: 'medmcqa',
+        category_review_needed: true,
+        category_resolution: {
+          raw_category: 'Ilmu Penyakit Dalam',
+          raw_normalized_category: 'Ilmu Penyakit Dalam',
+          resolved_category: 'Kedokteran Gigi',
+          confidence: 'low',
+          category_conflict: true,
+          winning_signals: [],
+          runner_up_category: 'Ilmu Penyakit Dalam',
+          runner_up_score: 4,
+          prefix: 'IPD',
+          promotion_rule: null,
+        },
+        category_adjudication: {
+          status: 'applied',
+          playbook: 'category_adjudication',
+          decision: 'PROMOTE_RUNNER_UP',
+          recommended_category: 'Kedokteran Gigi',
+          current_category: 'Ilmu Penyakit Dalam',
+          target_category: 'Kedokteran Gigi',
+          runner_up_category: 'Ilmu Penyakit Dalam',
+          confidence: 'HIGH',
+        },
+      },
+    });
+
+    expect(updated.category).toBe('Kedokteran Gigi');
+    expect(updated.meta.category_review_needed).toBe(false);
+    expect(updated.meta.category_resolution.adjudication_decision).toBe('PROMOTE_RUNNER_UP');
+    expect(updated.meta.category_resolution.promotion_rule).toBe('ai_category_adjudication_promote_target');
+  });
+
   it('promotes targeted headqa pharmacology rescues when the content signal clearly beats stale IPD metadata', () => {
     const updated = applyResolvedCategory({
       source: 'headqa',
