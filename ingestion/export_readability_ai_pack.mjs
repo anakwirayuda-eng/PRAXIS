@@ -28,6 +28,7 @@ const RESPONSE_SCHEMA_HINT = {
   rewritten_prompt: 'empty string if no rewrite is needed',
   rewritten_narrative: 'empty string if unchanged',
   rewritten_rationale: 'empty string if unchanged',
+  rewritten_options: 'empty array if unchanged, otherwise array of {id,text} using only existing option ids',
   rewrite_notes: 'empty string if none',
 };
 const PLAYBOOK_PROMPTS = {
@@ -53,7 +54,7 @@ const PLAYBOOK_PROMPTS = {
     system:
       'You are a senior medical exam clinician-editor. Repair degraded or partially broken single-best-answer items while preserving clinical intent and factual correctness. Return strict JSON only.',
     focus:
-      'For truncated, quarantined, semantically decayed, image-dependent, or OCR-damaged items, prefer a concise self-contained rewrite of the prompt, narrative, and/or rationale when the case can be safely salvaged. Use HOLD instead of guessing when core clinical meaning is unrecoverable.',
+      'For truncated, quarantined, semantically decayed, image-dependent, or OCR-damaged items, prefer a concise self-contained rewrite of the prompt, narrative, rationale, and option texts when the case can be safely salvaged. Use HOLD instead of guessing when core clinical meaning is unrecoverable.',
   },
 };
 
@@ -286,6 +287,7 @@ function buildUserPrompt(payload, playbook) {
     `Playbook: ${playbook}`,
     'Task: review the following medical exam item and return only the requested JSON object.',
     PLAYBOOK_PROMPTS[playbook]?.focus ?? '',
+    'If option text is degraded, collapsed, or reduced to placeholders, fill `rewritten_options` with the same option ids already present in the item. Do not invent new option ids or reorder the choices.',
     '',
     JSON.stringify(payload, null, 2),
   ].filter(Boolean).join('\n');
@@ -306,7 +308,7 @@ function buildOpenAiRequest(item, payload, model) {
           content: [
             PLAYBOOK_PROMPTS[item.playbook]?.system ?? '',
             `Return JSON with shape: ${JSON.stringify(RESPONSE_SCHEMA_HINT)}`,
-            'Use empty strings for unknown text fields. Never invent option ids that do not exist.',
+            'Use empty strings for unknown text fields and an empty array for unchanged rewritten_options. Never invent option ids that do not exist.',
           ].join('\n'),
         },
         {

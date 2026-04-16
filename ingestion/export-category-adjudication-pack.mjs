@@ -20,6 +20,7 @@ const DEFAULT_PACK_NAMES = {
   wave9: 'medmcqa-category-adjudication-wave9',
   wave10: 'medmcqa-category-adjudication-wave10',
   wave11: 'medmcqa-category-adjudication-wave11',
+  wave12: 'medmcqa-category-adjudication-wave12',
 };
 
 const RESPONSE_SCHEMA_HINT = {
@@ -1264,6 +1265,69 @@ const WAVE11_BUCKETS = [
   },
 ];
 
+const WAVE12_BUCKETS = [
+  {
+    id: 'ipd-cranial-nerve-head-neck-vs-neurology',
+    label: 'IPD cranial-nerve and head-neck anatomy tails drifting toward neurology',
+    rationale: 'Residual low-confidence IPD items where anatomy-tagged stems are really testing cranial-nerve localization or neuroanatomy rather than broad internal medicine.',
+    focus: 'Decide whether the item should keep Ilmu Penyakit Dalam or move to Neurologi because the stem is fundamentally about cranial nerves, head-neck innervation, or lesion localization.',
+    match(caseRecord) {
+      const meta = caseRecord?.meta || {};
+      const res = meta.category_resolution || {};
+      const text = getCaseText(caseRecord);
+      return isResidualLowConfidenceIpd(caseRecord)
+        && res.resolved_category === 'Neurologi'
+        && normalize(caseRecord?.subject) === 'anatomy'
+        && hasAnyTextFragment(text, [
+          'cranial nerve',
+          'lateral rectus',
+          'palatine tonsil',
+          'sternocleidomastoid',
+          'v, vi & vii',
+        ]);
+    },
+  },
+  {
+    id: 'ipd-reproductive-core-vs-obgyn',
+    label: 'IPD reproductive and antenatal core tails drifting toward OBGYN',
+    rationale: 'Residual low-confidence IPD items where reproductive or antenatal semantics strongly suggest Obstetri & Ginekologi even though the stale internal-medicine label is still present.',
+    focus: 'Decide whether the item should keep Ilmu Penyakit Dalam or move to Obstetri & Ginekologi because the stem is primarily about pregnancy, menstrual physiology, antenatal screening, or postpartum reproductive medicine.',
+    match(caseRecord) {
+      const meta = caseRecord?.meta || {};
+      const res = meta.category_resolution || {};
+      const text = getCaseText(caseRecord);
+      const subject = normalize(caseRecord?.subject);
+      return isResidualLowConfidenceIpd(caseRecord)
+        && res.resolved_category === 'Obstetri & Ginekologi'
+        && ['medicine', 'physiology', 'pathology'].includes(subject)
+        && hasAnyTextFragment(text, [
+          'delivery',
+          'menstrual cycle',
+          'quadruple test',
+          'antenatal',
+          'pregnancy',
+          'estrogen',
+          'down syndrome',
+        ]);
+    },
+  },
+  {
+    id: 'ipd-obstetrics-public-health-vs-obgyn-kesmas',
+    label: 'IPD obstetrics public-health tails split between OBGYN and Kesmas',
+    rationale: 'Residual low-confidence IPD items where obstetric framing is explicit, public-health metadata stays close, and the current IPD label is likely just source carry-over.',
+    focus: 'Decide whether the item should keep Ilmu Penyakit Dalam, move to Obstetri & Ginekologi, or stay closer to Ilmu Kesehatan Masyarakat based on whether the stem is clinically obstetric or population-health focused.',
+    match(caseRecord) {
+      const meta = caseRecord?.meta || {};
+      const res = meta.category_resolution || {};
+      return isResidualLowConfidenceIpd(caseRecord)
+        && res.resolved_category === 'Obstetri & Ginekologi'
+        && res.runner_up_category === 'Ilmu Kesehatan Masyarakat'
+        && normalize(caseRecord?.subject) === 'social & preventive medicine'
+        && normalize(meta.organ_system) === 'obstetrics';
+    },
+  },
+];
+
 const BUCKET_PROFILES = {
   wave1: WAVE1_BUCKETS,
   wave2: WAVE2_BUCKETS,
@@ -1276,6 +1340,7 @@ const BUCKET_PROFILES = {
   wave9: WAVE9_BUCKETS,
   wave10: WAVE10_BUCKETS,
   wave11: WAVE11_BUCKETS,
+  wave12: WAVE12_BUCKETS,
 };
 
 function normalize(value) {

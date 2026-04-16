@@ -2,6 +2,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  statSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -19,6 +20,10 @@ const __dirname = dirname(__filename);
 const ROOT = join(__dirname, '..');
 const DATA_FILE = join(ROOT, 'public', 'data', 'compiled_cases.json');
 const OUTPUT_ROOT = join(__dirname, 'output', 'category_ai_packs');
+const APPLY_LOCK_DIR = join(__dirname, 'output', '.casebank-apply.lock');
+const APPLY_LOCK_INFO_FILE = join(APPLY_LOCK_DIR, 'owner.json');
+const APPLY_LOCK_WAIT_MS = 250;
+const APPLY_LOCK_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_PACK_NAME = 'medmcqa-category-adjudication-wave1';
 const APPLYABLE_DECISIONS = new Set(['KEEP_CURRENT', 'PROMOTE_RUNNER_UP']);
 const ACCEPTED_DECISIONS = new Set(['KEEP_CURRENT', 'PROMOTE_RUNNER_UP', 'MANUAL_REVIEW']);
@@ -153,7 +158,7 @@ function stableStringify(value) {
 }
 
 function writeJsonAtomically(filePath, value, pretty = true) {
-  const tempFile = `${filePath}.tmp`;
+  const tempFile = `${filePath}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`;
   const payload = pretty
     ? `${JSON.stringify(value, null, 2)}\n`
     : JSON.stringify(value);
@@ -171,6 +176,67 @@ function writeJsonAtomically(filePath, value, pretty = true) {
       // Best-effort cleanup only.
     }
   }
+}
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function readLockOwner() {
+  if (!existsSync(APPLY_LOCK_INFO_FILE)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(readFileSync(APPLY_LOCK_INFO_FILE, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function acquireApplyLock(label) {
+  const startedAt = Date.now();
+
+  while (true) {
+    try {
+      mkdirSync(APPLY_LOCK_DIR);
+      writeFileSync(APPLY_LOCK_INFO_FILE, JSON.stringify({
+        pid: process.pid,
+        label,
+        acquired_at: new Date().toISOString(),
+      }, null, 2));
+      return;
+    } catch (error) {
+      if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') {
+        throw error;
+      }
+
+      let stale = false;
+      try {
+        stale = Date.now() - statSync(APPLY_LOCK_DIR).mtimeMs > APPLY_LOCK_TIMEOUT_MS;
+      } catch {
+        stale = false;
+      }
+
+      if (stale) {
+        const owner = readLockOwner();
+        console.warn(`Stale apply lock detected, removing (${owner?.label || 'unknown-owner'})`);
+        rmSync(APPLY_LOCK_DIR, { recursive: true, force: true });
+        continue;
+      }
+
+      if (Date.now() - startedAt > APPLY_LOCK_TIMEOUT_MS) {
+        const owner = readLockOwner();
+        throw new Error(`Timed out waiting for casebank apply lock (${owner?.label || 'unknown-owner'})`);
+      }
+
+      sleepSync(APPLY_LOCK_WAIT_MS);
+    }
+  }
+}
+
+function releaseApplyLock() {
+  rmSync(APPLY_LOCK_DIR, { recursive: true, force: true });
 }
 
 function getCaseSource(caseRecord) {
@@ -494,164 +560,169 @@ function main() {
   };
 
   const shortlistByCaseId = buildShortlistIndex(manifest);
-  const results = loadResults(manifest, packDir, stats);
-  stats.results_loaded = results.length;
-
-  const jsonCases = safeJsonParse(readFileSync(DATA_FILE, 'utf8')) || [];
-  const jsonCaseMap = new Map(jsonCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
-  stats.review_queue_before = countReviewQueue(jsonCases, sourceFilter);
-
-  const repo = createCasebankRepository(openCasebankDb());
-  const dbCases = repo.getAllCases();
-  const dbCaseMap = new Map(dbCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
-
-  const modifiedDbIds = new Set();
-  const modifiedJsonIds = new Set();
-  const residualManual = [];
-
+  acquireApplyLock(`category:${options.packName}`);
   try {
-    for (const result of results) {
-      const bucketKey = result.bucket_id || 'unknown';
-      const decisionKey = `${result.decision}|${result.confidence || 'UNKNOWN'}`;
-      stats.by_bucket[bucketKey] = (stats.by_bucket[bucketKey] || 0) + 1;
-      stats.by_decision_confidence[decisionKey] = (stats.by_decision_confidence[decisionKey] || 0) + 1;
+    const results = loadResults(manifest, packDir, stats);
+    stats.results_loaded = results.length;
 
-      const shortlist = shortlistByCaseId.get(result.caseId);
-      if (!shortlist) {
-        stats.missing_shortlist_entries += 1;
-        stats.unresolved_sample.push({
-          _id: result.caseId,
-          reason: 'shortlist_missing',
-          bucket_id: result.bucket_id,
-        });
-        continue;
-      }
+    const jsonCases = safeJsonParse(readFileSync(DATA_FILE, 'utf8')) || [];
+    const jsonCaseMap = new Map(jsonCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
+    stats.review_queue_before = countReviewQueue(jsonCases, sourceFilter);
 
-      const allowedCategories = getAllowedRecommendedCategories(result, shortlist);
-      const canApplyDecision = APPLYABLE_DECISIONS.has(result.decision)
-        && APPLYABLE_CONFIDENCE.has(result.confidence)
-        && allowedCategories.includes(result.recommended_category);
+    const repo = createCasebankRepository(openCasebankDb());
+    const dbCases = repo.getAllCases();
+    const dbCaseMap = new Map(dbCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
 
-      if (
-        APPLYABLE_DECISIONS.has(result.decision)
-        && !allowedCategories.includes(result.recommended_category)
-      ) {
-        stats.invalid_recommendation += 1;
-        residualManual.push({
-          _id: result.caseId,
-          bucket_id: result.bucket_id,
-          source: result.source,
-          reason: 'recommended_category_mismatch',
-          decision: result.decision,
-          confidence: result.confidence,
-          recommended_category: result.recommended_category,
-          current_category: shortlist.current_category,
-          target_category: shortlist.target_category,
-          runner_up_category: shortlist.runner_up_category,
-          allowed_categories: allowedCategories,
-        });
-        continue;
-      }
+    const modifiedDbIds = new Set();
+    const modifiedJsonIds = new Set();
+    const residualManual = [];
 
-      const jsonCase = jsonCaseMap.get(result.caseId);
-      const dbCase = dbCaseMap.get(result.caseId);
-      if (!jsonCase || !dbCase) {
-        stats.missing_cases += 1;
-        stats.unresolved_sample.push({
-          _id: result.caseId,
-          reason: 'case_missing_in_one_backend',
-          bucket_id: result.bucket_id,
-        });
-        continue;
-      }
+    try {
+      for (const result of results) {
+        const bucketKey = result.bucket_id || 'unknown';
+        const decisionKey = `${result.decision}|${result.confidence || 'UNKNOWN'}`;
+        stats.by_bucket[bucketKey] = (stats.by_bucket[bucketKey] || 0) + 1;
+        stats.by_decision_confidence[decisionKey] = (stats.by_decision_confidence[decisionKey] || 0) + 1;
 
-      const jsonSource = getCaseSource(jsonCase);
-      const dbSource = getCaseSource(dbCase);
-      if ((jsonSource && jsonSource !== result.source) || (dbSource && dbSource !== result.source)) {
-        stats.source_mismatches += 1;
-        stats.unresolved_sample.push({
-          _id: result.caseId,
-          reason: 'source_mismatch',
-          json_source: jsonSource,
-          db_source: dbSource,
-          source: result.source,
-        });
-        continue;
-      }
-
-      const nextJsonCase = mutateCase(jsonCase, result, shortlist, options.packName, now);
-      const nextDbCase = mutateCase(dbCase, result, shortlist, options.packName, now);
-      const jsonChanged = stableStringify(jsonCase) !== stableStringify(nextJsonCase);
-      const dbChanged = stableStringify(dbCase) !== stableStringify(nextDbCase);
-
-      if (jsonChanged) {
-        jsonCaseMap.set(result.caseId, nextJsonCase);
-        const index = jsonCases.findIndex((caseRecord) => String(caseRecord._id) === result.caseId);
-        if (index >= 0) {
-          jsonCases[index] = nextJsonCase;
+        const shortlist = shortlistByCaseId.get(result.caseId);
+        if (!shortlist) {
+          stats.missing_shortlist_entries += 1;
+          stats.unresolved_sample.push({
+            _id: result.caseId,
+            reason: 'shortlist_missing',
+            bucket_id: result.bucket_id,
+          });
+          continue;
         }
-        modifiedJsonIds.add(result.caseId);
-      }
 
-      if (dbChanged) {
-        dbCaseMap.set(result.caseId, nextDbCase);
-        const index = dbCases.findIndex((caseRecord) => String(caseRecord._id) === result.caseId);
-        if (index >= 0) {
-          dbCases[index] = nextDbCase;
+        const allowedCategories = getAllowedRecommendedCategories(result, shortlist);
+        const canApplyDecision = APPLYABLE_DECISIONS.has(result.decision)
+          && APPLYABLE_CONFIDENCE.has(result.confidence)
+          && allowedCategories.includes(result.recommended_category);
+
+        if (
+          APPLYABLE_DECISIONS.has(result.decision)
+          && !allowedCategories.includes(result.recommended_category)
+        ) {
+          stats.invalid_recommendation += 1;
+          residualManual.push({
+            _id: result.caseId,
+            bucket_id: result.bucket_id,
+            source: result.source,
+            reason: 'recommended_category_mismatch',
+            decision: result.decision,
+            confidence: result.confidence,
+            recommended_category: result.recommended_category,
+            current_category: shortlist.current_category,
+            target_category: shortlist.target_category,
+            runner_up_category: shortlist.runner_up_category,
+            allowed_categories: allowedCategories,
+          });
+          continue;
         }
-        modifiedDbIds.add(result.caseId);
-      }
 
-      if (!jsonChanged && !dbChanged) {
-        stats.unchanged_results += 1;
-      }
-
-      if (canApplyDecision) {
-        stats.applied_count += 1;
-        if (result.decision === 'KEEP_CURRENT') {
-          stats.keep_current_applied += 1;
-        } else if (result.decision === 'PROMOTE_RUNNER_UP') {
-          stats.runner_up_promoted += 1;
+        const jsonCase = jsonCaseMap.get(result.caseId);
+        const dbCase = dbCaseMap.get(result.caseId);
+        if (!jsonCase || !dbCase) {
+          stats.missing_cases += 1;
+          stats.unresolved_sample.push({
+            _id: result.caseId,
+            reason: 'case_missing_in_one_backend',
+            bucket_id: result.bucket_id,
+          });
+          continue;
         }
-      } else {
-        stats.manual_review_marked += 1;
-        residualManual.push({
-          _id: result.caseId,
-          bucket_id: result.bucket_id,
-          source: result.source,
-          reason: result.decision === 'MANUAL_REVIEW'
-            ? 'model_requested_manual_review'
-            : 'confidence_below_apply_threshold',
-          decision: result.decision,
-          confidence: result.confidence,
-          recommended_category: result.recommended_category,
-          current_category: shortlist.current_category,
-          target_category: shortlist.target_category,
-          runner_up_category: shortlist.runner_up_category,
-          reasoning: result.reasoning,
-          evidence: result.evidence,
-        });
-      }
-    }
 
-    if (modifiedJsonIds.size > 0) {
-      writeJsonAtomically(DATA_FILE, jsonCases);
-    }
-    if (modifiedDbIds.size > 0) {
-      const modifiedDbCases = [...modifiedDbIds].map((caseId) => dbCaseMap.get(caseId)).filter(Boolean);
-      repo.updateCaseSnapshots(modifiedDbCases);
+        const jsonSource = getCaseSource(jsonCase);
+        const dbSource = getCaseSource(dbCase);
+        if ((jsonSource && jsonSource !== result.source) || (dbSource && dbSource !== result.source)) {
+          stats.source_mismatches += 1;
+          stats.unresolved_sample.push({
+            _id: result.caseId,
+            reason: 'source_mismatch',
+            json_source: jsonSource,
+            db_source: dbSource,
+            source: result.source,
+          });
+          continue;
+        }
+
+        const nextJsonCase = mutateCase(jsonCase, result, shortlist, options.packName, now);
+        const nextDbCase = mutateCase(dbCase, result, shortlist, options.packName, now);
+        const jsonChanged = stableStringify(jsonCase) !== stableStringify(nextJsonCase);
+        const dbChanged = stableStringify(dbCase) !== stableStringify(nextDbCase);
+
+        if (jsonChanged) {
+          jsonCaseMap.set(result.caseId, nextJsonCase);
+          const index = jsonCases.findIndex((caseRecord) => String(caseRecord._id) === result.caseId);
+          if (index >= 0) {
+            jsonCases[index] = nextJsonCase;
+          }
+          modifiedJsonIds.add(result.caseId);
+        }
+
+        if (dbChanged) {
+          dbCaseMap.set(result.caseId, nextDbCase);
+          const index = dbCases.findIndex((caseRecord) => String(caseRecord._id) === result.caseId);
+          if (index >= 0) {
+            dbCases[index] = nextDbCase;
+          }
+          modifiedDbIds.add(result.caseId);
+        }
+
+        if (!jsonChanged && !dbChanged) {
+          stats.unchanged_results += 1;
+        }
+
+        if (canApplyDecision) {
+          stats.applied_count += 1;
+          if (result.decision === 'KEEP_CURRENT') {
+            stats.keep_current_applied += 1;
+          } else if (result.decision === 'PROMOTE_RUNNER_UP') {
+            stats.runner_up_promoted += 1;
+          }
+        } else {
+          stats.manual_review_marked += 1;
+          residualManual.push({
+            _id: result.caseId,
+            bucket_id: result.bucket_id,
+            source: result.source,
+            reason: result.decision === 'MANUAL_REVIEW'
+              ? 'model_requested_manual_review'
+              : 'confidence_below_apply_threshold',
+            decision: result.decision,
+            confidence: result.confidence,
+            recommended_category: result.recommended_category,
+            current_category: shortlist.current_category,
+            target_category: shortlist.target_category,
+            runner_up_category: shortlist.runner_up_category,
+            reasoning: result.reasoning,
+            evidence: result.evidence,
+          });
+        }
+      }
+
+      if (modifiedJsonIds.size > 0) {
+        writeJsonAtomically(DATA_FILE, jsonCases);
+      }
+      if (modifiedDbIds.size > 0) {
+        const modifiedDbCases = [...modifiedDbIds].map((caseId) => dbCaseMap.get(caseId)).filter(Boolean);
+        repo.updateCaseSnapshots(modifiedDbCases);
+      }
+
+      stats.modified_json_cases = modifiedJsonIds.size;
+      stats.modified_db_cases = modifiedDbIds.size;
+      stats.review_queue_after = countReviewQueue(jsonCases, sourceFilter);
+      stats.review_queue_after_by_category = summarizeReviewQueue(jsonCases, sourceFilter);
+
+      writeJsonAtomically(reportFile, stats);
+      writeJsonAtomically(residualFile, residualManual);
+    } finally {
+      repo.close();
     }
   } finally {
-    repo.close();
+    releaseApplyLock();
   }
-
-  stats.modified_json_cases = modifiedJsonIds.size;
-  stats.modified_db_cases = modifiedDbIds.size;
-  stats.review_queue_after = countReviewQueue(jsonCases, sourceFilter);
-  stats.review_queue_after_by_category = summarizeReviewQueue(jsonCases, sourceFilter);
-
-  writeJsonAtomically(reportFile, stats);
-  writeJsonAtomically(residualFile, residualManual);
 
   console.log('Category adjudication pack apply complete');
   console.log(`  Pack:               ${options.packName}`);

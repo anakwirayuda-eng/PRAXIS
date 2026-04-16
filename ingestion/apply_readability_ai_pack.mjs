@@ -2,6 +2,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  statSync,
   renameSync,
   rmSync,
   writeFileSync,
@@ -17,6 +18,10 @@ const __dirname = dirname(__filename);
 
 const DATA_FILE = join(__dirname, '..', 'public', 'data', 'compiled_cases.json');
 const OUTPUT_ROOT = join(__dirname, 'output', 'readability_ai_packs');
+const APPLY_LOCK_DIR = join(__dirname, 'output', '.casebank-apply.lock');
+const APPLY_LOCK_INFO_FILE = join(APPLY_LOCK_DIR, 'owner.json');
+const APPLY_LOCK_WAIT_MS = 250;
+const APPLY_LOCK_TIMEOUT_MS = 10 * 60 * 1000;
 const DEFAULT_PACK_NAME = 'readability-ai-adjudication-wave1';
 const ACCEPTED_DECISIONS = new Set(['PASS', 'HOLD']);
 const ACCEPTED_CONFIDENCE = new Set(['HIGH', 'MEDIUM']);
@@ -135,7 +140,7 @@ function extractResponseText(entry) {
 }
 
 function writeJsonAtomically(filePath, value, pretty = true) {
-  const tempFile = `${filePath}.tmp`;
+  const tempFile = `${filePath}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`;
   const payload = pretty
     ? `${JSON.stringify(value, null, 2)}\n`
     : JSON.stringify(value);
@@ -155,6 +160,67 @@ function writeJsonAtomically(filePath, value, pretty = true) {
       // Best-effort cleanup only.
     }
   }
+}
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function readLockOwner() {
+  if (!existsSync(APPLY_LOCK_INFO_FILE)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(readFileSync(APPLY_LOCK_INFO_FILE, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function acquireApplyLock(label) {
+  const startedAt = Date.now();
+
+  while (true) {
+    try {
+      mkdirSync(APPLY_LOCK_DIR);
+      writeFileSync(APPLY_LOCK_INFO_FILE, JSON.stringify({
+        pid: process.pid,
+        label,
+        acquired_at: new Date().toISOString(),
+      }, null, 2));
+      return;
+    } catch (error) {
+      if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') {
+        throw error;
+      }
+
+      let stale = false;
+      try {
+        stale = Date.now() - statSync(APPLY_LOCK_DIR).mtimeMs > APPLY_LOCK_TIMEOUT_MS;
+      } catch {
+        stale = false;
+      }
+
+      if (stale) {
+        const owner = readLockOwner();
+        console.warn(`Stale apply lock detected, removing (${owner?.label || 'unknown-owner'})`);
+        rmSync(APPLY_LOCK_DIR, { recursive: true, force: true });
+        continue;
+      }
+
+      if (Date.now() - startedAt > APPLY_LOCK_TIMEOUT_MS) {
+        const owner = readLockOwner();
+        throw new Error(`Timed out waiting for casebank apply lock (${owner?.label || 'unknown-owner'})`);
+      }
+
+      sleepSync(APPLY_LOCK_WAIT_MS);
+    }
+  }
+}
+
+function releaseApplyLock() {
+  rmSync(APPLY_LOCK_DIR, { recursive: true, force: true });
 }
 
 function decodeMaybeDigitDump(rawText) {
@@ -436,6 +502,51 @@ function applyRationaleRewrite(caseRecord, rewrittenRationale, stats, countStats
   return true;
 }
 
+function normalizeRewrittenOptions(payload) {
+  if (!Array.isArray(payload)) {
+    return [];
+  }
+
+  return payload
+    .map((option) => ({
+      id: normalizeWhitespace(option?.id),
+      text: normalizeWhitespace(option?.text),
+    }))
+    .filter((option) => option.id && option.text);
+}
+
+function applyOptionRewrite(caseRecord, rewrittenOptions, stats, countStats = true) {
+  if (!Array.isArray(caseRecord.options) || caseRecord.options.length === 0 || rewrittenOptions.length === 0) {
+    return { changed: false, invalid: false };
+  }
+
+  const optionMap = new Map();
+  for (let index = 0; index < caseRecord.options.length; index += 1) {
+    const optionId = normalizeWhitespace(caseRecord.options[index]?.id);
+    if (optionId) {
+      optionMap.set(optionId.toUpperCase(), caseRecord.options[index]);
+    }
+  }
+
+  let changed = false;
+  for (const rewrittenOption of rewrittenOptions) {
+    const current = optionMap.get(rewrittenOption.id.toUpperCase());
+    if (!current) {
+      return { changed: false, invalid: true };
+    }
+
+    if (normalizeWhitespace(current.text) !== rewrittenOption.text) {
+      current.text = rewrittenOption.text;
+      changed = true;
+      if (countStats) {
+        stats.option_rewrites += 1;
+      }
+    }
+  }
+
+  return { changed, invalid: false };
+}
+
 function setReadabilityPass(meta, basis, now) {
   let changed = false;
   if (meta.readability_ai_pass !== true) {
@@ -644,6 +755,7 @@ function normalizeResultEntry(entry, fileName, targetSources) {
     rewritten_prompt: normalizeWhitespace(payload.rewritten_prompt),
     rewritten_narrative: normalizeWhitespace(payload.rewritten_narrative),
     rewritten_rationale: normalizeWhitespace(payload.rewritten_rationale),
+    rewritten_options: normalizeRewrittenOptions(payload.rewritten_options),
     rewrite_notes: normalizeWhitespace(payload.rewrite_notes),
     source_file: fileName,
   };
@@ -742,6 +854,7 @@ function main() {
     prompt_rewrites: 0,
     narrative_rewrites: 0,
     rationale_rewrites: 0,
+    option_rewrites: 0,
     mirrored_field_syncs: 0,
     rationales_refreshed: 0,
     pass_applied: 0,
@@ -758,143 +871,156 @@ function main() {
     unresolved_sample: [],
   };
 
-  const results = readBatchResults(resultsDir, manifest, stats, targetSources);
-  stats.results_loaded = results.length;
+  acquireApplyLock(`readability:${options.packName}`);
+  try {
+    const results = readBatchResults(resultsDir, manifest, stats, targetSources);
+    stats.results_loaded = results.length;
 
-  const jsonCases = safeJsonParse(readFileSync(DATA_FILE, 'utf8')) || [];
-  const jsonCaseMap = new Map(jsonCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
+    const jsonCases = safeJsonParse(readFileSync(DATA_FILE, 'utf8')) || [];
+    const jsonCaseMap = new Map(jsonCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
 
-  const repo = createCasebankRepository(openCasebankDb());
-  const dbCases = repo.getAllCases();
-  const dbCaseMap = new Map(dbCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
+    const repo = createCasebankRepository(openCasebankDb());
+    const dbCases = repo.getAllCases();
+    const dbCaseMap = new Map(dbCases.map((caseRecord) => [String(caseRecord._id), caseRecord]));
 
-  const modifiedDbIds = new Set();
-  const modifiedJsonIds = new Set();
+    const modifiedDbIds = new Set();
+    const modifiedJsonIds = new Set();
 
-  for (const result of results) {
-    stats.by_source[result.source] = (stats.by_source[result.source] || 0) + 1;
-    stats.by_playbook[result.playbook] = (stats.by_playbook[result.playbook] || 0) + 1;
-    stats.by_decision[result.decision] = (stats.by_decision[result.decision] || 0) + 1;
+    try {
+      for (const result of results) {
+        stats.by_source[result.source] = (stats.by_source[result.source] || 0) + 1;
+        stats.by_playbook[result.playbook] = (stats.by_playbook[result.playbook] || 0) + 1;
+        stats.by_decision[result.decision] = (stats.by_decision[result.decision] || 0) + 1;
 
-    if (result.decision === 'PASS') {
-      stats.pass_results += 1;
-    } else if (result.decision === 'HOLD') {
-      stats.hold_results += 1;
-    }
-
-    const jsonCase = jsonCaseMap.get(result.caseId);
-    const dbCase = dbCaseMap.get(result.caseId);
-    if (!jsonCase || !dbCase) {
-      stats.missing_cases += 1;
-      stats.unresolved_sample.push({ _id: result.caseId, source: result.source, reason: 'case_missing_in_one_backend' });
-      continue;
-    }
-
-    const jsonSource = normalizeWhitespace(jsonCase.meta?.source || jsonCase.source);
-    const dbSource = normalizeWhitespace(dbCase.meta?.source || dbCase.source);
-    if ((jsonSource && jsonSource !== result.source) || (dbSource && dbSource !== result.source)) {
-      stats.source_mismatches += 1;
-      stats.unresolved_sample.push({
-        _id: result.caseId,
-        source: result.source,
-        reason: 'source_mismatch',
-        json_source: jsonSource,
-        db_source: dbSource,
-      });
-      continue;
-    }
-
-    let caseChanged = false;
-    if (result.decision === 'PASS') {
-      caseChanged = mutateCasePair(dbCase, jsonCase, (caseRecord, countStats) => {
-        const meta = ensureMeta(caseRecord);
-        let changed = false;
-
-        const answerResult = applyAnswer(caseRecord, result.correct_option_id, meta, stats, `openai-batch:${options.packName}`, countStats);
-        if (answerResult.invalid) {
-          return false;
+        if (result.decision === 'PASS') {
+          stats.pass_results += 1;
+        } else if (result.decision === 'HOLD') {
+          stats.hold_results += 1;
         }
 
-        changed = answerResult.changed || changed;
-        changed = clearReviewFlags(meta) || changed;
-        if (result.playbook === 'answer_key_adjudication') {
-          changed = clearQuarantineFlags(meta) || changed;
+        const jsonCase = jsonCaseMap.get(result.caseId);
+        const dbCase = dbCaseMap.get(result.caseId);
+        if (!jsonCase || !dbCase) {
+          stats.missing_cases += 1;
+          stats.unresolved_sample.push({ _id: result.caseId, source: result.source, reason: 'case_missing_in_one_backend' });
+          continue;
         }
-        changed = touchReviewMeta(meta, result, options.packName, now) || changed;
-        changed = setReadabilityPass(meta, buildBasis(result, options.packName), now) || changed;
-        changed = applyRewrite(caseRecord, result, stats, countStats) || changed;
-        changed = applyRationaleRewrite(caseRecord, result.rewritten_rationale, stats, countStats) || changed;
-        changed = refreshRationaleIfNeeded(caseRecord, result.reasoning, meta, stats, `openai-batch:${options.packName}`, countStats) || changed;
-        return changed;
-      }) || caseChanged;
 
-      if (!caseChanged && resolveOptionIndex(jsonCase.options, result.correct_option_id) === -1) {
-        stats.invalid_option_ids += 1;
-        stats.unresolved_sample.push({
-          _id: result.caseId,
-          source: result.source,
-          playbook: result.playbook,
-          reason: 'invalid_option_id',
-          correct_option_id: result.correct_option_id,
-        });
-        continue;
+        const jsonSource = normalizeWhitespace(jsonCase.meta?.source || jsonCase.source);
+        const dbSource = normalizeWhitespace(dbCase.meta?.source || dbCase.source);
+        if ((jsonSource && jsonSource !== result.source) || (dbSource && dbSource !== result.source)) {
+          stats.source_mismatches += 1;
+          stats.unresolved_sample.push({
+            _id: result.caseId,
+            source: result.source,
+            reason: 'source_mismatch',
+            json_source: jsonSource,
+            db_source: dbSource,
+          });
+          continue;
+        }
+
+        let caseChanged = false;
+        if (result.decision === 'PASS') {
+          caseChanged = mutateCasePair(dbCase, jsonCase, (caseRecord, countStats) => {
+            const meta = ensureMeta(caseRecord);
+            let changed = false;
+
+            const answerResult = applyAnswer(caseRecord, result.correct_option_id, meta, stats, `openai-batch:${options.packName}`, countStats);
+            if (answerResult.invalid) {
+              return false;
+            }
+
+            changed = answerResult.changed || changed;
+            changed = clearReviewFlags(meta) || changed;
+            if (result.playbook === 'answer_key_adjudication') {
+              changed = clearQuarantineFlags(meta) || changed;
+            }
+            changed = touchReviewMeta(meta, result, options.packName, now) || changed;
+            changed = setReadabilityPass(meta, buildBasis(result, options.packName), now) || changed;
+            changed = applyRewrite(caseRecord, result, stats, countStats) || changed;
+            changed = applyRationaleRewrite(caseRecord, result.rewritten_rationale, stats, countStats) || changed;
+            const optionRewrite = applyOptionRewrite(caseRecord, result.rewritten_options, stats, countStats);
+            if (optionRewrite.invalid) {
+              return false;
+            }
+            changed = optionRewrite.changed || changed;
+            changed = refreshRationaleIfNeeded(caseRecord, result.reasoning, meta, stats, `openai-batch:${options.packName}`, countStats) || changed;
+            return changed;
+          }) || caseChanged;
+
+          if (!caseChanged && resolveOptionIndex(jsonCase.options, result.correct_option_id) === -1) {
+            stats.invalid_option_ids += 1;
+            stats.unresolved_sample.push({
+              _id: result.caseId,
+              source: result.source,
+              playbook: result.playbook,
+              reason: 'invalid_option_id',
+              correct_option_id: result.correct_option_id,
+            });
+            continue;
+          }
+
+          if (caseChanged) {
+            stats.pass_applied += 1;
+          } else {
+            stats.unchanged_results += 1;
+          }
+        } else {
+          caseChanged = mutateCasePair(dbCase, jsonCase, (caseRecord) => {
+            const meta = ensureMeta(caseRecord);
+            let changed = false;
+            const holdType = determineHoldType(result);
+
+            if (meta.needs_review !== true) {
+              meta.needs_review = true;
+              changed = true;
+            }
+            if (detectContamination(result.reasoning) && meta.needs_review_reason !== 'source_contamination_detected') {
+              meta.needs_review_reason = 'source_contamination_detected';
+              changed = true;
+            }
+
+            changed = touchReviewMeta(meta, result, options.packName, now) || changed;
+            changed = setReadabilityHold(meta, holdType, buildBasis(result, options.packName), result.reasoning, result.rewrite_notes, now) || changed;
+            return changed;
+          }) || caseChanged;
+
+          if (caseChanged) {
+            stats.hold_marked += 1;
+          } else {
+            stats.unchanged_results += 1;
+          }
+        }
+
+        if (caseChanged) {
+          modifiedDbIds.add(result.caseId);
+          modifiedJsonIds.add(result.caseId);
+        }
       }
 
-      if (caseChanged) {
-        stats.pass_applied += 1;
-      } else {
-        stats.unchanged_results += 1;
+      const modifiedDbCases = [...modifiedDbIds]
+        .map((caseId) => dbCaseMap.get(caseId))
+        .filter(Boolean);
+      if (modifiedDbCases.length > 0) {
+        repo.updateCaseSnapshots(modifiedDbCases);
       }
-    } else {
-      caseChanged = mutateCasePair(dbCase, jsonCase, (caseRecord) => {
-        const meta = ensureMeta(caseRecord);
-        let changed = false;
-        const holdType = determineHoldType(result);
 
-        if (meta.needs_review !== true) {
-          meta.needs_review = true;
-          changed = true;
-        }
-        if (detectContamination(result.reasoning) && meta.needs_review_reason !== 'source_contamination_detected') {
-          meta.needs_review_reason = 'source_contamination_detected';
-          changed = true;
-        }
-
-        changed = touchReviewMeta(meta, result, options.packName, now) || changed;
-        changed = setReadabilityHold(meta, holdType, buildBasis(result, options.packName), result.reasoning, result.rewrite_notes, now) || changed;
-        return changed;
-      }) || caseChanged;
-
-      if (caseChanged) {
-        stats.hold_marked += 1;
-      } else {
-        stats.unchanged_results += 1;
+      if (modifiedJsonIds.size > 0) {
+        writeJsonAtomically(DATA_FILE, jsonCases, true);
       }
+
+      stats.modified_db_cases = modifiedDbCases.length;
+      stats.modified_json_cases = modifiedJsonIds.size;
+      stats.unresolved_sample = stats.unresolved_sample.slice(0, 50);
+
+      writeJsonAtomically(reportFile, stats, true);
+    } finally {
+      repo.close();
     }
-
-    if (caseChanged) {
-      modifiedDbIds.add(result.caseId);
-      modifiedJsonIds.add(result.caseId);
-    }
+  } finally {
+    releaseApplyLock();
   }
-
-  const modifiedDbCases = [...modifiedDbIds]
-    .map((caseId) => dbCaseMap.get(caseId))
-    .filter(Boolean);
-  if (modifiedDbCases.length > 0) {
-    repo.updateCaseSnapshots(modifiedDbCases);
-  }
-  repo.close();
-
-  if (modifiedJsonIds.size > 0) {
-    writeJsonAtomically(DATA_FILE, jsonCases, true);
-  }
-
-  stats.modified_db_cases = modifiedDbCases.length;
-  stats.modified_json_cases = modifiedJsonIds.size;
-  stats.unresolved_sample = stats.unresolved_sample.slice(0, 50);
-
-  writeJsonAtomically(reportFile, stats, true);
 
   console.log('Readability AI pack apply complete');
   console.log(`  Pack:                  ${options.packName}`);
@@ -907,6 +1033,7 @@ function main() {
   console.log(`  Prompt rewrites:       ${stats.prompt_rewrites}`);
   console.log(`  Narrative rewrites:    ${stats.narrative_rewrites}`);
   console.log(`  Rationale rewrites:    ${stats.rationale_rewrites}`);
+  console.log(`  Option rewrites:       ${stats.option_rewrites}`);
   console.log(`  Mirrored field syncs:  ${stats.mirrored_field_syncs}`);
   console.log(`  Rationales refreshed:  ${stats.rationales_refreshed}`);
   console.log(`  Invalid option IDs:    ${stats.invalid_option_ids}`);

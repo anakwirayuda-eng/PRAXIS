@@ -13,7 +13,7 @@ function parseArgs(argv) {
   const options = {
     packName: DEFAULT_PACK,
     intervalSeconds: DEFAULT_INTERVAL_SECONDS,
-    rerunCategoryAudit: true,
+    rerunCategoryAudit: false,
     rerunIntegrityCheck: true,
   };
 
@@ -29,6 +29,10 @@ function parseArgs(argv) {
     }
     if (arg === '--no-category-audit') {
       options.rerunCategoryAudit = false;
+      continue;
+    }
+    if (arg === '--category-audit') {
+      options.rerunCategoryAudit = true;
       continue;
     }
     if (arg === '--no-integrity-check') {

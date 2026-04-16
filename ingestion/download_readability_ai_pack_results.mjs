@@ -67,12 +67,40 @@ function writeJsonAtomically(filePath, value) {
   renameSync(tempFile, filePath);
 }
 
+function ensurePlaceholderResultFiles(resultsDir, manifest, submissions) {
+  const openAiFiles = manifest?.files?.openai;
+  if (!openAiFiles || typeof openAiFiles !== 'object') {
+    return;
+  }
+
+  const submittedFiles = new Set(
+    (submissions.submissions || [])
+      .map((item) => String(item.file || '').split(/[\\/]/).pop())
+      .filter(Boolean),
+  );
+
+  for (const filePath of Object.values(openAiFiles)) {
+    const fileName = String(filePath || '').split(/[\\/]/).pop();
+    if (!fileName || submittedFiles.has(fileName)) {
+      continue;
+    }
+    const targetPath = join(resultsDir, fileName);
+    if (!existsSync(targetPath)) {
+      writeFileSync(targetPath, '', 'utf8');
+    }
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const packDir = join(OUTPUT_ROOT, options.packName);
+  const manifestFile = join(packDir, 'manifest.json');
   const submissionsFile = join(packDir, 'openai_submissions.json');
   const resultsDir = join(packDir, 'results');
 
+  if (!existsSync(manifestFile)) {
+    throw new Error(`Missing manifest file: ${manifestFile}`);
+  }
   if (!existsSync(submissionsFile)) {
     throw new Error(`Missing submissions file: ${submissionsFile}`);
   }
@@ -82,6 +110,7 @@ async function main() {
     throw new Error('OPENAI_API_KEY is missing');
   }
 
+  const manifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
   const submissions = JSON.parse(readFileSync(submissionsFile, 'utf8'));
   const report = {
     generated_at: new Date().toISOString(),
@@ -92,12 +121,14 @@ async function main() {
   };
 
   mkdirSync(resultsDir, { recursive: true });
+  ensurePlaceholderResultFiles(resultsDir, manifest, submissions);
 
   for (const item of submissions.submissions || []) {
     try {
       const batch = JSON.parse((await apiGet(`/v1/batches/${item.batch_id}`, apiKey)).toString());
       item.status = batch.status;
       item.output_file_id = batch.output_file_id ?? null;
+      item.error_file_id = batch.error_file_id ?? null;
       item.request_counts = batch.request_counts ?? null;
 
       if (batch.status !== 'completed' || !batch.output_file_id) {
@@ -111,7 +142,8 @@ async function main() {
       }
 
       const output = await apiGet(`/v1/files/${batch.output_file_id}/content`, apiKey);
-      const targetPath = join(resultsDir, `${item.playbook}.jsonl`);
+      const fileName = String(item.file || '').split(/[\\/]/).pop() || `${item.playbook || item.batch_id}.jsonl`;
+      const targetPath = join(resultsDir, fileName);
       writeFileSync(targetPath, output);
       report.downloaded.push({
         playbook: item.playbook,

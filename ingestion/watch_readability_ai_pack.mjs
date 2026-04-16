@@ -13,7 +13,7 @@ function parseArgs(argv) {
   const options = {
     packName: DEFAULT_PACK,
     intervalSeconds: DEFAULT_INTERVAL_SECONDS,
-    rerunAudit: true,
+    rerunIntegrityCheck: true,
   };
 
   for (const arg of argv) {
@@ -26,8 +26,8 @@ function parseArgs(argv) {
       options.intervalSeconds = Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_INTERVAL_SECONDS;
       continue;
     }
-    if (arg === '--no-audit') {
-      options.rerunAudit = false;
+    if (arg === '--no-integrity-check') {
+      options.rerunIntegrityCheck = false;
     }
   }
 
@@ -42,15 +42,8 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function runNodeScript(scriptName, args) {
+function runNodeScript(scriptName, args = []) {
   execFileSync(process.execPath, [join(__dirname, scriptName), ...args], {
-    cwd: join(__dirname, '..'),
-    stdio: 'inherit',
-  });
-}
-
-function runPython(scriptName) {
-  execFileSync('python', [join(__dirname, scriptName)], {
     cwd: join(__dirname, '..'),
     stdio: 'inherit',
   });
@@ -89,9 +82,8 @@ async function main() {
     if (allCompleted) {
       console.log(`[${new Date().toISOString()}] applying ${options.packName}`);
       runNodeScript('apply_readability_ai_pack.mjs', [`--pack-name=${options.packName}`]);
-      if (options.rerunAudit) {
-        runPython('audit_readability.py');
-        runPython('triage_readability_manual_queue.py');
+      if (options.rerunIntegrityCheck) {
+        runNodeScript('verify-casebank-sqlite.mjs');
       }
       console.log(`[${new Date().toISOString()}] completed apply for ${options.packName}`);
       return;
