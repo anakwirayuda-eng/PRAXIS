@@ -645,6 +645,8 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
 
     for key in all_keys:
         for signal in external_signal_map.get(key, []):
+            if readability_ai_pass and signal["code"] == "clinical_decay":
+                continue
             bucket = REASON_INFO.get(signal["code"], {}).get("bucket")
             if bucket == "manual_review":
                 target = manual_reasons if signal["code"] in PRIMARY_MANUAL_CODES else advisory_reasons
