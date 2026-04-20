@@ -62,7 +62,7 @@
     "pdfjs-dist": "^4.10.38",
     "sharp": "^0.34.5",
     "tesseract.js": "^5.1.1",
-    "vite": "^8.0.0",
+    "vite": "^8.0.1",
     "vitest": "^4.1.0",
     "wrangler": "^4.75.0"
   }
