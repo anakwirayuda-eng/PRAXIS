@@ -38,6 +38,38 @@ const baseNavItems = [
   { to: '/quality', icon: Shield, label: 'Data Quality' },
 ];
 
+const mobileBottomNavItems = [
+  { to: '/', icon: LayoutDashboard, label: 'Home', match: (pathname) => pathname === '/' },
+  { to: '/cases', icon: BookOpen, label: 'Cases', match: (pathname) => pathname === '/cases' },
+  { to: '/review', icon: RotateCcw, label: 'Review', match: (pathname) => pathname === '/review' },
+  { to: '/exam', icon: Clock, label: 'Exam', match: (pathname) => pathname === '/exam' },
+];
+
+const mobileHeaderContexts = [
+  { match: (pathname) => pathname === '/', label: 'Home', icon: LayoutDashboard },
+  { match: (pathname) => pathname === '/cases', label: 'Cases', icon: BookOpen },
+  { match: (pathname) => pathname.startsWith('/case/'), label: 'Case', icon: BookOpen },
+  { match: (pathname) => pathname === '/review', label: 'Review', icon: RotateCcw },
+  { match: (pathname) => pathname === '/exam', label: 'Exam', icon: Clock },
+  { match: (pathname) => pathname === '/blitz', label: 'MedBlitz', icon: Zap },
+  { match: (pathname) => pathname === '/predict', label: 'Predictor', icon: Dices },
+  { match: (pathname) => pathname === '/analytics', label: 'Analytics', icon: BarChart3 },
+  { match: (pathname) => pathname === '/sct', label: 'SCT Arena', icon: Brain },
+  { match: (pathname) => pathname === '/quality', label: 'Quality', icon: Shield },
+  { match: (pathname) => pathname === '/watchdog', label: 'Watchdog', icon: Bug },
+];
+
+function isPrimaryMobileRoute(pathname) {
+  return mobileBottomNavItems.some((item) => item.match(pathname));
+}
+
+function getMobileHeaderContext(pathname) {
+  return mobileHeaderContexts.find((entry) => entry.match(pathname)) ?? {
+    label: 'PRAXIS',
+    icon: Eye,
+  };
+}
+
 function isEditableTarget(target) {
   if (typeof HTMLElement === 'undefined' || !(target instanceof HTMLElement)) {
     return false;
@@ -61,7 +93,7 @@ export default function Layout({ children }) {
 
   const {
     sidebarOpen, setSidebarOpen, toggleSidebar, toggleTimer, timerEnabled,
-    getAccuracy, streak, totalAnswered, completedCases, bookmarks,
+    getAccuracy, streak, totalAnswered, completedCases, bookmarks, machineState,
   } = useStore();
 
   const accuracy = getAccuracy();
@@ -224,15 +256,22 @@ export default function Layout({ children }) {
   }, [settingsOpen]);
 
   const isAdmin = hasVerifiedAdminSession();
+  const isCasePlayerRoute = location.pathname.startsWith('/case/');
+  const isExamSessionActive = location.pathname === '/exam' && machineState !== 'IDLE';
+  const shouldShowMobileBottomNav = isMobile && !isCasePlayerRoute && !isExamSessionActive;
 
   const runtimeIssueBadge = runtimeIssueCount > 99 ? '99+' : String(runtimeIssueCount);
   const navItems = [
     ...baseNavItems.filter(item => isAdmin || item.label !== 'Data Quality'),
     ...(isAdmin ? [{ to: '/watchdog', icon: Bug, label: 'Watchdog', badge: runtimeIssueCount > 0 ? runtimeIssueBadge : null }] : [])
   ];
+  const isMoreActive = sidebarOpen || !isPrimaryMobileRoute(location.pathname);
+  const mobileHeaderContext = getMobileHeaderContext(location.pathname);
+  const MobileHeaderContextIcon = mobileHeaderContext.icon;
+  const shouldShowBookmarkBadge = bookmarks.length > 0 || !isMobile;
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${shouldShowMobileBottomNav ? 'mobile-bottom-nav-visible' : ''}`}>
       {sidebarOpen && isMobile && (
         <button type="button" className="sidebar-backdrop" aria-label="Close nav" onClick={() => setSidebarOpen(false)} />
       )}
@@ -333,6 +372,15 @@ export default function Layout({ children }) {
               <Menu size={18} />
             </button>
 
+            {isMobile && (
+              <div className="header-mobile-context" aria-hidden="true">
+                <span className="header-mobile-context__icon">
+                  <MobileHeaderContextIcon size={14} />
+                </span>
+                <span className="header-mobile-context__label">{mobileHeaderContext.label}</span>
+              </div>
+            )}
+
             {/* OMNI-COMMAND SEED — Ghost Trigger (Ctrl+K) */}
             {!isMobile && (
               <button
@@ -362,7 +410,7 @@ export default function Layout({ children }) {
             )}
 
             <button
-              className="btn btn-ghost"
+              className="btn btn-ghost header-utility-btn"
               style={{ gap: 'var(--sp-2)', minWidth: 'auto' }}
               onClick={cycleTheme}
               title={`Theme: ${THEMES[themeIndex].label} (Alt+T)`}
@@ -372,15 +420,15 @@ export default function Layout({ children }) {
               {!isMobile && <span style={{ fontSize: 'var(--fs-xs)' }}>{THEMES[themeIndex].desc}</span>}
             </button>
 
-            <button className="btn btn-ghost" style={{ gap: 'var(--sp-2)' }} aria-label="View bookmarks" onClick={() => navigate('/cases?bookmarks=1')}>
+            <button className="btn btn-ghost header-utility-btn header-bookmarks-btn" style={{ gap: 'var(--sp-2)' }} aria-label="View bookmarks" onClick={() => navigate('/cases?bookmarks=1')}>
               <Bookmark size={16} />
-              <span className="nav-link-badge">{bookmarks.length}</span>
+              {shouldShowBookmarkBadge && <span className="nav-link-badge">{bookmarks.length}</span>}
             </button>
 
             <div className="header-controls">
               <button
                 ref={settingsButtonRef}
-                className={`btn btn-icon ${settingsOpen ? 'btn-primary' : 'btn-ghost'}`}
+                className={`btn btn-icon header-utility-btn ${settingsOpen ? 'btn-primary' : 'btn-ghost'}`}
                 onClick={() => setSettingsOpen(!settingsOpen)}
                 aria-label="Settings"
                 aria-expanded={settingsOpen}
@@ -440,6 +488,45 @@ export default function Layout({ children }) {
           </Motion.div>
         </AnimatePresence>
       </div>
+
+      {shouldShowMobileBottomNav && (
+        <nav className="mobile-bottom-nav" role="navigation" aria-label="Quick navigation">
+          {mobileBottomNavItems.map((item) => {
+            const isActive = item.match(location.pathname);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`mobile-bottom-nav__item ${isActive ? 'mobile-bottom-nav__item--active' : ''}`}
+                aria-current={isActive ? 'page' : undefined}
+                onClick={() => {
+                  setSettingsOpen(false);
+                  if (sidebarOpen) setSidebarOpen(false);
+                }}
+              >
+                <Icon size={18} />
+                <span className="mobile-bottom-nav__label">{item.label}</span>
+              </Link>
+            );
+          })}
+
+          <button
+            type="button"
+            className={`mobile-bottom-nav__item ${isMoreActive ? 'mobile-bottom-nav__item--active' : ''}`}
+            aria-current={isMoreActive ? 'page' : undefined}
+            aria-label="More"
+            onClick={() => {
+              setSettingsOpen(false);
+              toggleSidebar();
+            }}
+          >
+            <Menu size={18} />
+            <span className="mobile-bottom-nav__label">More</span>
+          </button>
+        </nav>
+      )}
     </div>
   );
 }

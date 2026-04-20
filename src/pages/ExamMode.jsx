@@ -290,7 +290,7 @@ export default function ExamMode() {
     });
 
     return (
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      <div className="exam-results-page" style={{ maxWidth: 800, margin: '0 auto' }}>
         <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center', marginBottom: 'var(--sp-6)' }}>
           <Trophy size={48} style={{ color: pct >= 70 ? 'var(--accent-success)' : 'var(--accent-warning)', marginBottom: 'var(--sp-4)' }} />
           <h1 style={{ fontSize: 'var(--fs-3xl)', marginBottom: 'var(--sp-2)' }}>Exam Complete!</h1>
@@ -306,12 +306,12 @@ export default function ExamMode() {
               const category = CATEGORIES[categoryKey] || { label: categoryKey, color: '#94a3b8' };
               const categoryPct = Math.round((categoryStats.correct / categoryStats.total) * 100);
               return (
-                <div key={categoryKey} style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
-                  <span style={{ flex: 2, minWidth: 0, fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{category.label}</span>
-                  <div style={{ flex: 3, minWidth: 80, height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
+                <div key={categoryKey} className="exam-result-category-row" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)' }}>
+                  <span className="exam-result-category-row__label" style={{ flex: 2, minWidth: 0, fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{category.label}</span>
+                  <div className="exam-result-category-row__bar" style={{ flex: 3, minWidth: 80, height: 8, background: 'rgba(255,255,255,0.05)', borderRadius: 4 }}>
                     <div style={{ width: `${categoryPct}%`, height: '100%', background: category.color, borderRadius: 4, transition: 'width 0.5s' }} />
                   </div>
-                  <span style={{ minWidth: 60, flex: '1 1 60px', textAlign: 'right', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{categoryStats.correct}/{categoryStats.total}</span>
+                  <span className="exam-result-category-row__score" style={{ minWidth: 60, flex: '1 1 60px', textAlign: 'right', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{categoryStats.correct}/{categoryStats.total}</span>
                 </div>
               );
             })}
@@ -333,6 +333,7 @@ export default function ExamMode() {
             {examAnswers.map((answer, index) => (
               <div
                 key={`${answer.caseId}-${index}`}
+                className="exam-question-review-row"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -344,8 +345,8 @@ export default function ExamMode() {
                 }}
               >
                 {answer.correct ? <CheckCircle size={16} style={{ color: 'var(--accent-success)' }} /> : <XCircle size={16} style={{ color: 'var(--accent-danger)' }} />}
-                <span style={{ fontSize: 'var(--fs-sm)', flex: 1 }}>{answer.title}</span>
-                <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{answer.answer}</span>
+                <span className="exam-question-review-row__title" style={{ fontSize: 'var(--fs-sm)', flex: 1 }}>{answer.title}</span>
+                <span className="exam-question-review-row__answer" style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>{answer.answer}</span>
               </div>
             ))}
           </div>
@@ -469,7 +470,7 @@ export default function ExamMode() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div className="exam-mode-page" style={{ maxWidth: 800, margin: '0 auto' }}>
       <h1 className="page-title" style={{ marginBottom: 'var(--sp-2)' }}>
         <Clock size={28} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 'var(--sp-2)' }} />
         Exam Mode
@@ -599,7 +600,7 @@ export default function ExamMode() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--sp-4)', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
+        <div className="exam-config-actions" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'var(--sp-4)', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
           <div>
             <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>
               {availableCases.length} cases available for your criteria
