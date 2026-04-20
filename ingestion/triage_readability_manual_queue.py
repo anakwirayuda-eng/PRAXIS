@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -10,7 +11,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = ROOT / "ingestion" / "output"
-DB_FILE = ROOT / "server" / "data" / "casebank.db"
+DB_FILE = Path(os.environ["CASEBANK_DB_PATH"]) if os.environ.get("CASEBANK_DB_PATH") else ROOT / "server" / "data" / "casebank.db"
 MANUAL_REVIEW_FILE = OUTPUT_DIR / "readability_manual_review_queue.json"
 SUMMARY_FILE = OUTPUT_DIR / "readability_manual_lane_summary.json"
 BATCH_SALVAGE_FILE = OUTPUT_DIR / "readability_batch_salvage_queue.json"

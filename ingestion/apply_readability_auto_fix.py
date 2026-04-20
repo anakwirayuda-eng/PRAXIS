@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sqlite3
 from collections import Counter, defaultdict
@@ -12,7 +13,7 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_FILE = ROOT / "server" / "data" / "casebank.db"
+DB_FILE = Path(os.environ["CASEBANK_DB_PATH"]) if os.environ.get("CASEBANK_DB_PATH") else ROOT / "server" / "data" / "casebank.db"
 JSON_FILE = ROOT / "public" / "data" / "compiled_cases.json"
 QUEUE_FILE = ROOT / "ingestion" / "output" / "readability_auto_fix_queue.json"
 REPORT_FILE = ROOT / "ingestion" / "output" / "readability_auto_fix_apply_report.json"
@@ -59,10 +60,15 @@ def read_json(path: Path, default: Any) -> Any:
 def write_json_atomic(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = path.with_suffix(path.suffix + ".tmp")
-    with temp_path.open("w", encoding="utf-8", newline="\n") as handle:
-        json.dump(value, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
-    temp_path.replace(path)
+    payload = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(payload)
+        temp_path.replace(path)
+    except OSError:
+        temp_path.unlink(missing_ok=True)
+        with path.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(payload)
 
 
 def parse_json(value: Any, fallback: Any) -> Any:

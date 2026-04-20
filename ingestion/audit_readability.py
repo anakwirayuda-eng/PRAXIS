@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import sqlite3
 import sys
@@ -18,7 +19,7 @@ except ModuleNotFoundError:
 
 ROOT = Path(__file__).resolve().parent.parent
 JSON_DATA_FILE = ROOT / "public" / "data" / "compiled_cases.json"
-DB_FILE = ROOT / "server" / "data" / "casebank.db"
+DB_FILE = Path(os.environ["CASEBANK_DB_PATH"]) if os.environ.get("CASEBANK_DB_PATH") else ROOT / "server" / "data" / "casebank.db"
 QUARANTINE_MANIFEST_FILE = ROOT / "public" / "data" / "quarantine_manifest.json"
 OUTPUT_DIR = ROOT / "ingestion" / "output"
 SUMMARY_FILE = OUTPUT_DIR / "readability_audit_summary.json"
@@ -38,6 +39,7 @@ ORPHAN_LINEBREAK_RE = re.compile(r"[a-z0-9,;:]\s*\n\s*[a-z]", re.IGNORECASE)
 LEADING_OPTION_ARTIFACT_RE = re.compile(r"^(?:[A-E][\.\)]\s+)")
 INITIALS_OPENING_RE = re.compile(r"^([A-E])\.\s+([A-Z])\.\s+")
 SPECIES_ABBREVIATION_RE = re.compile(r"^[A-E]\.\s+[a-z]")
+LABELED_SERIES_RE = re.compile(r"^(?:[A-E][\.\)]\s+.+?)(?:\s+[A-E][\.\)]\s+.+?){2,}$")
 GENERIC_PROMPT_RE = re.compile(
     r"^(?:review this case and choose the best answer\.?|pilih jawaban yang paling tepat\.?)$",
     re.IGNORECASE,
@@ -294,6 +296,8 @@ def has_leading_option_artifact(text: str) -> bool:
     if INITIALS_OPENING_RE.match(normalized):
         return False
     if SPECIES_ABBREVIATION_RE.match(normalized):
+        return False
+    if LABELED_SERIES_RE.match(normalized):
         return False
     return LEADING_OPTION_ARTIFACT_RE.match(normalized) is not None
 
