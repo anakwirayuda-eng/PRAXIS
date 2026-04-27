@@ -26,6 +26,15 @@ function normalizeWhitespace(value) {
 }
 
 function getPrimaryStem(caseData) {
+  if (caseData.q_type === 'CLINICAL_DISCUSSION') {
+    return normalizeWhitespace(
+      caseData.vignette?.narrative
+      || caseData.title
+      || caseData.prompt
+      || caseData.question,
+    );
+  }
+
   return normalizeWhitespace(
     caseData.prompt
     || caseData.question

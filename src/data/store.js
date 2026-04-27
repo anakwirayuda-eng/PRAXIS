@@ -132,9 +132,51 @@ export const useStore = create((set, get) => ({
       case 'ANSWERING':
         if (action === 'SELECT') return { selectedAnswer: payload.answerId };
 
-        if (action === 'SUBMIT' && state.selectedAnswer !== null) {
+        if (action === 'SUBMIT' && (state.selectedAnswer !== null || payload.forceReview === true || state.mode === 'CLINICAL_DISCUSSION')) {
           const currentCase = state.currentCase;
-          if (!currentCase || !Array.isArray(currentCase.options)) {
+          if (!currentCase) {
+            return {
+              machineState: 'IDLE',
+              currentCase: null,
+              selectedAnswer: null,
+            };
+          }
+
+          const isClinicalDiscussion = currentCase.q_type === 'CLINICAL_DISCUSSION' || payload.forceReview === true;
+
+          if (isClinicalDiscussion) {
+            const answer = {
+              caseId: currentCase._id,
+              answer: null,
+              correct: null,
+              timestamp: Date.now(),
+            };
+
+            const newCompleted = state.completedCases.includes(currentCase._id)
+              ? state.completedCases
+              : [...state.completedCases, currentCase._id];
+
+            const today = new Date().toISOString().split('T')[0];
+            let newStreak = state.streak;
+            if (state.lastStudyDate !== today) {
+              const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+              newStreak = state.lastStudyDate === yesterday ? state.streak + 1 : 1;
+            }
+
+            writeJSON('mc_completed', newCompleted);
+            writeStorage('mc_streak', newStreak);
+            writeStorage('mc_lastDate', today);
+
+            return {
+              machineState: 'REVIEWING',
+              answers: [...state.answers, answer],
+              completedCases: newCompleted,
+              streak: newStreak,
+              lastStudyDate: today,
+            };
+          }
+
+          if (!Array.isArray(currentCase.options)) {
             return {
               machineState: 'IDLE',
               currentCase: null,

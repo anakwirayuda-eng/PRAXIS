@@ -630,6 +630,8 @@ def enrich_reasons(reasons: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list[dict[str, Any]]]) -> dict[str, Any] | None:
     source = normalize_whitespace((case_data.get("meta") or {}).get("source") or case_data.get("source"))
+    q_type = normalize_whitespace(case_data.get("q_type"))
+    is_clinical_discussion = q_type == "CLINICAL_DISCUSSION"
     prompt = normalize_whitespace(case_data.get("prompt"))
     narrative = extract_narrative(case_data)
     rationale_text = extract_rationale(case_data)
@@ -651,6 +653,8 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
         for signal in external_signal_map.get(key, []):
             if readability_ai_pass and signal["code"] == "clinical_decay":
                 continue
+            if is_clinical_discussion and signal["code"] != "quarantined":
+                continue
             bucket = REASON_INFO.get(signal["code"], {}).get("bucket")
             if bucket == "manual_review":
                 target = manual_reasons if signal["code"] in PRIMARY_MANUAL_CODES else advisory_reasons
@@ -659,36 +663,37 @@ def classify_case(case_data: dict[str, Any], external_signal_map: dict[str, list
             elif bucket == "auto_fix":
                 push_reason(auto_reasons, seen_auto, signal["code"], signal["origin"], signal.get("evidence"))
 
-    if meta.get("needs_review") is True and not readability_ai_pass:
+    if meta.get("needs_review") is True and not readability_ai_pass and not is_clinical_discussion:
         push_reason(manual_reasons, seen_manual, "needs_review", "meta.needs_review")
-    if meta.get("truncated") is True:
+    if meta.get("truncated") is True and not is_clinical_discussion:
         push_reason(manual_reasons, seen_manual, "truncated", "meta.truncated")
     if is_quarantined(case_data) and not readability_ai_pass:
         push_reason(manual_reasons, seen_manual, "quarantined", "meta.status" if str(meta.get("status") or "").startswith("QUARANTINED") else "meta.quarantined", str(meta.get("status") or meta.get("quarantine_reason") or ""))
 
     current_correct_count = correct_count(case_data)
-    if len(case_data.get("options") or []) == 0:
+    if not is_clinical_discussion and len(case_data.get("options") or []) == 0:
         push_reason(manual_reasons, seen_manual, "no_options", "heuristic")
-    elif has_placeholder_option_texts(case_data):
+    elif not is_clinical_discussion and has_placeholder_option_texts(case_data):
         push_reason(manual_reasons, seen_manual, "no_options", "heuristic", "placeholder_option_text")
-    elif current_correct_count == 0:
+    elif not is_clinical_discussion and current_correct_count == 0:
         push_reason(manual_reasons, seen_manual, "no_correct_answer", "heuristic")
-    elif current_correct_count > 1:
+    elif not is_clinical_discussion and current_correct_count > 1:
         push_reason(manual_reasons, seen_manual, "multi_correct", "heuristic")
 
     option_blob = "\n".join(option_texts(case_data))
     aota_text = "\n".join(filter(None, [prompt, narrative, option_blob]))
-    if IMAGE_DEPENDENT_RE.search(question_text):
+    if IMAGE_DEPENDENT_RE.search(question_text) and not is_clinical_discussion:
         push_reason(manual_reasons, seen_manual, "image_dependency", "heuristic")
-    if AOTA_RE.search(aota_text) and not readability_ai_pass:
+    if AOTA_RE.search(aota_text) and not readability_ai_pass and not is_clinical_discussion:
         push_reason(manual_reasons, seen_manual, "aota_suspect", "heuristic")
-    if NEGATION_RE.search(prompt) and not readability_ai_pass:
+    if NEGATION_RE.search(prompt) and not readability_ai_pass and not is_clinical_discussion:
         push_reason(advisory_reasons, seen_advisory, "negation_blindspot", "heuristic", excerpt(prompt, 120))
-    if ABSOLUTE_RE.search(option_blob) and not readability_ai_pass:
+    if ABSOLUTE_RE.search(option_blob) and not readability_ai_pass and not is_clinical_discussion:
         push_reason(advisory_reasons, seen_advisory, "absolute_trap", "heuristic")
-    if has_length_bias(case_data) and not readability_ai_pass:
+    if has_length_bias(case_data) and not readability_ai_pass and not is_clinical_discussion:
         push_reason(advisory_reasons, seen_advisory, "length_bias", "heuristic")
-    if UNIT_COLLISION_RE.findall(joined_text):
+    metric_collision_reviewed = meta.get("metric_collision_reviewed") is True
+    if UNIT_COLLISION_RE.findall(joined_text) and not is_clinical_discussion and not metric_collision_reviewed:
         unique_units = sorted({match.lower() for match in UNIT_COLLISION_RE.findall(joined_text)})
         normalized_units = {normalize_unit_token(unit) for unit in unique_units}
         if len(unique_units) >= 3 or len(normalized_units) < len(unique_units):

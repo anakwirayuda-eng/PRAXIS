@@ -379,6 +379,7 @@ export function CasePlayerSession({
   const isReviewing = machineState === 'REVIEWING';
   const isCorrect = isReviewing && selectedAnswer === correctOption?.id;
   const isSCT = caseData.q_type === 'SCT';
+  const isDiscussion = caseData.q_type === 'CLINICAL_DISCUSSION';
   const isRapidRecall = caseData.meta?.questionMode === 'rapid_recall';
   const browserSearch = typeof location.state?.browserSearch === 'string' ? location.state.browserSearch : '';
   const browserScrollY = typeof location.state?.browserScrollY === 'number' ? location.state.browserScrollY : null;
@@ -470,6 +471,14 @@ export function CasePlayerSession({
       ])),
     [correctOption?.id, displayOptionById, rationale.distractors],
   );
+  const discussionSections = useMemo(
+    () => (
+      isDiscussion
+        ? parseClinicalDiscussionSections(caseData.prompt, rationale.correct, displayOptions)
+        : []
+    ),
+    [caseData.prompt, displayOptions, isDiscussion, rationale.correct],
+  );
 
   useEffect(() => {
     startCase(caseData);
@@ -496,6 +505,13 @@ export function CasePlayerSession({
   const formatTime = (seconds) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
   const handleSubmit = () => {
+    if (isDiscussion) {
+      submitAnswer({ skipFsrsUpdate: true, forceReview: true });
+      setShowExplanation(false);
+      setFsrsGraded(false);
+      return;
+    }
+
     if (selectedAnswer !== null) {
       // ── Stamina Analytics: record time spent ──
       const timeMs = Date.now() - questionStartTime.current;
@@ -575,7 +591,7 @@ export function CasePlayerSession({
     onSelect: (answerId) => {
       // answerId (A-E) must be mapped back to original ID for state machine
       const mappedId = letterToActualIdMap[answerId];
-      if (isReviewing || !mappedId || !availableOptionIds.has(mappedId)) return;
+      if (isDiscussion || isReviewing || !mappedId || !availableOptionIds.has(mappedId)) return;
       selectAnswer(mappedId);
     },
     onSubmit: handleSubmit,
@@ -871,12 +887,23 @@ export function CasePlayerSession({
           {/* For rapid recall: show narrative as prompt since vignette card is hidden */}
           {isRapidRecall && vignette.narrative
             ? vignette.narrative
-            : (caseData.prompt === caseData.title || caseData.prompt === vignette.narrative
+            : isDiscussion
+              ? (/^questions?$/i.test((caseData.prompt || '').trim()) ? 'Clinical discussion prompts and interpretation' : caseData.prompt)
+              : (caseData.prompt === caseData.title || caseData.prompt === vignette.narrative
               ? 'Review this case and choose the best answer.'
               : caseData.prompt)}
         </h3>
 
-        {!isSCT && (
+        {isDiscussion && (
+          <ClinicalDiscussionPanel
+            prompt={caseData.prompt}
+            sections={discussionSections}
+            provenance={provenance}
+            isReviewing={isReviewing}
+          />
+        )}
+
+        {!isDiscussion && !isSCT && (
           <div
             role="radiogroup"
             aria-label="Answer options"
@@ -957,7 +984,7 @@ export function CasePlayerSession({
           </div>
         )}
 
-        {isSCT && (
+        {!isDiscussion && isSCT && (
           <div>
             <div className="sct-scale">
               {displayOptions.map((opt) => {
@@ -1013,13 +1040,19 @@ export function CasePlayerSession({
         )}
 
         <div className="case-action-bar" style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--sp-3)', marginTop: 'var(--sp-6)' }}>
-          {!isReviewing && (
+          {isDiscussion && !isReviewing && (
+            <button className="btn btn-primary btn-lg" onClick={handleSubmit}>
+              <BookOpen size={18} /> Mark as Read
+            </button>
+          )}
+
+          {!isDiscussion && !isReviewing && (
             <button className="btn btn-primary btn-lg" onClick={handleSubmit} disabled={selectedAnswer === null}>
               <ChevronRight size={18} /> Submit Answer
             </button>
           )}
 
-          {isReviewing && (
+          {!isDiscussion && isReviewing && (
             <>
               <button className="btn btn-ghost btn-lg" onClick={() => setShowExplanation((current) => !current)}>
                 <Lightbulb size={16} /> {showExplanation ? 'Hide' : 'Show'} Explanation
@@ -1029,9 +1062,15 @@ export function CasePlayerSession({
               </button>
             </>
           )}
+
+          {isDiscussion && isReviewing && (
+            <button className="btn btn-primary btn-lg" onClick={handleNextCase}>
+              <ArrowRight size={18} /> Next Case
+            </button>
+          )}
         </div>
 
-        {isReviewing && !fsrsGraded && (
+        {!isDiscussion && isReviewing && !fsrsGraded && (
           <div style={{
             marginTop: 'var(--sp-4)',
             padding: 'var(--sp-3) var(--sp-4)',
@@ -1068,22 +1107,22 @@ export function CasePlayerSession({
           </div>
         )}
 
-        {isReviewing && fsrsGraded && (
+        {!isDiscussion && isReviewing && fsrsGraded && (
           <div style={{ marginTop: 'var(--sp-3)', fontSize: 'var(--fs-xs)', color: 'var(--accent-success)', textAlign: 'center' }}>
             Memory updated via FSRS v5
           </div>
         )}
 
-        <ShortcutHints isReviewing={isReviewing} isSCT={isSCT} hidden={isTouchDevice} />
+        <ShortcutHints isReviewing={isReviewing} isSCT={isSCT || isDiscussion} hidden={isTouchDevice} />
 
         {/* Question Feedback — chess-puzzle style */}
-        {isReviewing && (
+        {!isDiscussion && isReviewing && (
           <QuestionFeedback caseId={caseData._id} caseData={caseData} />
         )}
       </Motion.div>
 
       <AnimatePresence>
-        {isReviewing && (
+        {!isDiscussion && isReviewing && (
           <Motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -1120,7 +1159,7 @@ export function CasePlayerSession({
       </AnimatePresence>
 
       <AnimatePresence>
-        {isReviewing && showExplanation && (
+        {!isDiscussion && isReviewing && showExplanation && (
           <ExplanationPanel
             rationale={rationale}
             correctOption={correctOption}
@@ -1148,6 +1187,52 @@ function isPlaceholderExplanation(text) {
   if (!text || text.length < 15) return true;
   const lower = text.toLowerCase().trim();
   return PLACEHOLDER_PATTERNS.some((p) => lower.includes(p));
+}
+
+function stripDiscussionMarkup(text) {
+  return String(text || '')
+    .replace(/\*\*/g, '')
+    .replace(/\r\n/g, '\n')
+    .trim();
+}
+
+function parseClinicalDiscussionSections(prompt, rationaleText, options) {
+  const rawText = stripDiscussionMarkup(rationaleText);
+  if (!rawText) return [];
+
+  const sections = [];
+  const headingRegex = /(?:^|\n)(Q\d+\.\s+[^\n]+)\n([\s\S]*?)(?=(?:\nQ\d+\.\s+[^\n]+\n)|$)/g;
+  let match;
+  while ((match = headingRegex.exec(rawText)) !== null) {
+    const title = stripDiscussionMarkup(match[1]);
+    const body = stripDiscussionMarkup(match[2]).replace(/^Answer(?: and interpretation)?\s*/i, '').trim();
+    if (title && body) {
+      sections.push({ title, body });
+    }
+  }
+
+  if (sections.length > 0) {
+    return sections;
+  }
+
+  const optionTitles = Array.isArray(options)
+    ? options
+        .map((option) => stripDiscussionMarkup(option?.text))
+        .filter((text) => text && !/^questions?$/i.test(text))
+    : [];
+
+  if (optionTitles.length > 0) {
+    return optionTitles.map((title, index) => ({
+      title,
+      body: index === 0 ? rawText : '',
+    }));
+  }
+
+  const fallbackTitle = stripDiscussionMarkup(prompt) && !/^questions?$/i.test(stripDiscussionMarkup(prompt))
+    ? stripDiscussionMarkup(prompt)
+    : 'Clinical discussion';
+
+  return [{ title: fallbackTitle, body: rawText }];
 }
 
 /**
@@ -1185,6 +1270,83 @@ function MedText({ text }) {
   }
 
   return parts.length > 0 ? <>{parts}</> : <>{text}</>;
+}
+
+function ClinicalDiscussionPanel({ prompt, sections, provenance, isReviewing }) {
+  const visibleSections = Array.isArray(sections) ? sections.filter((section) => section?.title && section?.body) : [];
+  const introPrompt = stripDiscussionMarkup(prompt);
+
+  return (
+    <div>
+      <div style={{
+        padding: 'var(--sp-4) var(--sp-5)',
+        marginBottom: 'var(--sp-4)',
+        borderRadius: 'var(--radius-lg)',
+        background: 'rgba(34,197,94,0.08)',
+        border: '1px solid rgba(34,197,94,0.18)',
+      }}>
+        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--accent-success)', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 'var(--sp-2)' }}>
+          Clinical Discussion
+        </div>
+        <p style={{ margin: 0, fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+          {isReviewing
+            ? 'Discussion marked as read. You can move to the next case when ready.'
+            : 'This source is better consumed as a guided clinical discussion than as a single-answer MCQ.'}
+        </p>
+        {introPrompt && !/^questions?$/i.test(introPrompt) && (
+          <p style={{ margin: 'var(--sp-3) 0 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-primary)', lineHeight: 1.7 }}>
+            <strong>Lead prompt:</strong> {introPrompt}
+          </p>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gap: 'var(--sp-4)' }}>
+        {visibleSections.map((section, index) => (
+          <div
+            key={`${section.title}-${index}`}
+            style={{
+              padding: 'var(--sp-4) var(--sp-5)',
+              borderRadius: 'var(--radius-lg)',
+              background: 'rgba(15,23,42,0.35)',
+              border: 'var(--border-subtle)',
+            }}
+          >
+            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--accent-info)', marginBottom: 'var(--sp-3)' }}>
+              {section.title}
+            </div>
+            <div style={{
+              whiteSpace: 'pre-wrap',
+              fontSize: 'var(--fs-sm)',
+              lineHeight: 1.75,
+              color: 'var(--text-secondary)',
+            }}>
+              <MedText text={section.body} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {provenance.length > 0 && (
+        <div style={{ marginTop: 'var(--sp-4)' }}>
+          <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            References
+          </span>
+          <div style={{ marginTop: 'var(--sp-2)', display: 'flex', gap: 'var(--sp-2)', flexWrap: 'wrap' }}>
+            {provenance.map((ref, i) => (
+              <span key={i} style={{
+                fontSize: 'var(--fs-xs)', padding: '4px 8px',
+                borderRadius: 'var(--radius-sm)',
+                background: 'rgba(148,163,184,0.06)',
+                color: 'var(--text-muted)', border: 'var(--border-subtle)',
+              }}>
+                {ref}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
