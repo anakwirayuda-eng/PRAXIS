@@ -21,7 +21,12 @@ if (!existsSync(DIST_FILE)) {
 }
 
 // ─── XOR Engine ───
-const OBFUSCATION_KEY = process.env.PRAXIS_OBF_KEY || 'PRAXIS_AEGIS_2026_SEAL';
+const OBFUSCATION_KEY = process.env.PRAXIS_OBF_KEY;
+if (!OBFUSCATION_KEY || OBFUSCATION_KEY.length < 16) {
+  console.error('[Aegis] FATAL: PRAXIS_OBF_KEY env var is required (min 16 chars).');
+  console.error('[Aegis] Refusing to ship with a hardcoded fallback key.');
+  process.exit(1);
+}
 
 function xorEncode(text, key) {
   if (!text || typeof text !== 'string') return text;

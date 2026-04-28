@@ -266,7 +266,7 @@ export default function Dashboard() {
               <button className="btn btn-primary btn-lg" onClick={startRandomCase} style={{ width: '100%' }}>
                 <Play size={18} /> Mulai Diagnostic Test
               </button>
-              <button className="btn btn-ghost btn-lg" onClick={() => navigate('/cases')} style={{ width: '100%' }}>
+              <button className="btn btn-ghost btn-lg" data-testid="dashboard-browse-cases" onClick={() => navigate('/cases')} style={{ width: '100%' }}>
                 <BookOpen size={18} /> Jelajahi Library Dulu
               </button>
             </div>
