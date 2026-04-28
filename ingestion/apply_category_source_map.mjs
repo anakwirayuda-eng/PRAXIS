@@ -13,6 +13,9 @@ const REPORT_FILE = join(__dirname, 'output', 'category_source_map_apply_report.
 
 const SOURCE_CATEGORY_MAP = {
   'mmlu-anatomy': 'Anatomi',
+  'mmlu-college_biology': 'Biokimia',
+  'mmlu-high_school_biology': 'Biokimia',
+  'mmlu-medical_genetics': 'Biokimia',
   'mmlu-nutrition': 'Ilmu Kesehatan Masyarakat',
   'mmlu-professional_psychology': 'Psikiatri',
   'mmlu-virology': 'Mikrobiologi',
