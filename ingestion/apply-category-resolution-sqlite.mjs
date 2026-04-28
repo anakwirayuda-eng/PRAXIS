@@ -6,7 +6,7 @@ import { applyResolvedCategory } from '../src/data/categoryResolution.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
-const DB_PATH = join(PROJECT_ROOT, 'server', 'data', 'casebank.db');
+const DB_PATH = process.env.CASEBANK_DB_PATH || join(PROJECT_ROOT, 'server', 'data', 'casebank.db');
 const PUBLIC_DATA_PATH = join(PROJECT_ROOT, 'public', 'data', 'compiled_cases.json');
 const REPORT_DIR = join(__dirname, 'output');
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 
 const ROOT = process.cwd();
-const DB_PATH = path.join(ROOT, 'server', 'data', 'casebank.db');
+const DB_PATH = process.env.CASEBANK_DB_PATH || path.join(ROOT, 'server', 'data', 'casebank.db');
 const OUTPUT_ROOT = path.join(ROOT, 'ingestion', 'output', 'category_ai_packs');
 const DEFAULT_PACK_NAME = 'medmcqa-category-adjudication-wave1';
 const DEFAULT_MODEL = 'gpt-4.1-mini';
