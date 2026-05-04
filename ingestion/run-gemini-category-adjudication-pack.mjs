@@ -5,6 +5,8 @@ const ROOT = process.cwd();
 const ENV_FILE = path.join(ROOT, '.env');
 const OUTPUT_ROOT = path.join(ROOT, 'ingestion', 'output', 'category_ai_packs');
 const DEFAULT_MODEL = 'gemini-2.5-flash';
+const MAX_GEMINI_ATTEMPTS = 8;
+const MAX_GEMINI_RETRY_WAIT_MS = 180000;
 
 function parseArgs(argv) {
   const options = {
@@ -14,6 +16,8 @@ function parseArgs(argv) {
     delayMs: 750,
     timeoutMs: 90000,
     bucketPattern: '',
+    maxAttempts: MAX_GEMINI_ATTEMPTS,
+    maxRetryWaitMs: MAX_GEMINI_RETRY_WAIT_MS,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -48,8 +52,25 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg.startsWith('--bucket-pattern=')) {
       options.bucketPattern = arg.slice('--bucket-pattern='.length);
+    } else if (arg === '--max-attempts') {
+      options.maxAttempts = Number(argv[index + 1] || options.maxAttempts);
+      index += 1;
+    } else if (arg.startsWith('--max-attempts=')) {
+      options.maxAttempts = Number(arg.slice('--max-attempts='.length) || options.maxAttempts);
+    } else if (arg === '--max-retry-wait-ms') {
+      options.maxRetryWaitMs = Number(argv[index + 1] || options.maxRetryWaitMs);
+      index += 1;
+    } else if (arg.startsWith('--max-retry-wait-ms=')) {
+      options.maxRetryWaitMs = Number(arg.slice('--max-retry-wait-ms='.length) || options.maxRetryWaitMs);
     }
   }
+
+  options.maxAttempts = Number.isFinite(options.maxAttempts) && options.maxAttempts > 0
+    ? Math.floor(options.maxAttempts)
+    : MAX_GEMINI_ATTEMPTS;
+  options.maxRetryWaitMs = Number.isFinite(options.maxRetryWaitMs) && options.maxRetryWaitMs >= 0
+    ? Math.floor(options.maxRetryWaitMs)
+    : MAX_GEMINI_RETRY_WAIT_MS;
 
   return options;
 }
@@ -114,9 +135,24 @@ function getCompletedCustomIds(resultFile) {
   return ids;
 }
 
-function buildGeminiBody(request) {
+function buildGeminiBody(request, model = '') {
   const system = getMessageContent(request, 'system');
   const user = getMessageContent(request, 'user');
+  const isGemma = /^gemma-/i.test(String(model || '').replace(/^models\//, ''));
+  if (isGemma) {
+    return {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `${system}\n\n${user}`.trim() }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0,
+      },
+    };
+  }
+
   return {
     systemInstruction: {
       parts: [{ text: system }],
@@ -144,7 +180,25 @@ function extractGeminiText(body) {
   return '';
 }
 
-async function callGemini(request, apiKey, model, timeoutMs, attempt = 1) {
+function getGeminiRetryDelayMs(status, text, attempt, maxRetryWaitMs = MAX_GEMINI_RETRY_WAIT_MS) {
+  const retryMatch = String(text || '').match(/retry in ([0-9.]+)s/i);
+  if (retryMatch) {
+    const retrySeconds = Number.parseFloat(retryMatch[1]);
+    if (Number.isFinite(retrySeconds) && retrySeconds >= 0) {
+      return Math.min(Math.ceil(retrySeconds * 1000) + 5000, maxRetryWaitMs);
+    }
+  }
+
+  if (status === 429) {
+    return Math.min(30000 * attempt, maxRetryWaitMs);
+  }
+
+  return Math.min(1500 * attempt * attempt, maxRetryWaitMs);
+}
+
+async function callGemini(request, apiKey, model, timeoutMs, retryOptions = {}, attempt = 1) {
+  const maxAttempts = retryOptions.maxAttempts || MAX_GEMINI_ATTEMPTS;
+  const maxRetryWaitMs = retryOptions.maxRetryWaitMs ?? MAX_GEMINI_RETRY_WAIT_MS;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -153,13 +207,13 @@ async function callGemini(request, apiKey, model, timeoutMs, attempt = 1) {
     response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildGeminiBody(request)),
+      body: JSON.stringify(buildGeminiBody(request, model)),
       signal: controller.signal,
     });
   } catch (error) {
-    if (attempt < 5) {
+    if (attempt < maxAttempts) {
       await sleep(1500 * attempt * attempt);
-      return callGemini(request, apiKey, model, timeoutMs, attempt + 1);
+      return callGemini(request, apiKey, model, timeoutMs, retryOptions, attempt + 1);
     }
     throw error;
   } finally {
@@ -175,9 +229,9 @@ async function callGemini(request, apiKey, model, timeoutMs, attempt = 1) {
 
   if (!response.ok) {
     const retryable = [429, 500, 502, 503, 504].includes(response.status);
-    if (retryable && attempt < 5) {
-      await sleep(1500 * attempt * attempt);
-      return callGemini(request, apiKey, model, timeoutMs, attempt + 1);
+    if (retryable && attempt < maxAttempts) {
+      await sleep(getGeminiRetryDelayMs(response.status, text, attempt, maxRetryWaitMs));
+      return callGemini(request, apiKey, model, timeoutMs, retryOptions, attempt + 1);
     }
     throw new Error(`Gemini ${response.status}: ${text.slice(0, 500)}`);
   }
@@ -234,6 +288,8 @@ async function main() {
     limit: options.limit,
     delay_ms: options.delayMs,
     timeout_ms: options.timeoutMs,
+    max_attempts: options.maxAttempts,
+    max_retry_wait_ms: options.maxRetryWaitMs,
     attempted: 0,
     processed: 0,
     skipped_existing: 0,
@@ -263,7 +319,10 @@ async function main() {
 
       report.attempted += 1;
       try {
-        const response = await callGemini(request, apiKey, options.model, options.timeoutMs);
+        const response = await callGemini(request, apiKey, options.model, options.timeoutMs, {
+          maxAttempts: options.maxAttempts,
+          maxRetryWaitMs: options.maxRetryWaitMs,
+        });
         appendJsonl(resultPath, {
           custom_id: request.custom_id,
           ...response,

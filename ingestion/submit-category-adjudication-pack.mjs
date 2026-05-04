@@ -39,6 +39,35 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 }
 
+function readJsonIfExists(filePath, fallback) {
+  if (!fs.existsSync(filePath)) {
+    return fallback;
+  }
+
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+async function readApiJson(response, context) {
+  const text = await response.text();
+  let body;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    const snippet = text.replace(/\s+/g, ' ').slice(0, 300);
+    throw new Error(`${context} returned non-JSON (${response.status}): ${snippet}`);
+  }
+
+  if (!response.ok) {
+    throw new Error(`${context} failed (${response.status}): ${JSON.stringify(body)}`);
+  }
+
+  return body;
+}
+
 async function uploadOpenAiBatch(jsonlPath, metadata, apiKey, completionWindow) {
   const formData = new FormData();
   formData.append('purpose', 'batch');
@@ -55,9 +84,9 @@ async function uploadOpenAiBatch(jsonlPath, metadata, apiKey, completionWindow) 
     },
     body: formData,
   });
-  const uploadBody = await uploadResponse.json();
-  if (!uploadResponse.ok || !uploadBody?.id) {
-    throw new Error(`OpenAI file upload failed for ${path.basename(jsonlPath)}: ${JSON.stringify(uploadBody)}`);
+  const uploadBody = await readApiJson(uploadResponse, `OpenAI file upload for ${path.basename(jsonlPath)}`);
+  if (!uploadBody?.id) {
+    throw new Error(`OpenAI file upload did not return file id for ${path.basename(jsonlPath)}: ${JSON.stringify(uploadBody)}`);
   }
 
   const batchResponse = await fetch('https://api.openai.com/v1/batches', {
@@ -73,9 +102,9 @@ async function uploadOpenAiBatch(jsonlPath, metadata, apiKey, completionWindow) 
       metadata,
     }),
   });
-  const batchBody = await batchResponse.json();
-  if (!batchResponse.ok || !batchBody?.id) {
-    throw new Error(`OpenAI batch creation failed for ${path.basename(jsonlPath)}: ${JSON.stringify(batchBody)}`);
+  const batchBody = await readApiJson(batchResponse, `OpenAI batch creation for ${path.basename(jsonlPath)}`);
+  if (!batchBody?.id) {
+    throw new Error(`OpenAI batch creation did not return batch id for ${path.basename(jsonlPath)}: ${JSON.stringify(batchBody)}`);
   }
 
   return {
@@ -100,10 +129,36 @@ async function main() {
   }
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  const submissions = [];
+  const outputPath = path.join(packDir, 'openai_submissions.json');
+  const existingPayload = readJsonIfExists(outputPath, {
+    generated_at: new Date().toISOString(),
+    pack_name: manifest.pack_name,
+    model: manifest.model,
+    completion_window: options.completionWindow,
+    submissions: [],
+  });
+  const submissions = Array.isArray(existingPayload.submissions)
+    ? existingPayload.submissions
+    : [];
+  const submittedBucketIds = new Set(submissions.map((item) => item.bucket_id).filter(Boolean));
+
+  function persistSubmissions() {
+    writeJson(outputPath, {
+      ...existingPayload,
+      updated_at: new Date().toISOString(),
+      pack_name: manifest.pack_name,
+      model: manifest.model,
+      completion_window: options.completionWindow,
+      submissions,
+    });
+  }
 
   for (const bucket of manifest.buckets || []) {
     if (!bucket?.total_items) continue;
+    if (submittedBucketIds.has(bucket.id)) {
+      continue;
+    }
+
     const jsonlPath = path.join(ROOT, bucket.files.openai);
     const result = await uploadOpenAiBatch(
       jsonlPath,
@@ -117,23 +172,20 @@ async function main() {
       apiKey,
       options.completionWindow,
     );
-    submissions.push({
+    const submission = {
       bucket_id: bucket.id,
       bucket_label: bucket.label,
       item_count: bucket.total_items,
       file: bucket.files.openai,
       ...result,
-    });
+    };
+    submissions.push(submission);
+    submittedBucketIds.add(bucket.id);
+    persistSubmissions();
+    console.log(`submitted ${bucket.id}: ${submission.batch_id} (${submission.status})`);
   }
 
-  const outputPath = path.join(packDir, 'openai_submissions.json');
-  writeJson(outputPath, {
-    generated_at: new Date().toISOString(),
-    pack_name: manifest.pack_name,
-    model: manifest.model,
-    completion_window: options.completionWindow,
-    submissions,
-  });
+  persistSubmissions();
 
   console.log('Category adjudication batch submission complete');
   console.log(`Pack:        ${packDir}`);

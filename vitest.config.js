@@ -10,7 +10,7 @@ export default mergeConfig(
       setupFiles: './src/test/setupTests.jsx',
       clearMocks: true,
       exclude: [...configDefaults.exclude, 'e2e/**'],
-      pool: 'threads',
+      pool: 'forks',
       maxWorkers: 1,
       fileParallelism: false,
       testTimeout: 20000,

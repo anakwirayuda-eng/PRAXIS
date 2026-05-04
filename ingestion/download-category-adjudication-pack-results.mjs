@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
 import { request } from 'node:https';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -73,6 +73,18 @@ function getResultFileName(item) {
   return inputPath || fallback;
 }
 
+function hasUsableResultFile(filePath) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  try {
+    return statSync(filePath).size > 0;
+  } catch {
+    return false;
+  }
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const packDir = join(OUTPUT_ROOT, options.packName);
@@ -117,8 +129,20 @@ async function main() {
         continue;
       }
 
-      const output = await apiGet(`/v1/files/${batch.output_file_id}/content`, apiKey);
       const targetPath = join(resultsDir, getResultFileName(item));
+      if (hasUsableResultFile(targetPath)) {
+        report.downloaded.push({
+          bucket_id: item.bucket_id,
+          batch_id: item.batch_id,
+          output_file_id: batch.output_file_id,
+          bytes: statSync(targetPath).size,
+          target: targetPath,
+          cached: true,
+        });
+        continue;
+      }
+
+      const output = await apiGet(`/v1/files/${batch.output_file_id}/content`, apiKey);
       writeFileSync(targetPath, output);
       report.downloaded.push({
         bucket_id: item.bucket_id,

@@ -254,6 +254,17 @@ export async function runOrchestrator(taskName, fullDataset, selectorFn, clawFn,
       await logMsg(`✅ Clean batch. Recovering throttle → ${(currentDelay/1000).toFixed(0)}s`);
     }
 
+    if (typeof config.shouldAbort === 'function' && config.shouldAbort({
+      batchIndex: Math.floor(i / config.BATCH_SIZE),
+      batchFailCount,
+      batchSize: batch.length,
+      failCount,
+      successCount,
+    })) {
+      await logMsg(`Abort guard requested stop after batch ${Math.floor(i/config.BATCH_SIZE) + 1}.`);
+      break;
+    }
+
     // 6. Throttle (Skip if DELAY_MS is 0)
     if (currentDelay > 0 && i + config.BATCH_SIZE < targets.length) {
       await logMsg(`⏳ Batch finished. Cooling down API for ${(currentDelay/1000).toFixed(0)}s...`);
