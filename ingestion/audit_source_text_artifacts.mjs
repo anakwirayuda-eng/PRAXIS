@@ -40,6 +40,13 @@ const BUCKETS = {
     description: 'Likely OCR punctuation or source-splicing artifact inside narrative/rationale text.',
     regex: /\b[A-Za-z]\.[A-Za-z]{3,}\b/,
   },
+  embedded_option_series: {
+    lane: 'manual_or_ai',
+    confidence: 'medium',
+    description: 'A-E answer option series appears embedded inside title/prompt/vignette instead of only in options.',
+    regex: /\bA[\.)]\s+\S[\s\S]{0,260}\bB[\.)]\s+\S[\s\S]{0,260}\bC[\.)]\s+\S/,
+    fields: new Set(['title', 'prompt', 'question', 'vignette', 'vignette.narrative']),
+  },
 };
 
 const OCR_SKIP_TOKENS = new Set([
@@ -61,6 +68,11 @@ function ensureDir(dirPath) {
 function writeJson(filePath, value) {
   ensureDir(dirname(filePath));
   writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+}
+
+function isQuarantined(caseRecord) {
+  const meta = caseRecord?.meta || {};
+  return meta.quarantined === true || String(meta.status || '').startsWith('QUARANTINED');
 }
 
 function compactText(value, limit = 180) {
@@ -106,7 +118,25 @@ function shouldSkipOcrCandidate(fieldPath, token) {
   if (fieldPath.startsWith('options.')) {
     return true;
   }
-  return OCR_SKIP_TOKENS.has(token);
+  return OCR_SKIP_TOKENS.has(token) || token === 'j.ajem' || token === 'j.annemergmed';
+}
+
+function shouldSkipEmbeddedOptionSeries(caseRecord, fieldPath, text) {
+  if (!['title', 'prompt', 'question', 'vignette', 'vignette.narrative'].includes(fieldPath)) {
+    return true;
+  }
+
+  const compact = String(text || '').replace(/\s+/g, ' ');
+  if (/\b(?:arrange|proper order|correct sequence|decreasing order|increasing order)\b/i.test(compact)) {
+    return true;
+  }
+  if (/\bfollowing characteristics\b/i.test(compact)) {
+    return true;
+  }
+
+  const options = caseRecord.options || [];
+  const orderOptionCount = options.filter((option) => /(?:>|-|\b[a-d]\b.*\b[a-d]\b)/i.test(String(option?.text || ''))).length;
+  return orderOptionCount >= Math.max(2, Math.ceil(options.length / 2));
 }
 
 function summarizeBucket(items) {
@@ -133,11 +163,23 @@ function summarizeBucket(items) {
 function main() {
   const cases = JSON.parse(readFileSync(DATA_FILE, 'utf8'));
   const hits = Object.fromEntries(Object.keys(BUCKETS).map((name) => [name, []]));
+  let activeCases = 0;
+  let skippedQuarantinedCases = 0;
 
   for (const caseRecord of cases) {
+    if (isQuarantined(caseRecord)) {
+      skippedQuarantinedCases += 1;
+      continue;
+    }
+    activeCases += 1;
+
     const source = compactText(caseRecord?.meta?.source || caseRecord?.source || 'unknown', 64);
     for (const [fieldPath, text] of collectFields(caseRecord)) {
       for (const [bucketName, bucket] of Object.entries(BUCKETS)) {
+        if (bucket.fields && !bucket.fields.has(fieldPath)) {
+          continue;
+        }
+
         const match = text.match(bucket.regex);
         if (!match) {
           continue;
@@ -145,6 +187,10 @@ function main() {
 
         const token = match[0];
         if (bucketName === 'ocr_punctuation_candidate' && shouldSkipOcrCandidate(fieldPath, token)) {
+          continue;
+        }
+
+        if (bucketName === 'embedded_option_series' && shouldSkipEmbeddedOptionSeries(caseRecord, fieldPath, text)) {
           continue;
         }
 
@@ -163,9 +209,12 @@ function main() {
   const report = {
     generated_at: new Date().toISOString(),
     total_cases: cases.length,
+    active_cases: activeCases,
+    skipped_quarantined_cases: skippedQuarantinedCases,
     notes: [
       'This audit focuses on post-normalization source-text roughness outside the main `&;` runtime fix.',
       'Auto-fix buckets are suitable for deterministic cleanup. Manual/AI buckets still need content-aware rewriting or image recovery.',
+      'Quarantined cases are excluded from active artifact counts because they are hidden from the playable UI.',
       'The OCR punctuation bucket is heuristic and intentionally marked low-confidence; use it as a shortlist, not an automatic rewrite target.',
     ],
     buckets: Object.fromEntries(
@@ -185,6 +234,8 @@ function main() {
 
   console.log('Source text artifact audit complete');
   console.log(`  Total cases: ${cases.length}`);
+  console.log(`  Active cases: ${activeCases}`);
+  console.log(`  Skipped quarantined: ${skippedQuarantinedCases}`);
   for (const [name, bucket] of Object.entries(report.buckets)) {
     console.log(`  ${name}: ${bucket.affected_cases} cases`);
   }
