@@ -51,7 +51,7 @@ const BUCKETS = {
     lane: 'auto_fix',
     confidence: 'high',
     description: 'High-confidence OCR/source typos such as missing "rt" in transport/converted/hypertension-style words.',
-    regex: /\b(?:transpo(?:ed|er|ers|ing)?|conve(?:ed|es|ing)?|hypeension|impoant|paicularly|fuher|hemetemesis|malena|ascitis|hea|pa of|Pseudomonea aeuroginosa|aery|aeries|aerial|aoic|(?:ascending|descending|abdominal|thoracic) aoa|veebral|veebrae|veebrate|veebroplasty|poion|coicle|fouh|ceain|paial|paially|staing|cailage|fibrocailage|ahritis|ahroscopy|pubey|poal|poals|veical|firous|diapgragm|distoion|locaton|hyperophy|characterstic|intesity|suppoed|unsuppoed|repo|repos|aicular|synol|compament|discloa\w*|flatenning|displacingthe|transpos(?:the|es)?|co-transpos\w*|cotranspos\w*|paicular|paicipation|retad|aifacts?)\b|interveebral|aEUR[\u2018\u2019'`]?/i,
+    regex: /\b(?:transpo(?:ed|er|ers|ing)?|conve(?:ed|es|ing)?|hypeension|hypeensive|antihypeensives?|impoant|paicularly|fuher|hemetemesis|malena|ascitis|hea|pa of|Pseudomonea aeuroginosa|aery|aeries|aerial|aoic|(?:ascending|descending|abdominal|thoracic) aoa|veebral|veebrae|veebrate|veebroplasty|poion|coicle|fouh|ceain|paial|paially|staing|cailage|fibrocailage|ahritis|ahroscopy|pubey|poal|poals|veical|firous|diapgragm|distoion|locaton|hyperophy|characterstic|intesity|suppoed|unsuppoed|repo|repos|repoed(?:ly)?|aicular|synol|compament|discloa\w*|flatenning|displacingthe|transpos(?:the|es)?|co-transpos\w*|cotranspos\w*|paicular|paicipation|retad|aifacts?|shoer|shoest|shoness|megahase|ahropods?|paicles?|betablockers?|cardiomyopthy|pappilomas?|pappilary|pappilomatous|mensus|Borrlia|abdomianl)\b|interveebral|inveebrate|deoxyribonuc\]eosides|inveed|veigo|aEUR[\u2018\u2019'`]?/i,
   },
 };
 
