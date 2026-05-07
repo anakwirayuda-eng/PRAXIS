@@ -188,7 +188,7 @@ describe('case player FSRS regression coverage', () => {
     expect(selectAnswer).toHaveBeenCalledWith('answer-correct');
   }, 15000);
 
-  it('shows the displayed answer label in review feedback after shuffling', async () => {
+  it('shows the displayed answer label in review feedback', async () => {
     vi.doMock('../components/QuestionFeedback.jsx', () => ({
       QuestionFeedback: () => null,
     }));
@@ -228,6 +228,52 @@ describe('case player FSRS regression coverage', () => {
     expect(correctLetter).toBeTruthy();
     expect(feedback?.textContent).toContain(`The correct answer is ${correctLetter}: Correct option`);
     expect(feedback?.textContent).not.toContain('correct-id');
+  }, 15000);
+
+  it('keeps MCQ options in source order so rationale letter references stay aligned', async () => {
+    vi.doMock('../components/QuestionFeedback.jsx', () => ({
+      QuestionFeedback: () => null,
+    }));
+
+    const { CasePlayerSession } = await import('../pages/CasePlayer.jsx');
+    const caseData = buildCase({
+      _id: 999,
+      options: [
+        { id: 'A', text: 'First source option', is_correct: true, sct_panel_votes: 0 },
+        { id: 'B', text: 'Second source option', is_correct: false, sct_panel_votes: 0 },
+        { id: 'C', text: 'Third source option', is_correct: false, sct_panel_votes: 0 },
+      ],
+      rationale: {
+        correct: 'Option A is correct because it matches the stem.',
+        distractors: {},
+        pearl: '',
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <CasePlayerSession
+          caseData={caseData}
+          caseBank={[caseData]}
+          navigate={vi.fn()}
+          machineState="ANSWERING"
+          selectedAnswer={null}
+          startCase={vi.fn()}
+          selectAnswer={vi.fn()}
+          submitAnswer={vi.fn()}
+          nextCase={vi.fn()}
+          toggleBookmark={vi.fn()}
+          bookmarks={[]}
+          flagQuestion={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getAllByRole('radio').map((option) => option.textContent)).toEqual([
+      'AFirst source option',
+      'BSecond source option',
+      'CThird source option',
+    ]);
   }, 15000);
 
   it('hides blank distractor copy and never renders the correct option as a wrong heading', async () => {

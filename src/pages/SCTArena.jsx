@@ -40,6 +40,10 @@ function charlinScore(options, selectedId) {
   return (selected?.sct_panel_votes || 0) / maxVotes;
 }
 
+function hasUsablePanelVotes(caseData) {
+  return (caseData?.options ?? []).some((option) => Number(option?.sct_panel_votes) > 0);
+}
+
 function concordanceColor(score) {
   if (score >= 0.8) return { bg: 'rgba(16,185,129,0.12)', border: '2px solid var(--accent-success)', color: 'var(--accent-success)' };
   if (score >= 0.4) return { bg: 'rgba(245,158,11,0.12)', border: '2px solid var(--accent-warning)', color: 'var(--accent-warning)' };
@@ -87,7 +91,7 @@ export default function SCTArena() {
       try {
         const { ensureCaseBankLoaded } = await import('../data/caseLoader');
         const allCases = await ensureCaseBankLoaded();
-        const sct = allCases.filter(c => c.q_type === 'SCT' && isCasePlayable(c));
+        const sct = allCases.filter(c => c.q_type === 'SCT' && isCasePlayable(c) && hasUsablePanelVotes(c));
         for (let i = sct.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [sct[i], sct[j]] = [sct[j], sct[i]];
@@ -203,8 +207,11 @@ export default function SCTArena() {
     return (
       <div className="glass-card" style={{ padding: 'var(--sp-8)', textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
         <Shield size={32} style={{ color: 'var(--text-muted)', marginBottom: 'var(--sp-3)' }} />
-        <h2>Belum ada kasus SCT</h2>
-        <p style={{ color: 'var(--text-muted)' }}>Kasus SCT sedang dalam proses kurasi.</p>
+        <h2>SCT Arena sedang dikurasi</h2>
+        <p style={{ color: 'var(--text-muted)' }}>
+          Kasus SCT sudah ada di bank soal, tetapi belum memiliki distribusi panel konsulen yang valid.
+          Arena akan dibuka lagi setelah panel votes tersedia agar Charlin scoring tidak menyesatkan.
+        </p>
       </div>
     );
   }

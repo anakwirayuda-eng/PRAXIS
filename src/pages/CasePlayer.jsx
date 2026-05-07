@@ -418,7 +418,8 @@ export function CasePlayerSession({
     });
   };
   
-  // 🔥 Shuffle options strictly for display, mapping visual letters (A-E) to original IDs
+  // Keep option order stable so free-text rationales that mention "Option A/B"
+  // remain aligned with the labels the learner sees.
   const { displayOptions, letterToActualIdMap } = useMemo(() => {
     const rawOptions = caseData.options ?? [];
     if (isSCT || rawOptions.length === 0) {
@@ -427,27 +428,17 @@ export function CasePlayerSession({
         letterToActualIdMap: Object.fromEntries(rawOptions.map(o => [o.id, o.id])) 
       };
     }
-    
-    // Fisher-Yates shuffle
-    const shuffled = [...rawOptions];
-    // Seed using case ID for stabile shuffle across re-renders
-    let seed = String(caseData._id || '1').split('').reduce((a,b)=>a+b.charCodeAt(0),0);
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      // Pseudo-random but deterministic for the current session to avoid mid-answer jumping
-      const j = Math.floor(Math.abs(Math.sin(seed++) * 10000) % (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    
+
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
     const map = {};
-    const finalOptions = shuffled.map((opt, idx) => {
+    const finalOptions = rawOptions.map((opt, idx) => {
       const letter = letters[idx % letters.length];
       map[letter] = opt.id;
       return { ...opt, displayLetter: letter };
     });
     
     return { displayOptions: finalOptions, letterToActualIdMap: map };
-  }, [caseData._id, caseData.options, isSCT]);
+  }, [caseData.options, isSCT]);
 
   const availableOptionIds = new Set(displayOptions.map((option) => option.id));
   const displayOptionById = useMemo(
