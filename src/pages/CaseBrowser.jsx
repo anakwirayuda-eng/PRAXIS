@@ -260,7 +260,7 @@ export default function CaseBrowser() {
       return [...seededShuffle(unseen, getDailySeed()), ...seededShuffle(seen, getDailySeed() + 1)];
     }
     return deferredSearch ? filtered : seededShuffle(filtered, getDailySeed());
-  }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, reviewMode, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, status, unseenFirst]);
+  }, [bookmarks, caseBank, completedCases, deferredSearch, hideCompleted, hideTruncated, hideUnreviewed, selectedCategory, selectedDifficulty, selectedExam, selectedMode, selectedType, showBookmarksOnly, showImagesOnly, showOnlyReviewed, status, unseenFirst]);
 
   // Genius Hack 2: IntersectionObserver infinite scroll
   // Reset page only when the browsing query actually changes.

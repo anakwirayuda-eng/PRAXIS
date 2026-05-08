@@ -26,7 +26,7 @@ const BLITZ_SIZE = 30; // questions per round
 
 export default function MedBlitz() {
   const navigate = useNavigate();
-  const { cases: caseBank, totalCases, status } = useCaseBank();
+  const { cases: caseBank, status } = useCaseBank();
 
   const [phase, setPhase] = useState('READY'); // READY | PLAYING | RESULT
   const [queue, setQueue] = useState([]);
@@ -59,6 +59,12 @@ export default function MedBlitz() {
   const timerPct = (timer / TIME_PER_Q) * 100;
   const isTimeCritical = timer <= 5;
 
+  const handleTimeout = useCallback(() => {
+    setRevealed(true);
+    setStreak(0);
+    setAnswers(a => [...a, { caseId: current?._id, correct: false, timedOut: true }]);
+  }, [current?._id]);
+
   // Timer
   useEffect(() => {
     if (phase !== 'PLAYING' || revealed) return;
@@ -73,18 +79,12 @@ export default function MedBlitz() {
       });
     }, 1000);
     return () => window.clearInterval(timerRef.current);
-  }, [phase, revealed, idx]);
+  }, [phase, revealed, idx, handleTimeout]);
 
   useEffect(() => () => {
     window.clearInterval(timerRef.current);
     window.clearTimeout(comboTimeoutRef.current);
   }, []);
-
-  const handleTimeout = () => {
-    setRevealed(true);
-    setStreak(0);
-    setAnswers(a => [...a, { caseId: current?._id, correct: false, timedOut: true }]);
-  };
 
   const startBlitz = useCallback(() => {
     const shuffled = [...pool].sort(() => Math.random() - 0.5);

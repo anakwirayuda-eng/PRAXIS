@@ -45,6 +45,30 @@ function normalizeOption(option, index) {
   };
 }
 
+function normalizeOptions(options) {
+  if (!Array.isArray(options)) {
+    return [];
+  }
+
+  const seenIds = new Map();
+  return options.map((option, index) => {
+    const normalized = normalizeOption(option, index);
+    const baseId = normalized.id || String.fromCharCode(65 + index);
+    const seenCount = seenIds.get(baseId) ?? 0;
+    seenIds.set(baseId, seenCount + 1);
+
+    if (seenCount === 0) {
+      return normalized;
+    }
+
+    return {
+      ...normalized,
+      id: `${baseId}__${seenCount + 1}`,
+      source_id: baseId,
+    };
+  });
+}
+
 function compactSearchText(value, maxLength = SEARCH_TEXT_MAX) {
   return String(value ?? '')
     .replace(/\s+/g, ' ')
@@ -161,9 +185,7 @@ function normalizeCase(rawCase, fallbackId) {
         ? meta.category_resolution.resolved_category
         : FALLBACK_CATEGORY);
   const qType = rawCase?.q_type === 'SCT' ? 'SCT' : (rawCase?.q_type === 'CLINICAL_DISCUSSION' ? 'CLINICAL_DISCUSSION' : 'MCQ');
-  const normalizedOptions = Array.isArray(rawCase?.options)
-    ? rawCase.options.map(normalizeOption)
-    : [];
+  const normalizedOptions = normalizeOptions(rawCase?.options);
 
   // Resolve narrative: support rawCase.question, rawCase.vignette (string), or vignette.narrative (object)
   const resolvedNarrative = rawCase?.question

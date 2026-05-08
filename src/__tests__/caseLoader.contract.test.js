@@ -130,6 +130,34 @@ describe('caseLoader runtime contracts', () => {
     expect(normalized._searchKey).toContain('microbiology');
   });
 
+  it('deduplicates repeated source option ids before gameplay state uses them', async () => {
+    const compiledCases = [
+      {
+        title: 'Duplicate option id case',
+        question: 'Choose the best answer.',
+        prompt: 'Choose the best answer.',
+        options: [
+          { id: 'A', text: 'Prompt fragment accidentally parsed as an option', is_correct: false },
+          { id: 'A', text: 'Actual option A', is_correct: true },
+          { id: 'B', text: 'Actual option B', is_correct: false },
+        ],
+        meta: { source: 'ukmppd-web' },
+      },
+    ];
+
+    const { handCraftedCount, loader } = await loadFreshCaseLoader(compiledCases);
+    const normalized = loader.getCaseById(handCraftedCount);
+
+    expect(normalized.options.map((option) => option.id)).toEqual(['A', 'A__2', 'B']);
+    expect(new Set(normalized.options.map((option) => option.id)).size).toBe(normalized.options.length);
+    expect(normalized.options[1]).toMatchObject({
+      id: 'A__2',
+      source_id: 'A',
+      text: 'Actual option A',
+      is_correct: true,
+    });
+  });
+
   it('remaps distractor explanations that were keyed to the correct answer id', async () => {
     const compiledCases = [
       {
