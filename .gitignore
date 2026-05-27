@@ -7,6 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Debug / test output dumps left at repo root
+dbg.txt
+err.txt
+v_err.txt
+extracted_errors.txt
+pw-out.txt
+pw_log.txt
+vi_log*.txt
+vi_out*.json
+vitest-result.json
+vercel.txt
+
 node_modules
 dist
 dist-ssr
