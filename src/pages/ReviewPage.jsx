@@ -137,7 +137,7 @@ export default function ReviewPage() {
       )}
 
       {/* Brain Stats */}
-      <div className="grid grid-4 stagger" style={{ marginBottom: 'var(--sp-6)' }}>
+      <div className="review-stats-grid grid grid-4 stagger" style={{ marginBottom: 'var(--sp-6)' }}>
         {[
           { label: 'Reviewed', value: brainStats.totalReviewed, icon: BookOpen, color: 'var(--accent-primary)' },
           { label: 'Retention', value: `${brainStats.averageRetention}%`, icon: Brain, color: brainStats.averageRetention >= 70 ? 'var(--accent-success)' : 'var(--accent-warning)' },
@@ -153,15 +153,17 @@ export default function ReviewPage() {
       </div>
 
       {/* Controls */}
-      <div className="glass-card" style={{ padding: 'var(--sp-4)', marginBottom: 'var(--sp-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
+      <div className="glass-card review-controls" style={{ padding: 'var(--sp-4)', marginBottom: 'var(--sp-6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--sp-3)' }}>
+        <div className="review-threshold-group" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Retention threshold:</span>
-          {[0.95, 0.9, 0.8, 0.7].map(t => (
-            <button key={t} className={`btn ${threshold === t ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setThreshold(t)} style={{ fontSize: 'var(--fs-sm)' }}>
-              {Math.round(t * 100)}%
-            </button>
-          ))}
+          <div className="review-threshold-buttons">
+            {[0.95, 0.9, 0.8, 0.7].map(t => (
+              <button key={t} className={`btn ${threshold === t ? 'btn-primary' : 'btn-ghost'}`}
+                onClick={() => setThreshold(t)} style={{ fontSize: 'var(--fs-sm)' }}>
+                {Math.round(t * 100)}%
+              </button>
+            ))}
+          </div>
         </div>
         <button className="btn btn-primary btn-lg" onClick={startReviewSession} disabled={dueCards.length === 0}>
           <Play size={18} /> Start Review ({dueCards.length} cards)
@@ -178,7 +180,7 @@ export default function ReviewPage() {
             const state = getCaseState(due.caseId);
 
             return (
-              <Motion.button key={due.caseId} type="button" className="glass-card glass-card-interactive"
+              <Motion.button key={due.caseId} type="button" className="glass-card glass-card-interactive review-due-card"
                 onClick={() => openReviewCase(due.caseId)}
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.03 }}
@@ -196,9 +198,9 @@ export default function ReviewPage() {
                 </div>
 
                 {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="review-due-card__body" style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-1)', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 600, fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span className="review-due-card__title" style={{ fontWeight: 600, fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {c.title}
                     </span>
                   </div>
@@ -212,7 +214,7 @@ export default function ReviewPage() {
                 </div>
 
                 {/* Retention */}
-                <div style={{ minWidth: 100, flex: '1 1 100px' }}>
+                <div className="review-due-card__retention" style={{ minWidth: 100, flex: '1 1 100px' }}>
                   <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 2 }}>Retention</div>
                   <RetentionBar value={due.retrievability} />
                 </div>

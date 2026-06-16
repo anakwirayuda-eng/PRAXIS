@@ -418,7 +418,7 @@ export default function PassPredictor() {
   };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div className="predictor-page" style={{ maxWidth: 800, margin: '0 auto' }}>
       <h1 className="page-title" style={{ marginBottom: 'var(--sp-2)' }}>
         <Dices size={28} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 'var(--sp-2)' }} />
         Pass Predictor
@@ -440,7 +440,7 @@ export default function PassPredictor() {
         <h3 style={{ fontSize: 'var(--fs-md)', marginBottom: 'var(--sp-3)', display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
           <Brain size={18} /> Your Memory State
         </h3>
-        <div className="grid grid-4" style={{ gap: 'var(--sp-3)' }}>
+        <div className="predictor-memory-grid grid grid-4" style={{ gap: 'var(--sp-3)' }}>
           <div>
             <div className="stat-label">Cases Reviewed</div>
             <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 800 }}>{brainStats.totalReviewed}</div>
@@ -466,7 +466,7 @@ export default function PassPredictor() {
         <h3 style={{ fontSize: 'var(--fs-md)', marginBottom: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
           <Settings size={18} /> Exam Configuration
         </h3>
-        <div style={{ display: 'flex', gap: 'var(--sp-3)', marginBottom: 'var(--sp-4)', flexWrap: 'wrap' }}>
+        <div className="predictor-presets" style={{ display: 'flex', gap: 'var(--sp-3)', marginBottom: 'var(--sp-4)', flexWrap: 'wrap' }}>
           {Object.entries(presets).map(([key, preset]) => (
             <button
               key={key}
@@ -479,7 +479,7 @@ export default function PassPredictor() {
           ))}
         </div>
 
-        <div className="grid grid-3" style={{ gap: 'var(--sp-3)' }}>
+        <div className="predictor-config-grid grid grid-3" style={{ gap: 'var(--sp-3)' }}>
           <div>
             <label htmlFor="predictor-total-questions" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginBottom: 'var(--sp-1)' }}>Questions</label>
             <input
@@ -519,7 +519,7 @@ export default function PassPredictor() {
           </div>
         </div>
 
-        <div style={{ marginTop: 'var(--sp-4)', display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="predictor-actions" style={{ marginTop: 'var(--sp-4)', display: 'flex', justifyContent: 'flex-end' }}>
           <button className="btn btn-primary btn-lg" onClick={runSimulation} disabled={running || status !== 'ready'}>
             {running
               ? <><Loader size={18} style={{ animation: 'spin 1s linear infinite' }} /> Simulating...</>
@@ -560,7 +560,7 @@ export default function PassPredictor() {
                 {result.passProbability}%
               </div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, marginBottom: 'var(--sp-3)' }}>Pass Probability</div>
-              <div style={{
+              <div className="predictor-result-pill" style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 'var(--sp-2)',
@@ -587,7 +587,7 @@ export default function PassPredictor() {
               </div>
             </div>
 
-            <div className="grid grid-2" style={{ marginBottom: 'var(--sp-6)' }}>
+            <div className="predictor-result-grid grid grid-2" style={{ marginBottom: 'var(--sp-6)' }}>
               <div className="glass-card" style={{ padding: 'var(--sp-5)' }}>
                 <h3 style={{ fontSize: 'var(--fs-md)', marginBottom: 'var(--sp-4)', display: 'flex', alignItems: 'center', gap: 'var(--sp-2)' }}>
                   <Target size={18} /> Expected Score
